@@ -1,0 +1,24 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "unidevhub@gmail.com",
+                "Name": "Oleksandr Afanasiev"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "Native Home Assistant monitoring and control widget for KDE Plasma 6",
+        "EnabledByDefault": true,
+        "Icon": "network-server-symbolic",
+        "Id": "org.kde.plasma.hahub",
+        "License": "GPL-3.0-or-later",
+        "Name": "HA-Hub",
+        "Version": "1.0.0-beta1",
+        "Website": "https://github.com/Uni-Dev-Hub/HA-hub",
+        "X-Plasma-API-Minimum-Version": "6.0",
+        "X-Plasma-HasConfigurationInterface": true
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-HasConfigurationInterface": true
+}
