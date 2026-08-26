@@ -20,7 +20,6 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 <p align="center">
   <img width="280" alt="HA-Hub Settings General" src="https://github.com/user-attachments/assets/ffc361a8-d30f-4d45-a466-ae91b26eac96" />
   <img width="280" alt="HA-Hub Settings Favorites" src="https://github.com/user-attachments/assets/c8aad2e4-d256-4ff5-84a3-ea3b89caad83" />
-  <img width="280" alt="HA-Hub Settings About" src="https://github.com/user-attachments/assets/2737a38b-68a4-4ec0-8fe6-bb309cd1b4ce" />
 </p>
 ---
 
