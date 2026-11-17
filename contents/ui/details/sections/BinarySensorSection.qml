@@ -47,7 +47,7 @@ ColumnLayout {
                     Layout.fillWidth: true
                 }
                 Kirigami.Icon {
-                    source: HAHelpers.getBinarySensorIcon(detailsPage.primaryEntityObj ? detailsPage.primaryEntityObj.attributes.device_class : "", detailsPage.primaryEntityObj && detailsPage.primaryEntityObj.state === "on")
+                    source: Qt.resolvedUrl("../../../icons/" + HAHelpers.getBinarySensorIcon(detailsPage.primaryEntityObj ? detailsPage.primaryEntityObj.attributes.device_class : "", detailsPage.primaryEntityObj && detailsPage.primaryEntityObj.state === "on") + ".svg"); isMask: true
                     implicitWidth: Kirigami.Units.iconSizes.small
                     implicitHeight: Kirigami.Units.iconSizes.small
                     color: (detailsPage.primaryEntityObj && detailsPage.primaryEntityObj.state === "on") ? Kirigami.Theme.highlightColor : Kirigami.Theme.disabledTextColor

@@ -9,8 +9,18 @@ import "components" as Components
 PlasmoidItem {
     id: root
 
-    Plasmoid.icon: (haManagerService && haManagerService.isConnected) ? "network-server-symbolic" : "network-offline"
+    Plasmoid.icon: Qt.resolvedUrl("../icons/home.svg")
     Plasmoid.title: "HA-Hub"
+
+    // On the desktop we draw our own rounded, theme-tinted background so the
+    // corner radius setting actually applies. In a panel popup Plasma draws the frame.
+    readonly property bool onDesktop: Plasmoid.formFactor === PlasmaCore.Types.Planar
+        || Plasmoid.formFactor === PlasmaCore.Types.MediaCenter
+    Plasmoid.backgroundHints: onDesktop ? PlasmaCore.Types.NoBackground : PlasmaCore.Types.DefaultBackground
+
+    // Keep the full view even when the widget is made small on the desktop
+    switchWidth: Kirigami.Units.gridUnit * 9
+    switchHeight: Kirigami.Units.gridUnit * 8
 
     toolTipMainText: (haManagerService && haManagerService.isConnected)
         ? (haManagerService.serverName || "Home Assistant")
@@ -18,10 +28,8 @@ PlasmoidItem {
 
     toolTipSubText: {
         if (!haManagerService) return i18n("Disconnected");
-        if (!haManagerService.isConnected) {
-            return haManagerService.connectionStatus || i18n("Disconnected");
-        }
-        return i18n("Connected (%1:%2)", haManagerService.host, haManagerService.port);
+        if (!haManagerService.isConnected) return haManagerService.connectionStatus || i18n("Disconnected");
+        return i18n("Connected · %1 entities", haManagerService.entityCount);
     }
 
     readonly property string desktopEntityId: Plasmoid.configuration.desktopEntityId || ""
@@ -73,6 +81,7 @@ PlasmoidItem {
 
     fullRepresentation: FullRepresentation {
         haManager: haManagerService
+        drawOwnBackground: root.onDesktop
         favoriteEntities: root.favoriteEntities
         onConfigureRequested: root.openConfiguration()
     }

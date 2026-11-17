@@ -26,8 +26,20 @@ Item {
     property var _entitiesLowerMap: ({})
 
     property int entitiesRevision: 0
+    // Bumped only when the *set* of listed entities changes (not on every state update)
+    property int listsRevision: 0
+    property int entityCount: 0
+    property var _deviceById: ({})
+    property bool _listsDirty: true
+    property int _reconnectAttempts: 0
+    property bool _awaitingPong: false
+    property int _pingMsgId: 0
     property var discoveredServers: []
     property var userDevicesList: []
+    property var lightsAndSwitchesList: []
+    property var climateAndSensorsList: []
+    property var mediaAndOthersList: []
+    property var allEntitiesList: []
 
     readonly property alias mdns: mdns
     readonly property bool isSearching: mdns ? mdns.isSearching : false
@@ -225,35 +237,148 @@ Item {
         manager.userDevicesList = result;
     }
 
+    function _buildCategorizedLists() {
+        var allKeys = manager.entities ? Object.keys(manager.entities) : [];
+        var lights = [];
+        var sensors = [];
+        var media = [];
+        var all = [];
+
+        var lightDomains = ["light", "switch", "outlet", "fan", "input_boolean"];
+        var sensorDomains = ["sensor", "binary_sensor", "climate", "air_quality", "humidifier", "weather", "water_heater"];
+        var mediaDomains = ["media_player", "vacuum", "cover", "lock", "valve", "scene", "script", "camera", "button", "input_button",
+                            "siren", "alarm_control_panel", "lawn_mower", "person"];
+        var skipDomains = ["zone", "persistent_notification", "sun", "update", "tts", "stt", "conversation", "event",
+                           "image", "todo", "wake_word", "assist_satellite", "ai_task", "notify", "tag"];
+        var reg = manager.entityRegistryMap || {};
+
+        for (var i = 0; i < allKeys.length; i++) {
+            var entId = allKeys[i];
+            var dom = entId.split(".")[0];
+
+            if (skipDomains.indexOf(dom) !== -1) continue;
+            var r = reg[entId];
+            if (r && (r.hidden || r.disabled || r.category === "diagnostic" || r.category === "config")) continue;
+
+            all.push(entId);
+
+            if (lightDomains.indexOf(dom) !== -1) {
+                lights.push(entId);
+            } else if (sensorDomains.indexOf(dom) !== -1) {
+                sensors.push(entId);
+            } else if (mediaDomains.indexOf(dom) !== -1) {
+                media.push(entId);
+            }
+        }
+
+        // Precompute titles once: sorting 700+ entities with lookups inside the comparator is slow
+        var titles = {};
+        for (var t = 0; t < all.length; t++) {
+            titles[all[t]] = HAHelpers.getEntityTitle(all[t], manager.entities[all[t]]).toString().trim().toLowerCase();
+        }
+        function sortList(list) {
+            return list.sort(function(a, b) {
+                return titles[a].localeCompare(titles[b], undefined, { numeric: true, sensitivity: "base" });
+            });
+        }
+
+        manager.lightsAndSwitchesList = sortList(lights);
+        manager.climateAndSensorsList = sortList(sensors);
+        manager.mediaAndOthersList = sortList(media);
+        manager.allEntitiesList = sortList(all);
+        manager.entityCount = all.length;
+        manager._listsDirty = false;
+        manager.listsRevision++;
+    }
+
     Timer {
         id: revisionDebounceTimer
-        interval: 50
+        interval: 80
         repeat: false
         onTriggered: {
+            if (manager._listsDirty) {
+                manager._buildUserDevicesList();
+                manager._buildCategorizedLists();
+            }
             manager.entitiesRevision++;
         }
     }
 
-    function _notifyEntitiesChanged() {
-        manager._buildUserDevicesList();
+    function _notifyEntitiesChanged(structural) {
+        if (structural) manager._listsDirty = true;
         if (!revisionDebounceTimer.running) {
             revisionDebounceTimer.start();
         }
     }
 
     Timer {
+        id: pingTimer
+        interval: 25000
+        repeat: true
+        running: manager.isConnected
+        onTriggered: {
+            if (!manager.isConnected || webSocket.status !== WebSocket.Open) return;
+            if (manager._awaitingPong) {
+                // Previous ping never answered: the connection is dead
+                console.warn("HA-hub: no pong received, reconnecting");
+                manager._awaitingPong = false;
+                manager._dropAndReconnect(i18n("Connection lost, reconnecting…"));
+                return;
+            }
+            manager._awaitingPong = true;
+            manager._pingMsgId = manager.getNextMessageId();
+            manager.safeSend(JSON.stringify({ id: manager._pingMsgId, type: "ping" }));
+        }
+    }
+
+    // Close the socket without the "manual" flag so the normal reconnect path runs
+    function _dropAndReconnect(statusText) {
+        connTimeoutTimer.stop();
+        manager.isConnected = false;
+        manager.state = "ERROR";
+        manager.connectionStatus = statusText;
+        if (webSocket.status === WebSocket.Open || webSocket.status === WebSocket.Connecting) {
+            manager._isManualDisconnecting = true;
+            webSocket.active = false;
+        }
+        manager._scheduleReconnect();
+    }
+
+    // Exponential backoff: 3s, 6s, 12s … capped at 60s
+    function _scheduleReconnect() {
+        if (!manager.autoReconnectAllowed || !manager.accessToken || manager.accessToken.length === 0) return;
+        if (autoReconnectTimer.running) return; // Error is often followed by Closed
+        var delay = Math.min(60000, 3000 * Math.pow(2, manager._reconnectAttempts));
+        manager._reconnectAttempts++;
+        autoReconnectTimer.interval = delay;
+        autoReconnectTimer.restart();
+        manager.connectionStatus = i18n("%1 Retrying in %2 s", manager.connectionStatus.replace(/ Nuovo tentativo.*$/, ""), Math.round(delay / 1000));
+    }
+
+    function reconnect() {
+        manager._reconnectAttempts = 0;
+        manager.disconnectFromHA();
+        manager.startAutoConnect();
+    }
+
+    function refreshStates() {
+        if (!manager.isConnected) {
+            manager.reconnect();
+            return;
+        }
+        manager._listsDirty = true;
+        manager._fetchInitialStates();
+        manager._fetchRegistries();
+    }
+
+    Timer {
         id: connTimeoutTimer
-        interval: 7000
+        interval: 10000
         repeat: false
         onTriggered: {
             if (manager.state === "AUTHENTICATING" || manager.state === "DISCOVERING") {
                 console.warn("HA-hub: Connection timed out for host:", manager.host);
-                manager.disconnectFromHA();
-                manager.state = "ERROR";
-                manager.connectionStatus = i18n("Error: Connection timed out for %1", manager.host);
-                if (manager.autoReconnectAllowed && manager.accessToken.length > 0) {
-                    autoReconnectTimer.start();
-                }
+                manager._dropAndReconnect(i18n("Connection to %1 timed out.", manager.host));
             }
         }
     }
@@ -275,9 +400,9 @@ Item {
             connTimeoutTimer.stop();
             manager.discoveredServers = serverList;
             if (serverList.length > 0) {
-                manager.connectionStatus = i18n("Found devices: %1", serverList.length);
+                manager.connectionStatus = i18n("Servers found: %1", serverList.length);
             } else {
-                manager.connectionStatus = i18n("No devices found in local network");
+                manager.connectionStatus = i18n("No servers found on the local network");
             }
         }
     }
@@ -287,17 +412,21 @@ Item {
         active: false
 
         onStatusChanged: function() {
-            if (webSocket.status === WebSocket.Error) {
+            if (webSocket.status === WebSocket.Open) {
+                manager._isManualDisconnecting = false;
+            } else if (webSocket.status === WebSocket.Error) {
                 connTimeoutTimer.stop();
-                var err = webSocket.errorString || i18n("Unable to connect to server");
+                var err = webSocket.errorString || i18n("Unable to reach the server");
+                var msg;
                 if (manager.useSsl && (err.indexOf("wrong version number") !== -1 || err.indexOf("SSL routines") !== -1 || err.indexOf("handshake") !== -1)) {
-                    manager.connectionStatus = i18n("SSL Error: HA server is running without SSL. Uncheck 'SSL (wss://)'");
+                    msg = i18n("SSL error: the server does not use SSL. Disable “wss://”.");
                 } else {
-                    manager.connectionStatus = i18n("Error: %1", err);
+                    msg = i18n("Error: %1.", err);
                 }
                 manager.state = "ERROR";
                 manager.isConnected = false;
-                if (manager.autoReconnectAllowed) autoReconnectTimer.start();
+                manager.connectionStatus = msg;
+                manager._scheduleReconnect();
             } else if (webSocket.status === WebSocket.Closed) {
                 connTimeoutTimer.stop();
 
@@ -308,12 +437,10 @@ Item {
 
                 if (manager.state !== "ERROR") {
                     manager.state = "DISCONNECTED";
-                    manager.connectionStatus = i18n("Disconnected");
+                    manager.connectionStatus = i18n("Connection closed.");
                 }
                 manager.isConnected = false;
-                if (manager.autoReconnectAllowed && manager.accessToken.length > 0) {
-                    autoReconnectTimer.start();
-                }
+                manager._scheduleReconnect();
             }
         }
 
@@ -338,26 +465,28 @@ Item {
     }
 
     function getDeviceRaw(deviceId) {
-        if (!deviceId || !devicesList) return null;
-        for (var i = 0; i < devicesList.length; i++) {
-            if (devicesList[i].id === deviceId) return devicesList[i];
-        }
-        return null;
+        if (!deviceId) return null;
+        return _deviceById[deviceId] || null;
     }
 
     function _connectSocket() {
         if (!accessToken || accessToken.length === 0) {
             state = "ERROR";
-            connectionStatus = i18n("Please enter Access Token");
+            connectionStatus = i18n("Please enter the access token");
             return;
         }
 
-        _isManualDisconnecting = true;
+        // Only expect a Closed event if a socket is actually open; otherwise the
+        // flag would stay set and swallow the next real disconnect (no auto-reconnect).
+        if (webSocket.status === WebSocket.Open || webSocket.status === WebSocket.Connecting) {
+            _isManualDisconnecting = true;
+        }
         webSocket.active = false;
+        _awaitingPong = false;
 
         connTimeoutTimer.restart();
         state = "AUTHENTICATING";
-        connectionStatus = i18n("Connecting to %1:%2...", host, port);
+        connectionStatus = i18n("Connecting to %1:%2…", host, port);
 
         var protocol = useSsl ? "wss://" : "ws://";
         var targetUrl = protocol + host + ":" + port + "/api/websocket";
@@ -378,7 +507,7 @@ Item {
     function runAutoDiscovery() {
         if (mdns && mdns.isSearching) return;
         manager.discoveredServers = [];
-        connectionStatus = i18n("Searching for servers in network...");
+        connectionStatus = i18n("Searching for servers on the network…");
         mdns.startDiscovery(host);
     }
 
@@ -407,8 +536,11 @@ Item {
     function disconnectFromHA() {
         autoReconnectTimer.stop();
         connTimeoutTimer.stop();
-        _isManualDisconnecting = true;
+        if (webSocket.status === WebSocket.Open || webSocket.status === WebSocket.Connecting) {
+            _isManualDisconnecting = true;
+        }
         webSocket.active = false;
+        _awaitingPong = false;
         state = "DISCONNECTED";
         connectionStatus = i18n("Disconnected");
         isConnected = false;
@@ -426,6 +558,10 @@ Item {
         if (!parsed.success) return;
         var msg = parsed.data;
 
+        if (msg.type === "pong") {
+            manager._awaitingPong = false;
+            return;
+        }
         if (msg.type === "ping") {
             manager.safeSend(JSON.stringify({ type: "pong", id: msg.id }));
             return;
@@ -440,6 +576,9 @@ Item {
             isConnected = true;
             state = "CONNECTED";
             connectionStatus = i18n("Connected");
+            _reconnectAttempts = 0;
+            _awaitingPong = false;
+            _listsDirty = true;
             manager.saveSharedCredentials();
             manager._subscribeToEvents();
             manager._fetchInitialStates();
@@ -449,9 +588,9 @@ Item {
         if (msg.type === "auth_invalid") {
             connTimeoutTimer.stop();
             autoReconnectTimer.stop();
-            state = "ERROR";
-            connectionStatus = i18n("Invalid Access Token");
             manager.disconnectFromHA();
+            state = "ERROR";
+            connectionStatus = i18n("Invalid access token");
             return;
         }
 
@@ -468,11 +607,20 @@ Item {
 
         if (msg.type === "event" && msg.event && msg.event.event_type === "state_changed") {
             var eventData = msg.event.data;
-            if (eventData && eventData.entity_id && eventData.new_state) {
+            if (eventData && eventData.entity_id) {
                 var entId = eventData.entity_id;
-                manager.entities[entId] = eventData.new_state;
-                manager._entitiesLowerMap[entId.toLowerCase()] = eventData.new_state;
-                manager._notifyEntitiesChanged();
+                var old = manager.entities[entId];
+                if (!eventData.new_state) {
+                    delete manager.entities[entId];
+                    delete manager._entitiesLowerMap[entId.toLowerCase()];
+                    manager._notifyEntitiesChanged(true);
+                } else {
+                    manager.entities[entId] = eventData.new_state;
+                    manager._entitiesLowerMap[entId.toLowerCase()] = eventData.new_state;
+                    var oldName = old && old.attributes ? old.attributes.friendly_name : undefined;
+                    var newName = eventData.new_state.attributes ? eventData.new_state.attributes.friendly_name : undefined;
+                    manager._notifyEntitiesChanged(!old || oldName !== newName);
+                }
             }
             return;
         }
@@ -500,19 +648,24 @@ Item {
             }
             manager.entities = temp;
             manager._entitiesLowerMap = tempLower;
-            manager._notifyEntitiesChanged();
+            manager._notifyEntitiesChanged(true);
             return;
         }
 
         if (msg.type === "result" && msg.id === _getAreasMsgId && msg.success && msg.result) {
             manager.areasList = msg.result || [];
-            manager._notifyEntitiesChanged();
+            manager._notifyEntitiesChanged(true);
             return;
         }
 
         if (msg.type === "result" && msg.id === _getDevicesMsgId && msg.success && msg.result) {
             var devs = msg.result || [];
             var devToArea = {};
+            var byId = {};
+            for (var b = 0; b < devs.length; b++) {
+                if (devs[b] && devs[b].id) byId[devs[b].id] = devs[b];
+            }
+            manager._deviceById = byId;
             manager.devicesList = devs;
             for (var d = 0; d < devs.length; d++) {
                 if (devs[d].id && devs[d].area_id) {
@@ -562,7 +715,7 @@ Item {
             manager.entityToDeviceMap = entToDev;
             manager.deviceToEntitiesMap = devToEnts;
             manager._buildFormattedDevices();
-            manager._notifyEntitiesChanged();
+            manager._notifyEntitiesChanged(true);
             return;
         }
     }
