@@ -97,6 +97,16 @@ Run `translate/build.sh --package` to build the `.plasmoid` archive.
   via Claude Code), after an earlier exploratory pass in Google Antigravity, and reviewed
   and tested by the maintainer on a real Home Assistant setup.
 
+## Contributors
+
+| | Role |
+|---|---|
+| [Oleksandr Afanasiev](https://github.com/Uni-Dev-Hub) | Original author of HA-Hub |
+| [ThePierlux](https://github.com/ThePierlux) | Fork maintainer, design direction, testing |
+| Claude (Anthropic) | Code for the 2.0 rework, via [Claude Code](https://claude.com/claude-code) |
+
+Contributions and translations are welcome.
+
 ## License
 
 GPL-3.0-or-later, same as the original project. See [LICENSE](LICENSE).

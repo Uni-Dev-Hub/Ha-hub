@@ -9,6 +9,11 @@
             {
                 "Name": "ThePierlux",
                 "Webpage": "https://github.com/ThePierlux"
+            },
+            {
+                "Name": "Claude (Anthropic)",
+                "Email": "noreply@anthropic.com",
+                "Webpage": "https://claude.com/claude-code"
             }
         ],
         "Category": "System Information",
