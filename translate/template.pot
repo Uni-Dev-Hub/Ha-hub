@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: HA-Hub Revived 2.0.0\n"
+"Project-Id-Version: HA-Hub Revived 2.0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 13:50+0100\n"
+"POT-Creation-Date: 2026-11-17 13:54+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -823,31 +823,31 @@ msgstr ""
 msgid "Favorite Devices"
 msgstr ""
 
-#: contents/ui/settings/ConfigFavorites.qml:192
+#: contents/ui/settings/ConfigFavorites.qml:195
 msgid "Please wait, loading data..."
 msgstr ""
 
-#: contents/ui/settings/ConfigFavorites.qml:200
+#: contents/ui/settings/ConfigFavorites.qml:203
 msgid "Connecting to Home Assistant..."
 msgstr ""
 
-#: contents/ui/settings/ConfigFavorites.qml:223
+#: contents/ui/settings/ConfigFavorites.qml:226
 msgid "Connection Error"
 msgstr ""
 
-#: contents/ui/settings/ConfigFavorites.qml:232
+#: contents/ui/settings/ConfigFavorites.qml:235
 msgid "Retry Connection"
 msgstr ""
 
-#: contents/ui/settings/ConfigFavorites.qml:253
+#: contents/ui/settings/ConfigFavorites.qml:256
 msgid "Search device by name or ID..."
 msgstr ""
 
-#: contents/ui/settings/ConfigFavorites.qml:271
+#: contents/ui/settings/ConfigFavorites.qml:274
 msgid "All (%1)"
 msgstr ""
 
-#: contents/ui/settings/ConfigFavorites.qml:274
+#: contents/ui/settings/ConfigFavorites.qml:277
 msgid "Favorites (%1)"
 msgstr ""
 

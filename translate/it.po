@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HA-Hub Revived\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 13:50+0100\n"
+"POT-Creation-Date: 2026-11-17 13:54+0100\n"
 "Language-Team: Italian\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -816,31 +816,31 @@ msgstr "Connesso · %1 entità"
 msgid "Favorite Devices"
 msgstr "Dispositivi preferiti"
 
-#: contents/ui/settings/ConfigFavorites.qml:192
+#: contents/ui/settings/ConfigFavorites.qml:195
 msgid "Please wait, loading data..."
 msgstr "Caricamento dati…"
 
-#: contents/ui/settings/ConfigFavorites.qml:200
+#: contents/ui/settings/ConfigFavorites.qml:203
 msgid "Connecting to Home Assistant..."
 msgstr "Connessione a Home Assistant…"
 
-#: contents/ui/settings/ConfigFavorites.qml:223
+#: contents/ui/settings/ConfigFavorites.qml:226
 msgid "Connection Error"
 msgstr "Errore di connessione"
 
-#: contents/ui/settings/ConfigFavorites.qml:232
+#: contents/ui/settings/ConfigFavorites.qml:235
 msgid "Retry Connection"
 msgstr "Riprova"
 
-#: contents/ui/settings/ConfigFavorites.qml:253
+#: contents/ui/settings/ConfigFavorites.qml:256
 msgid "Search device by name or ID..."
 msgstr "Cerca per nome o ID…"
 
-#: contents/ui/settings/ConfigFavorites.qml:271
+#: contents/ui/settings/ConfigFavorites.qml:274
 msgid "All (%1)"
 msgstr "Tutti (%1)"
 
-#: contents/ui/settings/ConfigFavorites.qml:274
+#: contents/ui/settings/ConfigFavorites.qml:277
 msgid "Favorites (%1)"
 msgstr "Preferiti (%1)"
 

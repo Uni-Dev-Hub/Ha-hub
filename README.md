@@ -5,7 +5,7 @@ control and monitor Home Assistant from your Plasma desktop or panel.
 
 ![KDE Plasma 6](https://img.shields.io/badge/KDE_Plasma-6.0+-blue?logo=kde)
 ![License](https://img.shields.io/badge/License-GPL--3.0--or--later-green)
-![Version](https://img.shields.io/badge/Version-2.0.0-orange)
+![Version](https://img.shields.io/badge/Version-2.0.1-orange)
 
 > **A note from the maintainer.** I really liked the idea behind HA-Hub, so I decided to improve
 > it for my own needs. I have no intention whatsoever of taking credit for the original
@@ -56,9 +56,9 @@ control and monitor Home Assistant from your Plasma desktop or panel.
 
 ### Manual
 ```bash
-kpackagetool6 --type Plasma/Applet --install io.github.thepierlux.hahubrevived-2.0.0.plasmoid
+kpackagetool6 --type Plasma/Applet --install io.github.thepierlux.hahubrevived-2.0.1.plasmoid
 # update:
-kpackagetool6 --type Plasma/Applet --upgrade io.github.thepierlux.hahubrevived-2.0.0.plasmoid
+kpackagetool6 --type Plasma/Applet --upgrade io.github.thepierlux.hahubrevived-2.0.1.plasmoid
 ```
 
 ### From source

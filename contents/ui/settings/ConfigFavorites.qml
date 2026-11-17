@@ -126,7 +126,8 @@ Kirigami.Page {
 
         var entObj = haManager.getEntity(cleanId);
         var devId = haManager.entityToDeviceMap ? (haManager.entityToDeviceMap[cleanId] || "") : "";
-        var title = HAHelpers.getDeviceTitle(cleanId, entObj, devId, haManager);
+        // Entity name, not device name: multi-gang channels share one device
+        var title = HAHelpers.getEntityTitle(cleanId, entObj);
         var areaName = HAHelpers.getAreaName(cleanId, haManager);
         var statusText = HAHelpers.getStatusDetailsText(cleanId, entObj, devId, haManager);
 
@@ -142,9 +143,11 @@ Kirigami.Page {
         };
     }
 
+    // Every visible entity (one per channel of multi-gang switches, template
+    // switches without a device, ...), not just one "primary" entity per device.
     readonly property var rawAllEntitiesList: {
-        var rev = haManager ? haManager.entitiesRevision : 0;
-        return (haManager && haManager.userDevicesList) ? haManager.userDevicesList : [];
+        var rev = haManager ? haManager.listsRevision : 0;
+        return (haManager && haManager.allEntitiesList) ? haManager.allEntitiesList : [];
     }
 
     readonly property var filteredAllEntitiesList: {
