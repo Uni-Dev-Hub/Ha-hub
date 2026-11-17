@@ -7,9 +7,14 @@ control and monitor Home Assistant from your Plasma desktop or panel.
 ![License](https://img.shields.io/badge/License-GPL--3.0--or--later-green)
 ![Version](https://img.shields.io/badge/Version-2.0.0-orange)
 
-> **Why a fork?** The original project has had no activity since its first release, and its
-> issues are unanswered. HA-Hub Revived continues it under the same GPL-3.0 license, with full
-> credit to the original author. If upstream becomes active again, fixes are happily offered back.
+> **A note from the maintainer.** I really liked the idea behind HA-Hub, so I decided to improve
+> it for my own needs. I have no intention whatsoever of taking credit for the original
+> developer's work: this fork only aims to build on it and make it better. All the merit for
+> the idea and the foundations belongs to Oleksandr Afanasiev.
+>
+> The original project has had no activity since its first release, so the improvements live
+> here, under the same GPL-3.0 license. If upstream becomes active again, I'll gladly offer
+> these changes back.
 
 ---
 
