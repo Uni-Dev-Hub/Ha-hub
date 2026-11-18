@@ -26,7 +26,7 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 ## Features
 
 - **Real-Time WebSocket Sync:** Direct connection to Home Assistant WebSocket API with instantaneous two-way state updates and auto-reconnect.
-- **Local Network Auto-Discovery:** Automatically scans and detects Home Assistant instances on your LAN.
+- **Local Network Auto-Discovery:** Automatically detects Home Assistant instances on your local network by probing common hostnames (`homeassistant.local`, etc.) or connect to any host/port manually.
 - **Support for 15+ Device Domains:**
   - **Lights:** Brightness adjustment, HSV color picker, Kelvin color temperature, and lighting effects.
   - **Climate & Thermostats:** Target temperature, HVAC operating modes (Heat, Cool, Auto), fan and swing presets.
@@ -67,6 +67,42 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 
 ---
 
+## Development
+
+### Install from a git checkout
+
+```sh
+kpackagetool6 --type Plasma/Applet --install /path/to/HA-hub
+# after editing files:
+kpackagetool6 --type Plasma/Applet --upgrade /path/to/HA-hub
+```
+
+### Running tests
+
+JS unit tests (plain Node.js ≥ 20, no dependencies):
+
+```sh
+node --test tests/js/*.test.js
+```
+
+QML unit tests (requires Qt 6 `qmltestrunner` and the Plasma QML modules
+`org.kde.plasma.core` / `org.kde.plasma.plasmoid`):
+
+```sh
+./tests/run_qml_tests.sh
+```
+
+### Building a .plasmoid package
+
+```sh
+./scripts/make-plasmoid.sh   # writes dist/org.kde.plasma.hahub-<version>.plasmoid
+```
+
+Pushing a tag named exactly like the `metadata.json` version (e.g. `v1.0.0-beta2`)
+builds the package and publishes a GitHub Release automatically.
+
+---
+
 ## Feedback & Community
 
 The **Dashboard** tab is currently in active concept development. We welcome your feedback, feature requests, and ideas:
@@ -77,4 +113,4 @@ The **Dashboard** tab is currently in active concept development. We welcome you
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0 or later](LICENSE).
+This project is licensed under the [GNU General Public License v3.0 or later](LICENSE). See the [Changelog](CHANGELOG.md) for recent changes.
