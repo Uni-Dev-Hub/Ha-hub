@@ -37,18 +37,14 @@ Kirigami.Page {
         host: favoritesSettings.cfg_host
         port: parseInt(favoritesSettings.cfg_port) || 8123
         useSsl: favoritesSettings.cfg_useSsl
-        accessToken: favoritesSettings.cfg_accessToken
         includeHiddenEntities: favoritesSettings.cfg_showHiddenEntities
         includeDiagnosticEntities: favoritesSettings.cfg_showDiagnosticEntities
     }
 
     Component.onCompleted: {
-        if (!favoritesSettings.cfg_host || favoritesSettings.cfg_host.length === 0 ||
-            !favoritesSettings.cfg_accessToken || favoritesSettings.cfg_accessToken.length === 0) {
-            haManager.loadSharedCredentials();
-        } else {
-            haManager.startAutoConnect();
-        }
+        // HAManager prefers the shared credential store; startAutoConnect()
+        // loads from it and connects when credentials exist.
+        haManager.startAutoConnect();
         favoritesSettings.loadFavoriteSet();
     }
 

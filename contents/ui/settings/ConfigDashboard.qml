@@ -39,16 +39,12 @@ Kirigami.ScrollablePage {
         host: dashboardSettings.cfg_host
         port: parseInt(dashboardSettings.cfg_port) || 8123
         useSsl: dashboardSettings.cfg_useSsl
-        accessToken: dashboardSettings.cfg_accessToken
     }
 
     Component.onCompleted: {
-        if (!dashboardSettings.cfg_host || dashboardSettings.cfg_host.length === 0 ||
-            !dashboardSettings.cfg_accessToken || dashboardSettings.cfg_accessToken.length === 0) {
-            haManager.loadSharedCredentials();
-        } else {
-            haManager.startAutoConnect();
-        }
+        // HAManager prefers the shared credential store; startAutoConnect()
+        // loads from it and connects when credentials exist.
+        haManager.startAutoConnect();
     }
 
     readonly property var existingCardSet: {

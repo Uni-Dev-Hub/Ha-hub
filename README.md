@@ -62,7 +62,7 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 
 1. Add **HA-Hub** to your Plasma panel or desktop.
 2. In the setup wizard, select your discovered Home Assistant instance or enter your host IP (e.g., `homeassistant.local` or `192.168.1.100`) and port (default `8123`).
-3. Generate a **Long-Lived Access Token** in your Home Assistant user profile (`/profile/security`) and paste it into the widget settings.
+3. Generate a **Long-Lived Access Token** in your Home Assistant user profile (`/profile/security`) and paste it into the widget settings. The token is kept in the widget's private shared storage (used by all HA-Hub instances) and is not written to Plasma's config file.
 4. Pin your favorite devices in the **Favorite Devices** settings tab.
 
 ---

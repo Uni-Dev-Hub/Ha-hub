@@ -65,6 +65,16 @@ Kirigami.ScrollablePage {
             onTextEdited: generalSettings.cfg_accessToken = text
         }
 
+        Controls.Label {
+            visible: generalSettings.cfg_accessToken.length === 0
+            text: i18n("A previously saved token is kept in the widget's private storage and used automatically. Enter a new token here only to replace it.")
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
+            font.italic: true
+            opacity: Kirigami.Theme.disabledTextColor.a
+            Kirigami.FormData.isEdgeToEdge: true
+        }
+
         Controls.CheckBox {
             id: autoConnectCheckBox
             Kirigami.FormData.label: i18n("Auto Connect:")

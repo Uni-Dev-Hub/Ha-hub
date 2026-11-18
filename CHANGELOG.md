@@ -14,6 +14,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New unit tests for entity helpers, WebSocket payloads and the device catalog (including QML tests for catalog updates via `state_changed` and pending-request cleanup).
 
 ### Changed
+- The access token is now stored in a single place (the widget's shared private storage) and is removed from Plasma's config file (`plasmarc`) once persisted. Direct KWallet access is not possible from pure-QML applets on Plasma 6 (no QML API exists; tracked for a future C++ extension).
 - All WebSocket requests (`get_states`, registries, `call_service`) are dispatched through per-request callbacks; concurrent registry refreshes can no longer overwrite each other's message ids.
 - Device catalog titles now refresh immediately when a friendly name changes through `state_changed` events, and removed entities are dropped from the catalog right away.
 - Default HA host is `homeassistant.local` instead of a hard-coded LAN IP.

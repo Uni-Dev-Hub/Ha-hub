@@ -58,7 +58,6 @@ PlasmoidItem {
         host: Plasmoid.configuration.host || ""
         port: Plasmoid.configuration.port || 8123
         useSsl: Plasmoid.configuration.useSsl || false
-        accessToken: Plasmoid.configuration.accessToken || ""
         serverName: Plasmoid.configuration.serverName || "Home Assistant"
     }
 

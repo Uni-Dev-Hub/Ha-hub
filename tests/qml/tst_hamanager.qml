@@ -10,6 +10,7 @@ TestCase {
     }
 
     function init() {
+        manager._sharedToken = ""
         manager.entities = {
             "switch.gang_1": { entity_id: "switch.gang_1", state: "on", attributes: { friendly_name: "Gang 1" } },
             "switch.gang_2": { entity_id: "switch.gang_2", state: "off", attributes: { friendly_name: "Gang 2" } },
@@ -130,5 +131,20 @@ TestCase {
         compare(msgId, 0)
         compare(called, 1)
         compare(gotError, "not_connected")
+    }
+
+    function test_token_prefers_shared_store() {
+        manager._configToken = ""
+        manager._sharedToken = ""
+        compare(manager.accessToken, "")
+
+        manager._sharedToken = "db-token"
+        compare(manager.accessToken, "db-token")
+    }
+
+    function test_load_shared_credentials_skips_db_when_token_in_memory() {
+        manager._sharedToken = "db-token"
+        verify(manager.loadSharedCredentials())
+        compare(manager._sharedToken, "db-token")
     }
 }

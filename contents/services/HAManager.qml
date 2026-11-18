@@ -15,8 +15,27 @@ Item {
     property string host: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.host || "") : ""
     property int port: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.port || 8123) : 8123
     property bool useSsl: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.useSsl || false) : false
-    property string accessToken: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.accessToken || "") : ""
     property string serverName: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.serverName || "Home Assistant") : "Home Assistant"
+
+    // Token storage policy: the Long-Lived Access Token lives in ONE place,
+    // the shared LocalStorage DB (HAStorage), so every HA-Hub instance can
+    // use it and no plaintext copy is left in plasmarc. Plasmoid.configuration
+    // is only a transport for freshly typed tokens (settings page / wizard);
+    // it is wiped as soon as the token has been persisted. KWallet is not
+    // available to pure-QML applets on Plasma 6, this is the best we can do
+    // without shipping a C++ extension.
+    property string _configToken: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.accessToken || "") : ""
+    property string _sharedToken: ""
+    property string accessToken: manager._sharedToken.length > 0 ? manager._sharedToken : manager._configToken
+
+    on_ConfigTokenChanged: {
+        // A token arrived through kcfg (settings page apply): adopt it and
+        // move it into the shared store right away.
+        if (manager._configToken.length > 0) {
+            manager._sharedToken = manager._configToken;
+            if (manager.isConnected) manager.saveSharedCredentials();
+        }
+    }
 
     property string state: "DISCONNECTED"
     property string connectionStatus: i18n("Disconnected")
@@ -98,31 +117,44 @@ Item {
             try {
                 if (h !== undefined) Plasmoid.configuration.host = h;
                 if (p !== undefined) Plasmoid.configuration.port = p;
-                if (t !== undefined) Plasmoid.configuration.accessToken = t;
+                // The token never goes into plasmarc; it lives in the shared
+                // in-memory/store layer (_sharedToken) only.
+                if (t !== undefined) manager._sharedToken = t;
                 if (s !== undefined) Plasmoid.configuration.useSsl = s;
                 if (name !== undefined) Plasmoid.configuration.serverName = name;
             } catch (e) {}
         } else {
             if (h !== undefined) host = h;
             if (p !== undefined) port = p;
-            if (t !== undefined) accessToken = t;
+            if (t !== undefined) manager._sharedToken = t;
             if (s !== undefined) useSsl = s;
             if (name !== undefined) serverName = name;
         }
     }
 
     function loadSharedCredentials() {
-        if (accessToken && accessToken.length > 0) return true;
+        if (manager.accessToken.length > 0) return true;
         var loaded = HAStorage.loadSharedCredentials(LocalStorage, host, port, serverName);
         if (loaded) {
-            manager._updateCredentials(loaded.host, loaded.port, loaded.accessToken, loaded.useSsl, loaded.serverName);
+            manager._updateCredentials(loaded.host, loaded.port, undefined, loaded.useSsl, loaded.serverName);
+            manager._sharedToken = loaded.accessToken;
             return true;
         }
         return false;
     }
 
     function saveSharedCredentials() {
-        HAStorage.saveSharedCredentials(LocalStorage, host, port, accessToken, useSsl, serverName);
+        if (manager.accessToken.length === 0) return false;
+        manager._sharedToken = manager.accessToken;
+        var saved = HAStorage.saveSharedCredentials(LocalStorage, host, port, manager._sharedToken, useSsl, serverName);
+        // Single-store policy: drop the plaintext copy from plasmarc once the
+        // shared store has the token.
+        if (saved && typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) {
+            try {
+                if (Plasmoid.configuration.accessToken !== "") Plasmoid.configuration.accessToken = "";
+            } catch (e) {}
+        }
+        return saved;
     }
 
     function isSecondaryEntity(entId) {
