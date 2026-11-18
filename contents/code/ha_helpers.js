@@ -121,6 +121,53 @@ function getDeviceDisplayName(dev, fallback) {
     return dev.name_by_user || dev.name || fallback || dev.id || "";
 }
 
+// "switch.gang_1_door" -> "Gang 1 door" - used to label channels of devices
+// whose entities all inherit the same (device) name.
+function humanizeEntityObjectName(entId) {
+    if (!entId) return "";
+    var dot = entId.indexOf(".");
+    var obj = dot !== -1 ? entId.substring(dot + 1) : entId;
+    var words = obj.split(/[_-]+/).filter(function (w) { return w.length > 0; });
+    if (words.length === 0) return "";
+    words[0] = words[0].charAt(0).toUpperCase() + words[0].substring(1);
+    return words.join(" ");
+}
+
+// Multi-gang switches and similar devices expose several entities that all
+// inherit the device's name. Without help the UI shows the same title twice
+// and the user cannot tell which channel controls what. Mutates the given
+// catalog entries in place: entries that share deviceId AND title get the
+// entity's own object name appended ("Corridor • Light", "Corridor • Toilet").
+function disambiguateCatalogTitles(entries) {
+    if (!entries || entries.length === 0) return entries;
+    var counts = {};
+    var i, key;
+    for (i = 0; i < entries.length; i++) {
+        var e = entries[i];
+        if (!e.deviceId || !e.name) continue;
+        key = e.deviceId + "\u0000" + e.name;
+        counts[key] = (counts[key] || 0) + 1;
+    }
+    for (i = 0; i < entries.length; i++) {
+        var entry = entries[i];
+        if (!entry.deviceId || !entry.name) continue;
+        key = entry.deviceId + "\u0000" + entry.name;
+        if ((counts[key] || 0) <= 1) continue;
+        var suffix = humanizeEntityObjectName(entry.id || entry.entityId || "");
+        if (!suffix) continue;
+        // "Corridor light" under a device titled "Corridor" -> just "Light".
+        if (suffix.length > entry.name.length + 1 &&
+            suffix.toLowerCase().indexOf(entry.name.toLowerCase()) === 0) {
+            var rest = suffix.substring(entry.name.length).replace(/^[\s.-]+/, "");
+            if (rest) suffix = rest.charAt(0).toUpperCase() + rest.substring(1);
+        }
+        if (suffix && entry.name.indexOf(suffix) === -1) {
+            entry.name = entry.name + " • " + suffix;
+        }
+    }
+    return entries;
+}
+
 function getLabelName(labelId, haManager) {
     if (!haManager || !labelId || !haManager._labelById) return labelId || "";
     var label = haManager._labelById[labelId];

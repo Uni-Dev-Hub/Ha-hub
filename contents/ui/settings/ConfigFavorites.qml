@@ -130,7 +130,8 @@ Kirigami.Page {
 
         var entObj = haManager.getEntity(cleanId);
         var regInfo = haManager.getEntityRegistry ? haManager.getEntityRegistry(cleanId) : null;
-        var title = HAHelpers.getEntityTitle(cleanId, entObj, regInfo, haManager);
+        var entry = haManager.getCatalogEntry ? haManager.getCatalogEntry(cleanId) : null;
+        var title = entry && entry.name ? entry.name : HAHelpers.getEntityTitle(cleanId, entObj, regInfo, haManager);
         var areaName = HAHelpers.getAreaName(cleanId, haManager);
         var entry = haManager.getCatalogEntry ? haManager.getCatalogEntry(cleanId) : null;
         var deviceName = entry && entry.deviceName ? entry.deviceName : "";

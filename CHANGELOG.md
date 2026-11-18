@@ -3,7 +3,12 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.0.0] - 2026-11-19
+
+First stable release. Highlights over the beta: real card-style dashboard with
+live layout preview, entity pickers with domain/area filters, per-channel
+display of multi-gang devices, built-in localization (9 languages, instant
+switching from settings) and hardened connection handling.
 
 ### Added
 - CI workflow: JS unit tests, package metadata validation and `.plasmoid` build artifacts (GitHub Actions).

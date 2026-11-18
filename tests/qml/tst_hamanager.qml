@@ -61,6 +61,31 @@ TestCase {
         verify(manager.deviceGroups[0].entityIds.indexOf("switch.gang_2") !== -1)
     }
 
+    function test_area_lists_every_control_channel() {
+        var kitchen = null
+        for (var i = 0; i < manager.areaGroups.length; i++) {
+            if (manager.areaGroups[i].areaId === "kitchen") kitchen = manager.areaGroups[i]
+        }
+        verify(kitchen !== null, "kitchen area exists")
+        verify(kitchen.entityIds.indexOf("switch.gang_1") !== -1, "gang 1 listed in area")
+        verify(kitchen.entityIds.indexOf("switch.gang_2") !== -1, "gang 2 listed in area")
+    }
+
+    function test_same_named_channels_get_disambiguated_titles() {
+        // Both entities of dev1 inherit the device name -> titles diverge.
+        manager.entityRegistryMap["switch.gang_1"].name = ""
+        manager.entityRegistryMap["switch.gang_2"].name = ""
+        manager.entities["switch.gang_1"].attributes.friendly_name = "Multi Gang"
+        manager.entities["switch.gang_2"].attributes.friendly_name = "Multi Gang"
+        manager._buildEntityCatalog()
+
+        var t1 = manager.getCatalogEntry("switch.gang_1").name
+        var t2 = manager.getCatalogEntry("switch.gang_2").name
+        verify(t1 !== t2, "titles differ")
+        verify(t1.indexOf("Gang 1") !== -1, "gang 1 suffix: " + t1)
+        verify(t2.indexOf("Gang 2") !== -1, "gang 2 suffix: " + t2)
+    }
+
     function test_standalone_entities_are_in_area_group() {
         var unassigned = null
         for (var i = 0; i < manager.areaGroups.length; i++) {

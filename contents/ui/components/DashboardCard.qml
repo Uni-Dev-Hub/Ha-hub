@@ -24,6 +24,11 @@ Item {
     }
     readonly property string domain: cleanId ? cleanId.split(".")[0] : ""
     readonly property string title: {
+        // Depend on revision so a catalog rebuild (renamed entity, new
+        // channel disambiguation) refreshes the card.
+        var rev = dashboardCard.revision;
+        var entry = haManager && haManager.getCatalogEntry ? haManager.getCatalogEntry(cleanId) : null;
+        if (entry && entry.name) return entry.name;
         return HAHelpers.getEntityTitle(cleanId, entityObj, registryInfo, haManager);
     }
     readonly property string areaName: {

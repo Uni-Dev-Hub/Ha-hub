@@ -115,3 +115,34 @@ test("device display name prefers user name", () => {
     assert.equal(helpers.getDeviceDisplayName({ name: "Hue" }, "fallback"), "Hue");
     assert.equal(helpers.getDeviceDisplayName(null, "fallback"), "fallback");
 });
+
+test("humanizeEntityObjectName turns object ids into labels", () => {
+    assert.equal(helpers.humanizeEntityObjectName("switch.gang_1"), "Gang 1");
+    assert.equal(helpers.humanizeEntityObjectName("light.toilet_light"), "Toilet light");
+    assert.equal(helpers.humanizeEntityObjectName("fan.x-2"), "X 2");
+    assert.equal(helpers.humanizeEntityObjectName(""), "");
+});
+
+test("catalog titles of same-named device channels are disambiguated", () => {
+    const entries = [
+        { id: "light.corridor_light", deviceId: "dev1", name: "Corridor" },
+        { id: "light.corridor_toilet", deviceId: "dev1", name: "Corridor" },
+        { id: "switch.other", deviceId: "dev1", name: "Other" },
+        { id: "sensor.battery", deviceId: "", name: "Corridor" }
+    ];
+    helpers.disambiguateCatalogTitles(entries);
+    assert.equal(entries[0].name, "Corridor • Light");
+    assert.equal(entries[1].name, "Corridor • Toilet");
+    assert.equal(entries[2].name, "Other");
+    assert.equal(entries[3].name, "Corridor");
+});
+
+test("disambiguation keeps existing suffixes intact", () => {
+    const entries = [
+        { id: "switch.gang_1", deviceId: "d", name: "Switch • Gang 1" },
+        { id: "switch.gang_2", deviceId: "d", name: "Switch • Gang 2" }
+    ];
+    helpers.disambiguateCatalogTitles(entries);
+    assert.equal(entries[0].name, "Switch • Gang 1");
+    assert.equal(entries[1].name, "Switch • Gang 2");
+});

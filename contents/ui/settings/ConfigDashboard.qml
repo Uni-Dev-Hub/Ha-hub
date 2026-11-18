@@ -95,6 +95,8 @@ Kirigami.ScrollablePage {
 
     function entityTitle(entityId) {
         if (!haManager) return entityId || "";
+        var entry = haManager.getCatalogEntry ? haManager.getCatalogEntry(entityId) : null;
+        if (entry && entry.name) return entry.name;
         var ent = haManager.getEntity(entityId);
         var reg = haManager.getEntityRegistry ? haManager.getEntityRegistry(entityId) : null;
         return HAHelpers.getEntityTitle(entityId, ent, reg, haManager);

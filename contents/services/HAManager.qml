@@ -292,6 +292,8 @@ Item {
             byId[id] = entry;
         }
 
+        HAHelpers.disambiguateCatalogTitles(list);
+
         list.sort(function(a, b) {
             var titleA = (a.name || a.id || "").toString().trim();
             var titleB = (b.name || b.id || "").toString().trim();
@@ -377,7 +379,20 @@ Item {
         for (var g = 0; g < devices.length; g++) {
             var devGroup = devices[g];
             var devArea = ensureArea(devGroup.areaId, devGroup.areaName);
-            devArea.entityIds.push(devGroup.primaryEntityId);
+            // Every controllable channel gets its own row: a two-gang switch
+            // is two objects the user toggles independently. Devices that
+            // only expose sensors fall back to their primary entity.
+            var controlEnts = [];
+            for (var c = 0; c < devGroup.entityIds.length; c++) {
+                if (HAHelpers.isControlDomain(HAHelpers.getDomain(devGroup.entityIds[c]))) {
+                    controlEnts.push(devGroup.entityIds[c]);
+                }
+            }
+            if (controlEnts.length > 0) {
+                for (var k = 0; k < controlEnts.length; k++) devArea.entityIds.push(controlEnts[k]);
+            } else {
+                devArea.entityIds.push(devGroup.primaryEntityId);
+            }
             devArea.deviceIds.push(devGroup.deviceId);
         }
 
