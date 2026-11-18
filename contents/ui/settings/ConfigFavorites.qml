@@ -19,9 +19,15 @@ Kirigami.Page {
     property bool cfg_useSsl: false
     property string cfg_accessToken: ""
     property string cfg_favoriteEntities: "[]"
+    property bool cfg_showHiddenEntities: false
+    property bool cfg_showDiagnosticEntities: false
 
     property string searchFilter: ""
+    property string domainFilter: "all"
     property int currentTab: 0
+
+    readonly property string searchQuery: searchFilter
+    readonly property string domainQuery: domainFilter
 
     property var favoriteSet: ({})
     property var favEntitiesArray: []
@@ -32,6 +38,8 @@ Kirigami.Page {
         port: parseInt(favoritesSettings.cfg_port) || 8123
         useSsl: favoritesSettings.cfg_useSsl
         accessToken: favoritesSettings.cfg_accessToken
+        includeHiddenEntities: favoritesSettings.cfg_showHiddenEntities
+        includeDiagnosticEntities: favoritesSettings.cfg_showDiagnosticEntities
     }
 
     Component.onCompleted: {
@@ -125,9 +133,13 @@ Kirigami.Page {
         }
 
         var entObj = haManager.getEntity(cleanId);
-        var devId = haManager.entityToDeviceMap ? (haManager.entityToDeviceMap[cleanId] || "") : "";
-        var title = HAHelpers.getDeviceTitle(cleanId, entObj, devId, haManager);
+        var regInfo = haManager.getEntityRegistry ? haManager.getEntityRegistry(cleanId) : null;
+        var title = HAHelpers.getEntityTitle(cleanId, entObj, regInfo, haManager);
         var areaName = HAHelpers.getAreaName(cleanId, haManager);
+        var entry = haManager.getCatalogEntry ? haManager.getCatalogEntry(cleanId) : null;
+        var deviceName = entry && entry.deviceName ? entry.deviceName : "";
+        var domain = HAHelpers.getDomain(cleanId);
+        var devId = entry && entry.deviceId ? entry.deviceId : (haManager.entityToDeviceMap ? (haManager.entityToDeviceMap[cleanId] || "") : "");
         var statusText = HAHelpers.getStatusDetailsText(cleanId, entObj, devId, haManager);
 
         var isUnavailable = (!entObj || entObj.state === "unavailable" || entObj.state === "unknown");
@@ -136,6 +148,8 @@ Kirigami.Page {
         return {
             title: title,
             areaName: areaName,
+            deviceName: deviceName,
+            domain: domain,
             statusText: statusText,
             isOn: isOn,
             isUnavailable: isUnavailable
@@ -147,31 +161,58 @@ Kirigami.Page {
         return (haManager && haManager.userDevicesList) ? haManager.userDevicesList : [];
     }
 
+    readonly property var availableDomains: {
+        var rev = haManager ? haManager.entitiesRevision : 0;
+        var source = favoritesSettings.rawAllEntitiesList || [];
+        var seen = {};
+        var result = ["all"];
+        for (var i = 0; i < source.length; i++) {
+            var domain = HAHelpers.getDomain(source[i]);
+            if (!domain || seen[domain]) continue;
+            seen[domain] = true;
+            result.push(domain);
+        }
+        result.sort(function(a, b) {
+            if (a === "all") return -1;
+            if (b === "all") return 1;
+            return a.localeCompare(b);
+        });
+        return result;
+    }
+
     readonly property var filteredAllEntitiesList: {
         var list = favoritesSettings.rawAllEntitiesList || [];
-        var filterText = favoritesSettings.searchFilter.toLowerCase().trim();
-        if (filterText.length === 0) return list;
+        var filterText = favoritesSettings.searchQuery.toLowerCase().trim();
+        var domainFilter = favoritesSettings.domainQuery || "all";
 
         return list.filter(function(entId) {
             var info = favoritesSettings.getLiveDeviceInfo(entId);
+            if (domainFilter !== "all" && info.domain !== domainFilter) return false;
+            if (filterText.length === 0) return true;
             return info.title.toLowerCase().indexOf(filterText) !== -1 ||
                    entId.toLowerCase().indexOf(filterText) !== -1 ||
                    info.statusText.toLowerCase().indexOf(filterText) !== -1 ||
-                   info.areaName.toLowerCase().indexOf(filterText) !== -1;
+                   info.areaName.toLowerCase().indexOf(filterText) !== -1 ||
+                   info.deviceName.toLowerCase().indexOf(filterText) !== -1 ||
+                   info.domain.toLowerCase().indexOf(filterText) !== -1;
         });
     }
 
     readonly property var filteredFavEntitiesList: {
         var list = favoritesSettings.favEntitiesArray || [];
-        var filterText = favoritesSettings.searchFilter.toLowerCase().trim();
-        if (filterText.length === 0) return list;
+        var filterText = favoritesSettings.searchQuery.toLowerCase().trim();
+        var domainFilter = favoritesSettings.domainQuery || "all";
 
         return list.filter(function(entId) {
             var info = favoritesSettings.getLiveDeviceInfo(entId);
+            if (domainFilter !== "all" && info.domain !== domainFilter) return false;
+            if (filterText.length === 0) return true;
             return info.title.toLowerCase().indexOf(filterText) !== -1 ||
                    entId.toLowerCase().indexOf(filterText) !== -1 ||
                    info.statusText.toLowerCase().indexOf(filterText) !== -1 ||
-                   info.areaName.toLowerCase().indexOf(filterText) !== -1;
+                   info.areaName.toLowerCase().indexOf(filterText) !== -1 ||
+                   info.deviceName.toLowerCase().indexOf(filterText) !== -1 ||
+                   info.domain.toLowerCase().indexOf(filterText) !== -1;
         });
     }
 
@@ -248,12 +289,24 @@ Kirigami.Page {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing
 
-            Controls.TextField {
-                id: searchInput
-                placeholderText: i18n("Search device by name or ID...")
+            RowLayout {
                 Layout.fillWidth: true
-                text: favoritesSettings.searchFilter
-                onTextChanged: favoritesSettings.searchFilter = text
+                spacing: Kirigami.Units.smallSpacing
+
+                Controls.TextField {
+                    id: searchInput
+                    placeholderText: i18n("Search device by name or ID...")
+                    Layout.fillWidth: true
+                    text: favoritesSettings.searchFilter
+                    onTextChanged: favoritesSettings.searchFilter = text
+                }
+
+                Controls.ComboBox {
+                    implicitWidth: Kirigami.Units.gridUnit * 7
+                    model: favoritesSettings.availableDomains
+                    currentIndex: Math.max(0, model.indexOf(favoritesSettings.domainFilter))
+                    onActivated: favoritesSettings.domainFilter = currentText
+                }
             }
 
             PlasmaComponents3.TabBar {
@@ -272,6 +325,31 @@ Kirigami.Page {
                 }
                 PlasmaComponents3.TabButton {
                     text: i18n("Favorites (%1)", favoritesSettings.favEntitiesArray.length)
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                Controls.CheckBox {
+                    text: i18n("Hidden")
+                    checked: favoritesSettings.cfg_showHiddenEntities
+                    onToggled: favoritesSettings.cfg_showHiddenEntities = checked
+                }
+
+                Controls.CheckBox {
+                    text: i18n("Diagnostic / config")
+                    checked: favoritesSettings.cfg_showDiagnosticEntities
+                    onToggled: favoritesSettings.cfg_showDiagnosticEntities = checked
+                }
+
+                Item { Layout.fillWidth: true }
+
+                PlasmaComponents3.Label {
+                    text: i18n("%1 entities", favoritesSettings.rawAllEntitiesList.length)
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
+                    color: Kirigami.Theme.disabledTextColor
                 }
             }
         }
@@ -389,7 +467,9 @@ Kirigami.Page {
                         }
 
                         PlasmaComponents3.Label {
-                            text: delegateRoot.entId
+                            text: delegateRoot.liveInfo.deviceName.length > 0
+                                ? (delegateRoot.entId + "  •  " + delegateRoot.liveInfo.deviceName)
+                                : delegateRoot.entId
                             font.pointSize: Kirigami.Theme.smallFont.pointSize
                             color: Kirigami.Theme.disabledTextColor
                             opacity: 0.75

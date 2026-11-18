@@ -65,6 +65,13 @@ PlasmaComponents3.ItemDelegate {
         }
     }
 
+    readonly property var registryInfo: {
+        var rev = cardRoot.revision;
+        return cardRoot.haManager && cardRoot.haManager.getEntityRegistry
+            ? cardRoot.haManager.getEntityRegistry(cardRoot.cleanId)
+            : null;
+    }
+
     readonly property string areaName: {
         var rev = cardRoot.revision;
         return HAHelpers.getAreaName(cardRoot.cleanId, cardRoot.haManager);
@@ -72,7 +79,16 @@ PlasmaComponents3.ItemDelegate {
 
     readonly property string deviceTitle: {
         var rev = cardRoot.revision;
-        return HAHelpers.getDeviceTitle(cardRoot.cleanId, cardRoot.entityObj, cardRoot.deviceId, cardRoot.haManager);
+        return HAHelpers.getEntityTitle(cardRoot.cleanId, cardRoot.entityObj, cardRoot.registryInfo, cardRoot.haManager);
+    }
+
+    readonly property string deviceSubtitle: {
+        var rev = cardRoot.revision;
+        if (!cardRoot.deviceId || !cardRoot.haManager) return "";
+        var dev = cardRoot.haManager.getDeviceRaw(cardRoot.deviceId);
+        if (!dev) return "";
+        var name = HAHelpers.getDeviceDisplayName(dev, "");
+        return name === cardRoot.deviceTitle ? "" : name;
     }
 
     readonly property bool isToggleable: ["light", "switch", "input_boolean", "fan", "outlet"].indexOf(domain) !== -1
@@ -221,6 +237,15 @@ PlasmaComponents3.ItemDelegate {
                     Layout.fillWidth: true
                 }
 
+                PlasmaComponents3.Label {
+                    visible: cardRoot.deviceSubtitle.length > 0
+                    text: cardRoot.deviceSubtitle
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.76
+                    color: Kirigami.Theme.disabledTextColor
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true
+                }
+
                 RowLayout {
                     spacing: 5
                     Layout.fillWidth: true
@@ -355,6 +380,15 @@ PlasmaComponents3.ItemDelegate {
                     text: cardRoot.deviceTitle
                     isBold: true
                     color: Kirigami.Theme.textColor
+                    Layout.fillWidth: true
+                }
+
+                PlasmaComponents3.Label {
+                    visible: cardRoot.deviceSubtitle.length > 0
+                    text: cardRoot.deviceSubtitle
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.76
+                    color: Kirigami.Theme.disabledTextColor
+                    elide: Text.ElideRight
                     Layout.fillWidth: true
                 }
 

@@ -1,17 +1,128 @@
 pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../services" as Services
+import "../../code/ha_helpers.js" as HAHelpers
 
 Kirigami.ScrollablePage {
     id: dashboardSettings
     title: i18n("Dashboard")
     topPadding: Kirigami.Units.smallSpacing
 
-    readonly property bool cfg_showDashboardDefault: false
+    property string cfg_host: ""
+    property string cfg_port: "8123"
+    property bool cfg_useSsl: false
+    property string cfg_accessToken: ""
     property bool cfg_showDashboard: false
+    property string cfg_dashboardCards: "[]"
+
+    property string searchText: ""
+    readonly property string searchQuery: searchText
+
+    readonly property var cards: {
+        var raw = dashboardSettings.cfg_dashboardCards ? dashboardSettings.cfg_dashboardCards.trim() : "";
+        if (!raw) return [];
+        try {
+            var parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    Services.HAManager {
+        id: haManager
+        host: dashboardSettings.cfg_host
+        port: parseInt(dashboardSettings.cfg_port) || 8123
+        useSsl: dashboardSettings.cfg_useSsl
+        accessToken: dashboardSettings.cfg_accessToken
+    }
+
+    Component.onCompleted: {
+        if (!dashboardSettings.cfg_host || dashboardSettings.cfg_host.length === 0 ||
+            !dashboardSettings.cfg_accessToken || dashboardSettings.cfg_accessToken.length === 0) {
+            haManager.loadSharedCredentials();
+        } else {
+            haManager.startAutoConnect();
+        }
+    }
+
+    readonly property var existingCardSet: {
+        var result = {};
+        for (var i = 0; i < cards.length; i++) {
+            if (cards[i] && cards[i].entityId) result[cards[i].entityId] = true;
+        }
+        return result;
+    }
+
+    function cardExists(entityId) {
+        return !!existingCardSet[entityId];
+    }
+
+    function saveCards(list) {
+        dashboardSettings.cfg_dashboardCards = JSON.stringify(list || []);
+    }
+
+    function addCard(entityId) {
+        if (!entityId || cardExists(entityId)) return;
+        var next = cards.slice();
+        next.push({ entityId: entityId, size: "1x1" });
+        saveCards(next);
+    }
+
+    function removeCard(index) {
+        var next = cards.slice();
+        if (index < 0 || index >= next.length) return;
+        next.splice(index, 1);
+        saveCards(next);
+    }
+
+    function moveCard(index, delta) {
+        var next = cards.slice();
+        var target = index + delta;
+        if (index < 0 || index >= next.length || target < 0 || target >= next.length) return;
+        var item = next.splice(index, 1)[0];
+        next.splice(target, 0, item);
+        saveCards(next);
+    }
+
+    function setCardSize(index, size) {
+        var next = cards.slice();
+        if (index < 0 || index >= next.length) return;
+        next[index] = { entityId: next[index].entityId, size: size };
+        saveCards(next);
+    }
+
+    function entityTitle(entityId) {
+        if (!haManager) return entityId || "";
+        var ent = haManager.getEntity(entityId);
+        var reg = haManager.getEntityRegistry ? haManager.getEntityRegistry(entityId) : null;
+        return HAHelpers.getEntityTitle(entityId, ent, reg, haManager);
+    }
+
+    readonly property var availableEntities: {
+        var rev = haManager ? haManager.entitiesRevision : 0;
+        if (!haManager || !haManager.isConnected) return [];
+        var query = dashboardSettings.searchQuery.toLowerCase().trim();
+        var source = haManager.userDevicesList || [];
+        var result = [];
+        for (var i = 0; i < source.length; i++) {
+            var id = source[i];
+            if (dashboardSettings.existingCardSet[id]) continue;
+            var entry = haManager.getCatalogEntry ? haManager.getCatalogEntry(id) : null;
+            if (!entry) continue;
+            if (query.length > 0) {
+                var haystack = [entry.name || "", id, entry.areaName || "", entry.deviceName || ""].join(" ").toLowerCase();
+                if (haystack.indexOf(query) === -1) continue;
+            }
+            result.push(id);
+        }
+        return result;
+    }
 
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
@@ -29,71 +140,189 @@ Kirigami.ScrollablePage {
             }
         }
 
-        Rectangle {
+        ColumnLayout {
             Layout.fillWidth: true
-            radius: 12
-            color: Qt.alpha(Kirigami.Theme.highlightColor, 0.16)
-            border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.55)
-            border.width: 1.5
-            implicitHeight: contentColumn.implicitHeight + Kirigami.Units.gridUnit * 1.5
+            spacing: Kirigami.Units.smallSpacing
 
-            ColumnLayout {
-                id: contentColumn
-                anchors.fill: parent
-                anchors.margins: Kirigami.Units.gridUnit * 0.9
-                spacing: Kirigami.Units.mediumSpacing
+            RowLayout {
+                Layout.fillWidth: true
+                PlasmaComponents3.Label {
+                    text: i18n("Dashboard Cards")
+                    font.bold: true
+                    font.pointSize: Qt.application.font.pointSize * 1.1
+                    Layout.fillWidth: true
+                }
+                PlasmaComponents3.Label {
+                    text: i18n("%1 cards", dashboardSettings.cards.length)
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.8
+                    color: Kirigami.Theme.disabledTextColor
+                }
+            }
 
-                RowLayout {
-                    spacing: Kirigami.Units.smallSpacing * 1.2
+            PlasmaComponents3.Label {
+                visible: dashboardSettings.cards.length === 0
+                text: i18n("No cards yet. Add an entity below.")
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: Kirigami.Theme.disabledTextColor
+                Layout.fillWidth: true
+            }
 
-                    Rectangle {
-                        implicitWidth: Kirigami.Units.iconSizes.medium + 8
-                        implicitHeight: Kirigami.Units.iconSizes.medium + 8
-                        radius: 8
-                        color: Kirigami.Theme.highlightColor
+            Repeater {
+                model: dashboardSettings.cards
+                delegate: Rectangle {
+                    required property var modelData
+                    required property int index
+
+                    Layout.fillWidth: true
+                    implicitHeight: cardRow.implicitHeight + Kirigami.Units.smallSpacing * 1.2
+                    radius: 8
+                    color: Qt.alpha(Kirigami.Theme.textColor, 0.04)
+                    border.color: Qt.alpha(Kirigami.Theme.textColor, 0.10)
+                    border.width: 1
+
+                    RowLayout {
+                        id: cardRow
+                        anchors.fill: parent
+                        anchors.margins: Kirigami.Units.smallSpacing
+                        spacing: Kirigami.Units.smallSpacing
 
                         Kirigami.Icon {
-                            anchors.centerIn: parent
-                            source: "code-context"
+                            source: "view-grid-symbolic"
                             implicitWidth: Kirigami.Units.iconSizes.smallMedium
                             implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                            color: Kirigami.Theme.highlightedTextColor
+                            color: Kirigami.Theme.highlightColor
+                        }
+
+                        ColumnLayout {
+                            spacing: 1
+                            Layout.fillWidth: true
+
+                            PlasmaComponents3.Label {
+                                text: dashboardSettings.entityTitle(modelData.entityId)
+                                font.bold: true
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+                            PlasmaComponents3.Label {
+                                text: modelData.entityId || ""
+                                font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
+                                color: Kirigami.Theme.disabledTextColor
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+                        }
+
+                        Controls.ComboBox {
+                            implicitWidth: Kirigami.Units.gridUnit * 5
+                            model: ["1x1", "2x1", "2x2"]
+                            currentIndex: Math.max(0, model.indexOf(modelData.size || "1x1"))
+                            onActivated: dashboardSettings.setCardSize(index, currentText)
+                        }
+
+                        PlasmaComponents3.ToolButton {
+                            icon.name: "arrow-up-symbolic"
+                            enabled: index > 0
+                            onClicked: dashboardSettings.moveCard(index, -1)
+                        }
+
+                        PlasmaComponents3.ToolButton {
+                            icon.name: "arrow-down-symbolic"
+                            enabled: index < dashboardSettings.cards.length - 1
+                            onClicked: dashboardSettings.moveCard(index, 1)
+                        }
+
+                        PlasmaComponents3.ToolButton {
+                            icon.name: "delete"
+                            onClicked: dashboardSettings.removeCard(index)
                         }
                     }
+                }
+            }
+        }
 
-                    PlasmaComponents3.Label {
-                        text: i18n("Section Under Development")
-                        font.bold: true
-                        font.pointSize: Qt.application.font.pointSize * 1.1
-                        color: Kirigami.Theme.textColor
-                    }
+        Kirigami.Separator { Layout.fillWidth: true }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.smallSpacing
+
+            PlasmaComponents3.Label {
+                text: i18n("Add Entity to Dashboard")
+                font.bold: true
+                font.pointSize: Qt.application.font.pointSize * 1.05
+                Layout.fillWidth: true
+            }
+
+            Controls.TextField {
+                Layout.fillWidth: true
+                placeholderText: i18n("Search entities…")
+                text: dashboardSettings.searchText
+                onTextChanged: dashboardSettings.searchText = text
+            }
+
+            PlasmaComponents3.Label {
+                visible: haManager && !haManager.isConnected
+                text: haManager ? haManager.connectionStatus : i18n("Connecting…")
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: Kirigami.Theme.disabledTextColor
+                Layout.fillWidth: true
+            }
+
+            ListView {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 9
+                clip: true
+                spacing: 1
+                model: dashboardSettings.availableEntities
+
+                PlasmaComponents3.ScrollBar.vertical: PlasmaComponents3.ScrollBar {
+                    active: true
                 }
 
-                PlasmaComponents3.Label {
-                    text: i18n("Please share your vision of what the dashboard should look like and contain.\n\nSend your ideas and concept descriptions to the project email or join development on GitHub!")
-                    wrapMode: Text.WordWrap
-                    Layout.fillWidth: true
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.95
-                    color: Kirigami.Theme.textColor
-                    lineHeight: 1.2
-                }
+                delegate: PlasmaComponents3.ItemDelegate {
+                    required property string modelData
+                    width: ListView.view ? ListView.view.width : 0
+                    onClicked: dashboardSettings.addCard(modelData)
 
-                RowLayout {
-                    spacing: Kirigami.Units.smallSpacing
-                    Layout.topMargin: Kirigami.Units.smallSpacing / 2
+                    contentItem: RowLayout {
+                        spacing: Kirigami.Units.smallSpacing
 
-                    PlasmaComponents3.Button {
-                        text: i18n("Send Feedback (Email)")
-                        icon.name: "mail-message-new"
-                        onClicked: Qt.openUrlExternally("mailto:unidevhub@gmail.com?subject=HA-Hub%20Dashboard%20Concept")
+                        Kirigami.Icon {
+                            source: "list-add-symbolic"
+                            implicitWidth: Kirigami.Units.iconSizes.small
+                            implicitHeight: Kirigami.Units.iconSizes.small
+                            color: Kirigami.Theme.highlightColor
+                        }
+
+                        ColumnLayout {
+                            spacing: 0
+                            Layout.fillWidth: true
+
+                            PlasmaComponents3.Label {
+                                text: dashboardSettings.entityTitle(modelData)
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+
+                            PlasmaComponents3.Label {
+                                text: modelData
+                                font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
+                                color: Kirigami.Theme.disabledTextColor
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+                        }
                     }
-
-                    PlasmaComponents3.Button {
-                        text: i18n("Project on GitHub")
-                        icon.name: "vcs-normal"
-                        onClicked: Qt.openUrlExternally("https://github.com/Uni-Dev-Hub/HA-hub")
-                    }
                 }
+            }
+
+            PlasmaComponents3.Label {
+                visible: haManager && haManager.isConnected && dashboardSettings.availableEntities.length === 0
+                text: i18n("No matching entities. Try another search or check Settings → Favorite Devices.")
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
             }
         }
     }

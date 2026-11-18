@@ -248,17 +248,49 @@ PlasmaComponents3.Page {
 
             if (eDom === "sensor" || eDom === "binary_sensor") continue;
 
-            if (["select", "number", "button", "update", "input_select", "input_number", "input_button"].indexOf(eDom) !== -1) {
+            if (["select", "number", "text", "date", "time", "button", "update",
+                 "input_select", "input_number", "input_text", "input_button"].indexOf(eDom) !== -1) {
                 list.push(eId2);
                 continue;
             }
 
-            if ((eDom === "switch" || eDom === "input_boolean") && (HAHelpers.isSecondaryEntity(eId2) || (regInfo && regInfo.category === "config"))) {
+            if ((eDom === "switch" || eDom === "input_boolean") && (HAHelpers.isSecondaryEntity(eId2, regInfo) || (regInfo && regInfo.category === "config"))) {
                 if (eId2 !== detailsPage.mainSwitchEntityId) {
                     list.push(eId2);
                 }
             }
         }
+        return list;
+    }
+
+    // Additional controllable entities belonging to the same device. This is
+    // what makes multi-gang switches, LocalTuya channels and similar devices
+    // usable instead of showing only one "primary" entity per device.
+    readonly property var channelsList: {
+        var rev = detailsPage.revision;
+        var list = [];
+        var seen = {};
+
+        for (var i = 0; i < allDeviceEntities.length; i++) {
+            var eId = allDeviceEntities[i];
+            if (!eId || eId === detailsPage.cleanId || seen[eId]) continue;
+
+            var entry = haManager && haManager.getCatalogEntry ? haManager.getCatalogEntry(eId) : null;
+            if (!entry) continue;
+            if (entry.hidden || entry.disabled || entry.isConfig || entry.isDiagnostic) continue;
+
+            var dom = entry.domain || eId.split(".")[0];
+            if (!HAHelpers.isControlDomain(dom) && !HAHelpers.isActionDomain(dom)) continue;
+
+            // A secondary action entity may also be listed in "Parameters &
+            // Options"; avoid showing the same row twice.
+            if (detailsPage.configEntitiesList.indexOf(eId) !== -1
+                    && !HAHelpers.isControlDomain(dom)) continue;
+
+            seen[eId] = true;
+            list.push(eId);
+        }
+
         return list;
     }
 
@@ -274,6 +306,9 @@ PlasmaComponents3.Page {
         }
         if (primaryDomain === "binary_sensor" && cleanId.length > 0) {
             binaryStatsService.fetchBinarySensorHistory(cleanId);
+        }
+        if (cleanId.length > 0) {
+            historyStatsService.fetchHistory(cleanId);
         }
     }
 
@@ -299,6 +334,11 @@ PlasmaComponents3.Page {
 
     Services.HAStatisticsService {
         id: binaryStatsService
+        haManager: detailsPage.haManager
+    }
+
+    Services.HAHistoryService {
+        id: historyStatsService
         haManager: detailsPage.haManager
     }
 
@@ -505,10 +545,21 @@ PlasmaComponents3.Page {
                 detailsPage: detailsPage
             }
 
+            Sections.DeviceChannelsSection {
+                Layout.fillWidth: true
+                detailsPage: detailsPage
+                haManager: detailsPage.haManager
+            }
+
             Sections.DeviceOptionsSection {
                 visible: detailsPage.configEntitiesList.length > 0
                 detailsPage: detailsPage
                 haManager: detailsPage.haManager
+            }
+
+            Sections.HistorySection {
+                detailsPage: detailsPage
+                historyService: historyStatsService
             }
 
             Sections.DeviceInfoSection {

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../code/ha_helpers.js" as HAHelpers
 
 Rectangle {
     id: infoSec
@@ -62,6 +63,14 @@ Rectangle {
                 RowLayout { PlasmaComponents3.Label { text: i18n("Manufacturer:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 } PlasmaComponents3.Label { text: (detailsPage.deviceRaw && detailsPage.deviceRaw.manufacturer) ? detailsPage.deviceRaw.manufacturer : "—"; font.bold: true; font.pointSize: 8 } }
                 RowLayout { PlasmaComponents3.Label { text: i18n("Model:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 } PlasmaComponents3.Label { text: (detailsPage.deviceRaw && detailsPage.deviceRaw.model) ? detailsPage.deviceRaw.model : "—"; font.bold: true; font.pointSize: 8 } }
                 RowLayout { PlasmaComponents3.Label { text: i18n("Firmware:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 } PlasmaComponents3.Label { text: (detailsPage.deviceRaw && detailsPage.deviceRaw.sw_version) ? detailsPage.deviceRaw.sw_version : "—"; font.pointSize: 8 } }
+                RowLayout {
+                    PlasmaComponents3.Label { text: i18n("Labels:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 }
+                    PlasmaComponents3.Label {
+                        text: HAHelpers.getLabelsText(detailsPage.deviceRaw ? detailsPage.deviceRaw.labels : [], haManager)
+                        font.pointSize: 8
+                        font.bold: true
+                    }
+                }
             }
 
             Kirigami.Separator { Layout.fillWidth: true }

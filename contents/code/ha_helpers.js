@@ -3,31 +3,144 @@ function cleanEntityId(id) {
     return id.toString().replace(/['"\[\]]/g, "").trim();
 }
 
-function isSecondaryEntity(entId) {
+var CONTROL_DOMAINS = [
+    "switch", "light", "climate", "fan", "cover", "lock", "outlet",
+    "valve", "media_player", "vacuum", "lawn_mower", "water_heater",
+    "humidifier", "siren", "camera", "alarm_control_panel", "input_boolean"
+];
+
+var ACTION_DOMAINS = ["scene", "script", "button", "automation", "input_button"];
+
+var INFO_DOMAINS = ["sensor", "binary_sensor", "weather", "person", "update"];
+
+var HELPER_DOMAINS = [
+    "input_boolean", "input_number", "input_select", "input_text",
+    "input_button", "number", "select", "text", "date", "time",
+    "scene", "script", "automation", "button"
+];
+
+var IGNORED_DOMAINS = [
+    "zone", "sun", "persistent_notification", "tts", "stt",
+    "conversation", "assist_satellite", "wake_word"
+];
+
+function getDomain(entId) {
+    if (!entId) return "";
+    var parts = entId.toString().split(".");
+    return parts.length > 1 ? parts[0] : "";
+}
+
+function isControlDomain(domain) {
+    return CONTROL_DOMAINS.indexOf(domain) !== -1;
+}
+
+function isActionDomain(domain) {
+    return ACTION_DOMAINS.indexOf(domain) !== -1;
+}
+
+function isInfoDomain(domain) {
+    return INFO_DOMAINS.indexOf(domain) !== -1;
+}
+
+function isHelperDomain(domain) {
+    return HELPER_DOMAINS.indexOf(domain) !== -1;
+}
+
+function isIgnoredDomain(domain) {
+    return IGNORED_DOMAINS.indexOf(domain) !== -1;
+}
+
+function isSelectableEntity(entId) {
+    var domain = getDomain(entId);
+    if (!domain || isIgnoredDomain(domain)) return false;
+    return isControlDomain(domain) || isActionDomain(domain) || isInfoDomain(domain) || isHelperDomain(domain);
+}
+
+function isSecondaryEntity(entId, regInfo) {
     if (!entId) return false;
+
+    // Home Assistant's entity registry is the authoritative source. A registry
+    // entry explicitly marked as config/diagnostic must never be treated as a
+    // primary control.
+    if (regInfo && regInfo.category) {
+        return regInfo.category === "config" || regInfo.category === "diagnostic";
+    }
+
+    var domain = getDomain(entId);
+    // Never hide controllable entities just because their object_id contains
+    // words like "power" or "temperature". This was the reason valid switches
+    // such as switch.power_switch disappeared from the list.
+    if (isControlDomain(domain) || isActionDomain(domain)) return false;
+
     var lower = entId.toLowerCase();
-    var secondaryKeywords = [
+    var name = lower.split(".").length > 1 ? lower.split(".")[1] : lower;
+    var secondarySuffixes = [
         "battery", "battery_level", "voltage", "current", "power", "energy",
         "linkquality", "rssi", "lqi", "temperature", "humidity",
-        "update_available", "identify", "ping", "signal_strength"
+        "update_available", "signal_strength"
     ];
-    var parts = lower.split(".");
-    var name = parts.length > 1 ? parts[1] : parts[0];
-    for (var i = 0; i < secondaryKeywords.length; i++) {
-        var kw = secondaryKeywords[i];
-        if (name === kw || name.endsWith("_" + kw) || name.startsWith(kw + "_")) {
+    for (var i = 0; i < secondarySuffixes.length; i++) {
+        var kw = secondarySuffixes[i];
+        if (name === kw || name.endsWith("_" + kw)) {
             return true;
         }
     }
     return false;
 }
 
+function getEntityRegistryInfo(entId, haManager) {
+    if (!haManager || !entId || !haManager.entityRegistryMap) return null;
+    return haManager.entityRegistryMap[entId] || null;
+}
+
+function getEntityFriendlyName(entId, entObj, regInfo) {
+    if (regInfo && regInfo.name) return regInfo.name;
+    if (entObj && entObj.attributes && entObj.attributes.friendly_name) {
+        return entObj.attributes.friendly_name;
+    }
+    if (regInfo && regInfo.originalName) return regInfo.originalName;
+    return entId || "";
+}
+
+function getEntityTitle(entId, entObj, regInfo, haManager) {
+    var name = getEntityFriendlyName(entId, entObj, regInfo);
+    if (name && name !== entId) return name;
+
+    var deviceId = regInfo && regInfo.deviceId
+        ? regInfo.deviceId
+        : (haManager && haManager.entityToDeviceMap ? haManager.entityToDeviceMap[entId] : "");
+    var dev = haManager && deviceId && haManager.getDeviceRaw ? haManager.getDeviceRaw(deviceId) : null;
+    if (dev) {
+        return (dev.name_by_user || dev.name || name || entId);
+    }
+    return name || entId || "";
+}
+
+function getDeviceDisplayName(dev, fallback) {
+    if (!dev) return fallback || "";
+    return dev.name_by_user || dev.name || fallback || dev.id || "";
+}
+
+function getLabelName(labelId, haManager) {
+    if (!haManager || !labelId || !haManager._labelById) return labelId || "";
+    var label = haManager._labelById[labelId];
+    return label ? (label.name || label.label_id || labelId) : labelId;
+}
+
+function getLabelsText(labels, haManager) {
+    if (!labels || labels.length === 0) return "";
+    var names = [];
+    for (var i = 0; i < labels.length; i++) {
+        names.push(getLabelName(labels[i], haManager));
+    }
+    return names.join(", ");
+}
+
 function getDeviceTitle(entId, entObj, devId, haManager) {
     if (!entId) return "";
     if (haManager && devId) {
         var dev = haManager.getDeviceRaw ? haManager.getDeviceRaw(devId) : null;
-        if (dev && dev.name_by_user) return dev.name_by_user;
-        if (dev && dev.name) return dev.name;
+        if (dev) return getDeviceDisplayName(dev, entId);
     }
     if (entObj && entObj.attributes) {
         if (entObj.attributes.friendly_name) return entObj.attributes.friendly_name;
@@ -37,10 +150,18 @@ function getDeviceTitle(entId, entObj, devId, haManager) {
 
 function getAreaName(cleanId, haManager) {
     if (!haManager || !cleanId) return "";
+    var reg = haManager.entityRegistryMap ? haManager.entityRegistryMap[cleanId] : null;
     var devId = haManager.entityToDeviceMap ? (haManager.entityToDeviceMap[cleanId] || "") : "";
     var dev = (haManager.getDeviceRaw && devId) ? haManager.getDeviceRaw(devId) : null;
-    var aId = (dev && dev.area_id) ? dev.area_id : (haManager.entityToAreaMap ? haManager.entityToAreaMap[cleanId] : null);
-    if (!aId || !haManager.areasList) return "";
+    var aId = (reg && reg.areaId)
+        ? reg.areaId
+        : ((haManager.entityToAreaMap && haManager.entityToAreaMap[cleanId]) || (dev && dev.area_id) || "");
+    if (!aId) return "";
+    if (haManager.getAreaRaw) {
+        var area = haManager.getAreaRaw(aId);
+        if (area && area.name) return area.name;
+    }
+    if (!haManager.areasList) return "";
     for (var i = 0; i < haManager.areasList.length; i++) {
         if (haManager.areasList[i].area_id === aId || haManager.areasList[i].id === aId) {
             return haManager.areasList[i].name || "";

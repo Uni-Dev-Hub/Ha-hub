@@ -14,6 +14,7 @@ PlasmaComponents3.Page {
     property string activeDetailEntityId: ""
 
     readonly property bool showDashboardTab: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.showDashboard || false) : false
+    readonly property string dashboardCards: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardCards || "[]") : "[]"
 
     signal configureRequested()
 
@@ -79,8 +80,8 @@ PlasmaComponents3.Page {
             }
 
             PlasmaComponents3.TabButton {
-                text: i18n("Favorites")
-                icon.name: "starred-symbolic"
+                text: i18n("Devices")
+                icon.name: "view-list-symbolic"
             }
         }
     }
@@ -110,6 +111,7 @@ PlasmaComponents3.Page {
             favoriteEntities: fullRoot.favoriteEntities
             activeTab: fullRoot.showDashboardTab ? mainTabBar.currentIndex : 1
             showDashboardTab: fullRoot.showDashboardTab
+            dashboardCards: fullRoot.dashboardCards
             onConfigureRequested: fullRoot.configureRequested()
             onOpenDetailsRequested: function(entId) {
                 fullRoot.activeDetailEntityId = entId;

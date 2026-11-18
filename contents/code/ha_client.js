@@ -65,7 +65,59 @@ function buildGetEntityRegistryPayload(msgId) {
     });
 }
 
-function buildCallServicePayload(msgId, domain, service, serviceData, targetEntityId) {
+function buildGetFloorsPayload(msgId) {
+    return JSON.stringify({
+        id: msgId,
+        type: "config/floor_registry/list"
+    });
+}
+
+function buildGetLabelsPayload(msgId) {
+    return JSON.stringify({
+        id: msgId,
+        type: "config/label_registry/list"
+    });
+}
+
+function buildGetServicesPayload(msgId) {
+    return JSON.stringify({
+        id: msgId,
+        type: "get_services"
+    });
+}
+
+function buildSearchRelatedPayload(msgId, itemType, itemId) {
+    return JSON.stringify({
+        id: msgId,
+        type: "search/related",
+        item_type: itemType,
+        item_id: itemId
+    });
+}
+
+function buildHistoryPayload(msgId, entityIds, startTime, endTime, minimalResponse) {
+    return JSON.stringify({
+        id: msgId,
+        type: "history/history_during_period",
+        start_time: startTime,
+        end_time: endTime,
+        entity_ids: Array.isArray(entityIds) ? entityIds : [entityIds],
+        minimal_response: minimalResponse !== false,
+        no_attributes: false
+    });
+}
+
+function buildLogbookPayload(msgId, startTime, endTime, entityIds) {
+    return JSON.stringify({
+        id: msgId,
+        type: "logbook/get_events",
+        start_time: startTime,
+        end_time: endTime,
+        entity_ids: Array.isArray(entityIds) ? entityIds : [entityIds]
+    });
+}
+
+function buildCallServicePayload(msgId, domain, service, serviceData, targetEntityId, options) {
     var payload = {
         id: msgId,
         type: "call_service",
@@ -74,10 +126,16 @@ function buildCallServicePayload(msgId, domain, service, serviceData, targetEnti
         service_data: serviceData || {}
     };
 
-    if (targetEntityId) {
+    if (options && options.target) {
+        payload.target = options.target;
+    } else if (targetEntityId) {
         payload.target = {
             entity_id: targetEntityId
         };
+    }
+
+    if (options && options.returnResponse) {
+        payload.return_response = true;
     }
 
     return JSON.stringify(payload);

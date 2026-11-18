@@ -89,33 +89,50 @@ Rectangle {
                         }
 
                         PlasmaComponents3.Button {
-                            visible: eDom === "button"
-                            text: i18n("Execute")
-                            icon.name: "media-playback-start"
-                            onClicked: { if (haManager) haManager.callService("button", "press", modelData, {}); }
+                            visible: eDom === "button" || eDom === "input_button" || eDom === "update"
+                            text: eDom === "update" ? i18n("Install") : i18n("Execute")
+                            icon.name: eDom === "update" ? "system-software-update" : "media-playback-start"
+                            onClicked: {
+                                if (!haManager) return;
+                                if (eDom === "update") haManager.callService("update", "install", modelData, {});
+                                else haManager.callService(eDom, "press", modelData, {});
+                            }
                         }
 
                         PlasmaComponents3.ComboBox {
-                            visible: eDom === "select" && eObj && eObj.attributes && eObj.attributes.options
+                            visible: (eDom === "select" || eDom === "input_select") && eObj && eObj.attributes && eObj.attributes.options
                             model: (eObj && eObj.attributes && eObj.attributes.options) ? eObj.attributes.options : []
                             currentIndex: (model && eObj) ? model.indexOf(eObj.state) : 0
                             onActivated: {
                                 if (haManager) {
-                                    haManager.callService("select", "select_option", modelData, { option: currentText });
+                                    haManager.callService(eDom, "select_option", modelData, { option: currentText });
                                 }
                             }
                         }
 
                         Controls.SpinBox {
-                            visible: eDom === "number" && eObj && eObj.attributes
-                            from: (eObj && eObj.attributes && eObj.attributes.min) ? eObj.attributes.min : 0
-                            to: (eObj && eObj.attributes && eObj.attributes.max) ? eObj.attributes.max : 100
+                            visible: (eDom === "number" || eDom === "input_number") && eObj && eObj.attributes
+                            from: (eObj && eObj.attributes && eObj.attributes.min !== undefined) ? eObj.attributes.min : 0
+                            to: (eObj && eObj.attributes && eObj.attributes.max !== undefined) ? eObj.attributes.max : 100
                             stepSize: (eObj && eObj.attributes && eObj.attributes.step) ? eObj.attributes.step : 1
                             value: eObj ? parseFloat(eObj.state) : 0
                             onValueModified: {
                                 if (haManager) {
-                                    haManager.callService("number", "set_value", modelData, { value: value });
+                                    haManager.callService(eDom, "set_value", modelData, { value: value });
                                 }
+                            }
+                        }
+
+                        Controls.TextField {
+                            visible: (eDom === "text" || eDom === "input_text" || eDom === "date" || eDom === "time") && eObj
+                            implicitWidth: Kirigami.Units.gridUnit * 8
+                            text: eObj ? eObj.state : ""
+                            placeholderText: eDom === "date" ? "YYYY-MM-DD" : (eDom === "time" ? "HH:MM:SS" : "")
+                            onAccepted: {
+                                if (!haManager || !eObj || text === eObj.state) return;
+                                if (eDom === "date") haManager.callService("date", "set_value", modelData, { date: text });
+                                else if (eDom === "time") haManager.callService("time", "set_value", modelData, { time: text });
+                                else haManager.callService(eDom, "set_value", modelData, { value: text });
                             }
                         }
 
