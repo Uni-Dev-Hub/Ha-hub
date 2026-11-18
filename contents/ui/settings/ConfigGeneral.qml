@@ -9,21 +9,16 @@ Kirigami.ScrollablePage {
     title: i18n("General")
     topPadding: 0
 
-    readonly property string cfg_hostDefault: "192.168.1.100"
-    readonly property string cfg_portDefault: "8123"
-    readonly property bool cfg_useSslDefault: false
-    readonly property string cfg_accessTokenDefault: ""
-    readonly property bool cfg_autoConnectDefault: true
-    readonly property string cfg_serverNameDefault: "Home Assistant"
-    readonly property string cfg_favoriteEntitiesDefault: "[]"
-
-    property string cfg_host: "192.168.1.100"
-    property string cfg_port: "8123"
+    // cfg_* properties are bound to the kcfg entries by the Plasma 6
+    // configuration backend. Declared values only act as fallback defaults.
+    property string cfg_host: "homeassistant.local"
+    property int cfg_port: 8123
     property bool cfg_useSsl: false
     property string cfg_accessToken: ""
     property bool cfg_autoConnect: true
     property string cfg_serverName: "Home Assistant"
-    property string cfg_favoriteEntities: "[]"
+    property bool cfg_showHiddenEntities: false
+    property bool cfg_showDiagnosticEntities: false
 
     Kirigami.FormLayout {
         id: formLayout
@@ -32,7 +27,7 @@ Kirigami.ScrollablePage {
         Controls.TextField {
             id: hostField
             Kirigami.FormData.label: i18n("HA Host / IP:")
-            placeholderText: "192.168.1.100 or homeassistant.local"
+            placeholderText: "homeassistant.local or 192.168.1.100"
             text: generalSettings.cfg_host
             Layout.fillWidth: true
             onTextEdited: generalSettings.cfg_host = text
@@ -42,9 +37,14 @@ Kirigami.ScrollablePage {
             id: portField
             Kirigami.FormData.label: i18n("Port:")
             placeholderText: "8123"
-            text: generalSettings.cfg_port
+            text: String(generalSettings.cfg_port)
             inputMethodHints: Qt.ImhDigitsOnly
-            onTextEdited: generalSettings.cfg_port = text
+            onTextEdited: {
+                var parsed = parseInt(text);
+                if (!isNaN(parsed) && parsed > 0 && parsed <= 65535) {
+                    generalSettings.cfg_port = parsed;
+                }
+            }
         }
 
         Controls.CheckBox {
@@ -71,6 +71,22 @@ Kirigami.ScrollablePage {
             text: i18n("Connect on startup")
             checked: generalSettings.cfg_autoConnect
             onToggled: generalSettings.cfg_autoConnect = checked
+        }
+
+        Controls.CheckBox {
+            id: showHiddenCheckBox
+            Kirigami.FormData.label: i18n("Device List:")
+            text: i18n("Show hidden entities")
+            checked: generalSettings.cfg_showHiddenEntities
+            onToggled: generalSettings.cfg_showHiddenEntities = checked
+        }
+
+        Controls.CheckBox {
+            id: showDiagnosticCheckBox
+            Kirigami.FormData.label: i18n("Device List:")
+            text: i18n("Show diagnostic / config entities")
+            checked: generalSettings.cfg_showDiagnosticEntities
+            onToggled: generalSettings.cfg_showDiagnosticEntities = checked
         }
     }
 }

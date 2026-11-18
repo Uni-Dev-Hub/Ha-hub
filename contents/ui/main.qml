@@ -63,7 +63,11 @@ PlasmoidItem {
     }
 
     Component.onCompleted: {
-        haManagerService.startAutoConnect();
+        if (Plasmoid.configuration.autoConnect !== false) {
+            haManagerService.startAutoConnect();
+        } else {
+            haManagerService.connectionStatus = i18n("Auto-connect is disabled in settings");
+        }
     }
 
     compactRepresentation: CompactRepresentation {
