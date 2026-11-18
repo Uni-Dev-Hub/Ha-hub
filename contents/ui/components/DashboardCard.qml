@@ -2,7 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
-import "../../code/ha_helpers.js" as HAHelpers
+import "../../code/ha_helpers.mjs" as HAHelpers
+import "../../l10n"
 
 Item {
     id: dashboardCard
@@ -35,7 +36,7 @@ Item {
         return HAHelpers.getAreaName(cleanId, haManager);
     }
     readonly property string statusText: {
-        return HAHelpers.getStatusDetailsText(cleanId, entityObj, haManager && haManager.entityToDeviceMap ? (haManager.entityToDeviceMap[cleanId] || "") : "", haManager);
+        return HAHelpers.getStatusDetailsText(cleanId, entityObj, haManager && haManager.entityToDeviceMap ? (haManager.entityToDeviceMap[cleanId] || "") : "", haManager, Loc.language);
     }
     readonly property bool isUnavailable: !entityObj || entityObj.state === "unavailable" || entityObj.state === "unknown"
     readonly property bool isOn: !isUnavailable && (entityObj.state === "on" || entityObj.state === "home" || entityObj.state === "open" || entityObj.state === "playing" || entityObj.state === "unlocked")
@@ -86,7 +87,7 @@ Item {
 
                 PlasmaComponents3.Label {
                     text: isUnavailable
-                        ? i18n("Unavailable")
+                        ? Loc.t("Unavailable")
                         : statusText
                     font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
                     color: isUnavailable ? Kirigami.Theme.disabledTextColor : (isOn ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.textColor)

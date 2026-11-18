@@ -6,11 +6,12 @@ import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
 import "../../services" as Services
-import "../../code/ha_helpers.js" as HAHelpers
+import "../../code/ha_helpers.mjs" as HAHelpers
+import "../../l10n"
 
 Kirigami.ScrollablePage {
     id: dashboardSettings
-    title: i18n("Dashboard")
+    title: Loc.t("Dashboard")
     topPadding: Kirigami.Units.smallSpacing
 
     property string cfg_host: ""
@@ -131,8 +132,8 @@ Kirigami.ScrollablePage {
 
             Controls.Switch {
                 id: showDashboardSwitch
-                Kirigami.FormData.label: i18n("Widget Tab:")
-                text: i18n("Show 'Dashboard' tab")
+                Kirigami.FormData.label: Loc.t("Widget Tab:")
+                text: Loc.t("Show 'Dashboard' tab")
                 checked: dashboardSettings.cfg_showDashboard
                 onToggled: dashboardSettings.cfg_showDashboard = checked
             }
@@ -145,13 +146,13 @@ Kirigami.ScrollablePage {
             RowLayout {
                 Layout.fillWidth: true
                 PlasmaComponents3.Label {
-                    text: i18n("Dashboard Cards")
+                    text: Loc.t("Dashboard Cards")
                     font.bold: true
                     font.pointSize: Qt.application.font.pointSize * 1.1
                     Layout.fillWidth: true
                 }
                 PlasmaComponents3.Label {
-                    text: i18n("%1 cards", dashboardSettings.cards.length)
+                    text: Loc.t("%1 cards", dashboardSettings.cards.length)
                     font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.8
                     color: Kirigami.Theme.disabledTextColor
                 }
@@ -159,7 +160,7 @@ Kirigami.ScrollablePage {
 
             PlasmaComponents3.Label {
                 visible: dashboardSettings.cards.length === 0
-                text: i18n("No cards yet. Add an entity below.")
+                text: Loc.t("No cards yet. Add an entity below.")
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: Kirigami.Theme.disabledTextColor
                 Layout.fillWidth: true
@@ -245,7 +246,7 @@ Kirigami.ScrollablePage {
             spacing: Kirigami.Units.smallSpacing
 
             PlasmaComponents3.Label {
-                text: i18n("Add Entity to Dashboard")
+                text: Loc.t("Add Entity to Dashboard")
                 font.bold: true
                 font.pointSize: Qt.application.font.pointSize * 1.05
                 Layout.fillWidth: true
@@ -253,14 +254,14 @@ Kirigami.ScrollablePage {
 
             Controls.TextField {
                 Layout.fillWidth: true
-                placeholderText: i18n("Search entities…")
+                placeholderText: Loc.t("Search entities…")
                 text: dashboardSettings.searchText
                 onTextChanged: dashboardSettings.searchText = text
             }
 
             PlasmaComponents3.Label {
                 visible: haManager && !haManager.isConnected
-                text: haManager ? haManager.connectionStatus : i18n("Connecting…")
+                text: haManager ? haManager.connectionStatus : Loc.t("Connecting…")
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: Kirigami.Theme.disabledTextColor
                 Layout.fillWidth: true
@@ -316,7 +317,7 @@ Kirigami.ScrollablePage {
 
             PlasmaComponents3.Label {
                 visible: haManager && haManager.isConnected && dashboardSettings.availableEntities.length === 0
-                text: i18n("No matching entities. Try another search or check Settings → Favorite Devices.")
+                text: Loc.t("No matching entities. Try another search or check Settings → Favorite Devices.")
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: Kirigami.Theme.disabledTextColor
                 wrapMode: Text.WordWrap

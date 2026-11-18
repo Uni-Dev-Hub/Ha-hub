@@ -20,6 +20,9 @@
     <entry name="autoConnect" type="Bool">
       <default>true</default>
     </entry>
+    <entry name="language" type="String">
+      <default>system</default>
+    </entry>
     <entry name="serverName" type="String">
       <default>Home Assistant</default>
     </entry>

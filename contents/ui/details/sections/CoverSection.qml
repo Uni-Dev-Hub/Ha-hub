@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: coverSec
@@ -29,7 +30,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("POSITION & CONTROL")
+                text: Loc.t("POSITION & CONTROL")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -44,7 +45,7 @@ Rectangle {
         }
 
         PlasmaComponents3.Label {
-            text: coverSec.position + "% • " + (eObj && eObj.state === "open" ? i18n("Open") : (eObj && eObj.state === "closed" ? i18n("Closed") : (eObj ? eObj.state : "—")))
+            text: coverSec.position + "% • " + (eObj && eObj.state === "open" ? Loc.t("Open") : (eObj && eObj.state === "closed" ? Loc.t("Closed") : (eObj ? eObj.state : "—")))
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.5
             color: Kirigami.Theme.textColor
@@ -56,21 +57,21 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Open")
+                text: Loc.t("Open")
                 icon.name: "arrow-up"
                 onClicked: { if (haManager) haManager.callService("cover", "open_cover", detailsPage.cleanId, {}); }
             }
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Stop")
+                text: Loc.t("Stop")
                 icon.name: "process-stop"
                 onClicked: { if (haManager) haManager.callService("cover", "stop_cover", detailsPage.cleanId, {}); }
             }
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Close")
+                text: Loc.t("Close")
                 icon.name: "arrow-down"
                 onClicked: { if (haManager) haManager.callService("cover", "close_cover", detailsPage.cleanId, {}); }
             }

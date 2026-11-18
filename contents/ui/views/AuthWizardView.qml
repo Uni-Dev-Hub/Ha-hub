@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.plasma.components 3.0 as PlasmaComponents3
 import org.kde.kirigami as Kirigami
+import "../../l10n"
 
 Item {
     id: authWizardRoot
@@ -26,7 +27,7 @@ Item {
         }
 
         PlasmaComponents3.Label {
-            text: i18n("Welcome to HA-Hub")
+            text: Loc.t("Welcome to HA-Hub")
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.25
             horizontalAlignment: Text.AlignHCenter
@@ -34,7 +35,7 @@ Item {
         }
 
         PlasmaComponents3.Label {
-            text: i18n("Select your Home Assistant server in local network:")
+            text: Loc.t("Select your Home Assistant server in local network:")
             font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.9
             color: Kirigami.Theme.disabledTextColor
             horizontalAlignment: Text.AlignHCenter
@@ -55,7 +56,7 @@ Item {
             }
 
             PlasmaComponents3.Label {
-                text: i18n("Searching for servers in network...")
+                text: Loc.t("Searching for servers in network...")
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 horizontalAlignment: Text.AlignHCenter
             }
@@ -67,7 +68,7 @@ Item {
             Layout.fillWidth: true
 
             PlasmaComponents3.Label {
-                text: i18n("Found servers:")
+                text: Loc.t("Found servers:")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: Kirigami.Theme.disabledTextColor
@@ -115,14 +116,14 @@ Item {
             Layout.fillWidth: true
 
             PlasmaComponents3.Label {
-                text: i18n("No servers found in local network")
+                text: Loc.t("No servers found in local network")
                 color: Kirigami.Theme.disabledTextColor
                 horizontalAlignment: Text.AlignHCenter
                 Layout.fillWidth: true
             }
 
             PlasmaComponents3.Button {
-                text: i18n("Retry Search")
+                text: Loc.t("Retry Search")
                 icon.name: "view-refresh-symbolic"
                 Layout.alignment: Qt.AlignHCenter
                 onClicked: {
@@ -134,7 +135,7 @@ Item {
         Item { Layout.preferredHeight: Kirigami.Units.smallSpacing }
 
         PlasmaComponents3.Button {
-            text: i18n("Enter Host / IP manually")
+            text: Loc.t("Enter Host / IP manually")
             icon.name: "edit-rename"
             Layout.fillWidth: true
             onClicked: {
@@ -157,7 +158,7 @@ Item {
 
             PlasmaComponents3.ToolButton {
                 icon.name: "go-previous"
-                text: i18n("Back to list")
+                text: Loc.t("Back to list")
                 display: PlasmaComponents3.AbstractButton.TextBesideIcon
                 Layout.alignment: Qt.AlignLeft
                 onClicked: authWizardRoot.setupStep = "WELCOME"
@@ -255,7 +256,7 @@ Item {
 
             PlasmaComponents3.TextField {
                 id: tokenInput
-                placeholderText: i18n("Enter Long-Lived Access Token (eyJ...)")
+                placeholderText: Loc.t("Enter Long-Lived Access Token (eyJ...)")
                 echoMode: TextInput.Password
                 Layout.fillWidth: true
                 text: haManager ? (haManager.accessToken || "") : ""
@@ -265,7 +266,7 @@ Item {
                 Layout.fillWidth: true
                 Item { Layout.fillWidth: true }
                 PlasmaComponents3.ToolButton {
-                    text: i18n("Get token in HA Profile")
+                    text: Loc.t("Get token in HA Profile")
                     icon.name: "internet-services"
                     display: PlasmaComponents3.AbstractButton.TextBesideIcon
                     font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.85
@@ -280,12 +281,12 @@ Item {
 
             PlasmaComponents3.CheckBox {
                 id: sslCheckBox
-                text: i18n("Use SSL (wss://)")
+                text: Loc.t("Use SSL (wss://)")
                 checked: haManager ? haManager.useSsl : false
             }
 
             PlasmaComponents3.Button {
-                text: (haManager && haManager.state === "AUTHENTICATING") ? i18n("Cancel") : i18n("Log In")
+                text: (haManager && haManager.state === "AUTHENTICATING") ? Loc.t("Cancel") : Loc.t("Log In")
                 icon.name: (haManager && haManager.state === "AUTHENTICATING") ? "process-stop-symbolic" : "dialog-ok-apply"
                 highlighted: true
                 Layout.fillWidth: true

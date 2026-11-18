@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import org.kde.plasma.components 3.0 as PlasmaComponents3
 import org.kde.kirigami as Kirigami
 import "../components" as Components
+import "../../l10n"
 
 ColumnLayout {
     id: dashboardRoot
@@ -45,7 +46,7 @@ ColumnLayout {
             }
 
             PlasmaComponents3.Label {
-                text: i18n("Dashboard is empty")
+                text: Loc.t("Dashboard is empty")
                 font.bold: true
                 font.pointSize: Qt.application.font.pointSize * 1.1
                 horizontalAlignment: Text.AlignHCenter
@@ -53,7 +54,7 @@ ColumnLayout {
             }
 
             PlasmaComponents3.Label {
-                text: i18n("Add cards in Settings → Dashboard.")
+                text: Loc.t("Add cards in Settings → Dashboard.")
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: Kirigami.Theme.disabledTextColor
                 horizontalAlignment: Text.AlignHCenter
@@ -62,7 +63,7 @@ ColumnLayout {
             }
 
             PlasmaComponents3.Button {
-                text: i18n("Open Settings")
+                text: Loc.t("Open Settings")
                 icon.name: "configure"
                 highlighted: true
                 Layout.alignment: Qt.AlignHCenter

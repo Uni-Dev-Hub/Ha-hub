@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: thermSec
@@ -16,12 +17,12 @@ Rectangle {
     readonly property var presetModes: attrs.preset_modes || []
 
     function getHvacName(m) {
-        if (m === "heat") return i18n("Heating");
-        if (m === "cool") return i18n("Cooling");
-        if (m === "heat_cool" || m === "auto") return i18n("Auto");
-        if (m === "dry") return i18n("Dry");
-        if (m === "fan_only") return i18n("Fan only");
-        if (m === "off") return i18n("Off");
+        if (m === "heat") return Loc.t("Heating");
+        if (m === "cool") return Loc.t("Cooling");
+        if (m === "heat_cool" || m === "auto") return Loc.t("Auto");
+        if (m === "dry") return Loc.t("Dry");
+        if (m === "fan_only") return Loc.t("Fan only");
+        if (m === "off") return Loc.t("Off");
         return m;
     }
 
@@ -40,7 +41,7 @@ Rectangle {
 
         RowLayout {
             Layout.fillWidth: true
-            PlasmaComponents3.Label { text: i18n("TEMPERATURE MODE"); font.bold: true; font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75; color: Kirigami.Theme.disabledTextColor; Layout.fillWidth: true }
+            PlasmaComponents3.Label { text: Loc.t("TEMPERATURE MODE"); font.bold: true; font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75; color: Kirigami.Theme.disabledTextColor; Layout.fillWidth: true }
             Kirigami.Icon { source: "temperature-normal"; implicitWidth: Kirigami.Units.iconSizes.small; implicitHeight: Kirigami.Units.iconSizes.small; color: Kirigami.Theme.highlightColor }
         }
 
@@ -49,7 +50,7 @@ Rectangle {
             ColumnLayout {
                 spacing: 1
                 Layout.fillWidth: true
-                PlasmaComponents3.Label { text: i18n("Room Temperature"); font.pointSize: 8; color: Kirigami.Theme.disabledTextColor }
+                PlasmaComponents3.Label { text: Loc.t("Room Temperature"); font.pointSize: 8; color: Kirigami.Theme.disabledTextColor }
                 PlasmaComponents3.Label {
                     text: attrs.current_temperature !== undefined ? (attrs.current_temperature + "°C") : "—"
                     font.bold: true
@@ -89,7 +90,7 @@ Rectangle {
             Layout.fillWidth: true
             spacing: 2
 
-            PlasmaComponents3.Label { text: i18n("Operating Mode"); font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.82; color: Kirigami.Theme.disabledTextColor }
+            PlasmaComponents3.Label { text: Loc.t("Operating Mode"); font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.82; color: Kirigami.Theme.disabledTextColor }
 
             Flow {
                 Layout.fillWidth: true
@@ -119,7 +120,7 @@ Rectangle {
                 visible: thermSec.fanModes.length > 0
                 Layout.fillWidth: true
                 spacing: 1
-                PlasmaComponents3.Label { text: i18n("Fan Mode"); font.pointSize: 7.5; color: Kirigami.Theme.disabledTextColor }
+                PlasmaComponents3.Label { text: Loc.t("Fan Mode"); font.pointSize: 7.5; color: Kirigami.Theme.disabledTextColor }
                 PlasmaComponents3.ComboBox {
                     Layout.fillWidth: true
                     model: thermSec.fanModes
@@ -134,7 +135,7 @@ Rectangle {
                 visible: thermSec.swingModes.length > 0
                 Layout.fillWidth: true
                 spacing: 1
-                PlasmaComponents3.Label { text: i18n("Swing Mode"); font.pointSize: 7.5; color: Kirigami.Theme.disabledTextColor }
+                PlasmaComponents3.Label { text: Loc.t("Swing Mode"); font.pointSize: 7.5; color: Kirigami.Theme.disabledTextColor }
                 PlasmaComponents3.ComboBox {
                     Layout.fillWidth: true
                     model: thermSec.swingModes

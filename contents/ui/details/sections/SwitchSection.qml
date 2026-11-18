@@ -2,7 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
-import "../../../code/ha_helpers.js" as HAHelpers
+import "../../../code/ha_helpers.mjs" as HAHelpers
+import "../../../l10n"
 
 Rectangle {
     id: swSec
@@ -27,7 +28,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("SWITCH / RELAY")
+                text: Loc.t("SWITCH / RELAY")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -42,7 +43,7 @@ Rectangle {
         }
 
         PlasmaComponents3.Label {
-            text: swSec.isOn ? i18n("On") : i18n("Off")
+            text: swSec.isOn ? Loc.t("On") : Loc.t("Off")
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.6
             color: swSec.isOn ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
@@ -59,7 +60,7 @@ Rectangle {
             PlasmaComponents3.Label {
                 text: {
                     var timeStr = HAHelpers.formatTimeInState(detailsPage.primaryEntityObj ? detailsPage.primaryEntityObj.last_changed : null);
-                    return timeStr ? i18n("In this state for %1", timeStr) : i18n("Status is current");
+                    return timeStr ? Loc.t("In this state for %1", timeStr) : Loc.t("Status is current");
                 }
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.82
                 color: Kirigami.Theme.disabledTextColor

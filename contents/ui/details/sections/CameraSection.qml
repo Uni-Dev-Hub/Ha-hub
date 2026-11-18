@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: camSec
@@ -32,7 +33,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("SURVEILLANCE CAMERA")
+                text: Loc.t("SURVEILLANCE CAMERA")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor

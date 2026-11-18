@@ -2,7 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
-import "../../../code/ha_helpers.js" as HAHelpers
+import "../../../code/ha_helpers.mjs" as HAHelpers
+import "../../../l10n"
 
 Rectangle {
     id: channelsSec
@@ -37,7 +38,7 @@ Rectangle {
             }
 
             PlasmaComponents3.Label {
-                text: i18n("Channels & Additional Controls (%1)", channelsSec.channels.length)
+                text: Loc.t("Channels & Additional Controls (%1)", channelsSec.channels.length)
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.88
                 Layout.fillWidth: true
@@ -92,7 +93,7 @@ Rectangle {
 
                     PlasmaComponents3.Label {
                         visible: !isToggleable && !isActionable
-                        text: eObj ? eObj.state : i18n("Unavailable")
+                        text: eObj ? eObj.state : Loc.t("Unavailable")
                         font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.82
                         color: Kirigami.Theme.disabledTextColor
                     }
@@ -109,7 +110,7 @@ Rectangle {
 
                     PlasmaComponents3.Button {
                         visible: isActionable
-                        text: i18n("Run")
+                        text: Loc.t("Run")
                         icon.name: "media-playback-start-symbolic"
                         enabled: eObj ? (eObj.state !== "unavailable") : false
                         onClicked: {

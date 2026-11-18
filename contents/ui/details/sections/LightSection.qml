@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: lightSec
@@ -99,7 +100,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("BRIGHTNESS & COLOR")
+                text: Loc.t("BRIGHTNESS & COLOR")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -117,7 +118,7 @@ Rectangle {
 
             PlasmaComponents3.Label {
                 text: {
-                    if (!detailsPage.isTurnedOn) return i18n("Off");
+                    if (!detailsPage.isTurnedOn) return Loc.t("Off");
                     var b = attrs.brightness !== undefined ? attrs.brightness : 255;
                     return Math.round((b / 255) * 100) + "%";
                 }
@@ -262,7 +263,7 @@ Rectangle {
             RowLayout {
                 Layout.fillWidth: true
                 PlasmaComponents3.Label {
-                    text: i18n("White Temperature")
+                    text: Loc.t("White Temperature")
                     font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.80
                     color: Kirigami.Theme.disabledTextColor
                     Layout.fillWidth: true
@@ -293,7 +294,7 @@ Rectangle {
             spacing: 2
 
             PlasmaComponents3.Label {
-                text: i18n("Light Effect")
+                text: Loc.t("Light Effect")
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.80
                 color: Kirigami.Theme.disabledTextColor
             }

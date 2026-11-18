@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: optSec
@@ -38,7 +39,7 @@ Rectangle {
 
                 Kirigami.Icon { source: "configure"; implicitWidth: Kirigami.Units.iconSizes.small; implicitHeight: Kirigami.Units.iconSizes.small; color: Kirigami.Theme.disabledTextColor }
                 PlasmaComponents3.Label {
-                    text: i18n("Parameters & Options (%1)", detailsPage.configEntitiesList.length)
+                    text: Loc.t("Parameters & Options (%1)", detailsPage.configEntitiesList.length)
                     font.bold: true
                     font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.88
                     Layout.fillWidth: true
@@ -90,7 +91,7 @@ Rectangle {
 
                         PlasmaComponents3.Button {
                             visible: eDom === "button" || eDom === "input_button" || eDom === "update"
-                            text: eDom === "update" ? i18n("Install") : i18n("Execute")
+                            text: eDom === "update" ? Loc.t("Install") : Loc.t("Execute")
                             icon.name: eDom === "update" ? "system-software-update" : "media-playback-start"
                             onClicked: {
                                 if (!haManager) return;

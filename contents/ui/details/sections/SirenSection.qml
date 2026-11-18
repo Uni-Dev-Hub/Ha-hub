@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: sirenSec
@@ -28,7 +29,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("ALARM SIREN")
+                text: Loc.t("ALARM SIREN")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -43,7 +44,7 @@ Rectangle {
         }
 
         PlasmaComponents3.Label {
-            text: sirenSec.isOn ? i18n("SIREN ACTIVE!") : i18n("Siren off")
+            text: sirenSec.isOn ? Loc.t("SIREN ACTIVE!") : Loc.t("Siren off")
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.5
             color: sirenSec.isOn ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
@@ -51,7 +52,7 @@ Rectangle {
 
         PlasmaComponents3.Button {
             Layout.fillWidth: true
-            text: sirenSec.isOn ? i18n("Turn Off Siren") : i18n("Turn On Siren")
+            text: sirenSec.isOn ? Loc.t("Turn Off Siren") : Loc.t("Turn On Siren")
             icon.name: sirenSec.isOn ? "process-stop" : "dialog-warning"
             highlighted: true
             onClicked: {

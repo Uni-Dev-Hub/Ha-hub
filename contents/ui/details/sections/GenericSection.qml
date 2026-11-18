@@ -2,7 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
-import "../../../code/ha_helpers.js" as HAHelpers
+import "../../../code/ha_helpers.mjs" as HAHelpers
+import "../../../l10n"
 
 Rectangle {
     id: genSec
@@ -57,7 +58,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("CURRENT STATE")
+                text: Loc.t("CURRENT STATE")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -76,7 +77,7 @@ Rectangle {
 
             PlasmaComponents3.Label {
                 text: {
-                    if (!genSec.entityObj) return i18n("Unavailable");
+                    if (!genSec.entityObj) return Loc.t("Unavailable");
                     var st = genSec.entityObj.state;
                     var u = (genSec.entityObj.attributes && genSec.entityObj.attributes.unit_of_measurement)
                         ? (" " + genSec.entityObj.attributes.unit_of_measurement) : "";
@@ -90,7 +91,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 visible: genSec.isActionable
-                text: genSec.domain === "update" ? i18n("Install") : i18n("Run")
+                text: genSec.domain === "update" ? Loc.t("Install") : Loc.t("Run")
                 icon.name: genSec.domain === "update" ? "system-software-update" : "media-playback-start-symbolic"
                 onClicked: genSec.runAction()
             }
@@ -116,7 +117,7 @@ Rectangle {
             spacing: 2
 
             PlasmaComponents3.Label {
-                text: i18n("ATTRIBUTES")
+                text: Loc.t("ATTRIBUTES")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.72
                 color: Kirigami.Theme.disabledTextColor

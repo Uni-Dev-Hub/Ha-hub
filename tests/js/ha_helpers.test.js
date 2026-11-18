@@ -7,13 +7,32 @@ const assert = require("node:assert/strict");
 function loadLibrary(relativePath) {
     let source = fs.readFileSync(path.join(__dirname, "..", "..", relativePath), "utf8");
     source = source.replace(/^\.pragma library\s*/m, "");
-    const context = { console, i18n: (text) => text };
+    const context = { console };
     vm.createContext(context);
+    // ESM imports as used inside the QML package:
+    //   import * as T from "../l10n/translations.mjs";
+    //   import { translate } from "../l10n/translations.mjs";
+    const star = [...source.matchAll(/^import\s+\*\s+as\s+(\w+)\s+from\s+"([^"]+)";?\s*$/gm)];
+    const named = [...source.matchAll(/^import\s+\{([^}]+)\}\s+from\s+"([^"]+)";?\s*$/gm)];
+    source = source.replace(/^import\s+(?:\*\s+as\s+\w+|\{[^}]+\})\s+from\s+"[^"]+";?\s*$/gm, "");
+    for (const [, alias, spec] of star) {
+        context[alias] = loadLibrary(path.join(path.dirname(relativePath), spec));
+    }
+    for (const [, names, spec] of named) {
+        const dep = loadLibrary(path.join(path.dirname(relativePath), spec));
+        for (const name of names.split(",").map((s) => s.trim()).filter(Boolean)) {
+            context[name] = dep[name];
+        }
+    }
+    // Inline `export function/var` become plain declarations; the trailing
+    // `export { ... };` block is dropped (declarations are already global here).
+    source = source.replace(/^export\s+(?=(?:async\s+)?(?:function|var|let|const)\b)/gm, "");
+    source = source.replace(/^export\s*\{[^}]*\};?\s*$/gm, "");
     vm.runInContext(source, context, { filename: relativePath });
     return context;
 }
 
-const helpers = loadLibrary("contents/code/ha_helpers.js");
+const helpers = loadLibrary("contents/code/ha_helpers.mjs");
 
 test("multi-gang switch channels are selectable, not secondary", () => {
     assert.equal(helpers.isSelectableEntity("switch.tuya_switch_1"), true);

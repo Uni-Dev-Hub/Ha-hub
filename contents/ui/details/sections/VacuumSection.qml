@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: vacSec
@@ -29,7 +30,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("CLEANING STATUS")
+                text: Loc.t("CLEANING STATUS")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -46,11 +47,11 @@ Rectangle {
 
         PlasmaComponents3.Label {
             text: {
-                if (vacSec.rawState === "cleaning") return i18n("Cleaning...");
-                if (vacSec.rawState === "docked") return i18n("Docked");
-                if (vacSec.rawState === "returning") return i18n("Returning to dock");
-                if (vacSec.rawState === "paused") return i18n("Paused");
-                if (vacSec.rawState === "error") return i18n("Vacuum error!");
+                if (vacSec.rawState === "cleaning") return Loc.t("Cleaning...");
+                if (vacSec.rawState === "docked") return Loc.t("Docked");
+                if (vacSec.rawState === "returning") return Loc.t("Returning to dock");
+                if (vacSec.rawState === "paused") return Loc.t("Paused");
+                if (vacSec.rawState === "error") return Loc.t("Vacuum error!");
                 return vacSec.rawState;
             }
             font.bold: true
@@ -64,7 +65,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: vacSec.rawState === "cleaning" ? i18n("Pause") : i18n("Clean")
+                text: vacSec.rawState === "cleaning" ? Loc.t("Pause") : Loc.t("Clean")
                 icon.name: vacSec.rawState === "cleaning" ? "media-playback-pause" : "media-playback-start"
                 highlighted: vacSec.rawState === "cleaning"
                 onClicked: {
@@ -76,7 +77,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Dock")
+                text: Loc.t("Dock")
                 icon.name: "go-home"
                 onClicked: { if (haManager) haManager.callService("vacuum", "return_to_base", detailsPage.cleanId, {}); }
             }
@@ -84,7 +85,7 @@ Rectangle {
             PlasmaComponents3.ToolButton {
                 icon.name: "audio-volume-high"
                 PlasmaComponents3.ToolTip.visible: hovered
-                PlasmaComponents3.ToolTip.text: i18n("Locate vacuum (sound)")
+                PlasmaComponents3.ToolTip.text: Loc.t("Locate vacuum (sound)")
                 onClicked: { if (haManager) haManager.callService("vacuum", "locate", detailsPage.cleanId, {}); }
             }
         }

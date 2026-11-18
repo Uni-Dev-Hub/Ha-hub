@@ -5,7 +5,8 @@ import org.kde.plasma.components 3.0 as PlasmaComponents3
 import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
 import "../components" as Components
-import "../../code/ha_helpers.js" as HAHelpers
+import "../../code/ha_helpers.mjs" as HAHelpers
+import "../../l10n"
 
 ColumnLayout {
     id: listViewRoot
@@ -146,7 +147,7 @@ ColumnLayout {
             if (ids.length === 0) continue;
             result.push({
                 kind: "header",
-                title: (group.name || i18n("Unassigned")) + (group.floorName ? ("  ·  " + group.floorName) : ""),
+                title: (group.name || Loc.t("Unassigned")) + (group.floorName ? ("  ·  " + group.floorName) : ""),
                 count: ids.length,
                 areaId: group.areaId || ""
             });
@@ -195,7 +196,7 @@ ColumnLayout {
             Controls.TextField {
                 id: searchField
                 Layout.fillWidth: true
-                placeholderText: i18n("Search by name, area or entity ID…")
+                placeholderText: Loc.t("Search by name, area or entity ID…")
                 text: listViewRoot.searchText
                 onTextChanged: listViewRoot.searchText = text
                 visible: true
@@ -214,13 +215,13 @@ ColumnLayout {
                 }
 
                 PlasmaComponents3.TabButton {
-                    text: i18n("Favorites (%1)", listViewRoot.favoriteIds.length)
+                    text: Loc.t("Favorites (%1)", listViewRoot.favoriteIds.length)
                 }
                 PlasmaComponents3.TabButton {
-                    text: i18n("Areas")
+                    text: Loc.t("Areas")
                 }
                 PlasmaComponents3.TabButton {
-                    text: i18n("All")
+                    text: Loc.t("All")
                 }
             }
 
@@ -239,7 +240,7 @@ ColumnLayout {
                 }
 
                 PlasmaComponents3.Label {
-                    text: listViewRoot.browserTab === 0 ? i18n("No favorite devices") : i18n("No devices found")
+                    text: listViewRoot.browserTab === 0 ? Loc.t("No favorite devices") : Loc.t("No devices found")
                     font.bold: true
                     font.pointSize: Qt.application.font.pointSize * 1.1
                     color: Kirigami.Theme.textColor
@@ -249,8 +250,8 @@ ColumnLayout {
 
                 PlasmaComponents3.Label {
                     text: listViewRoot.browserTab === 0
-                        ? i18n("Open settings to add devices to favorites.")
-                        : i18n("Try changing the search query or check the connection.")
+                        ? Loc.t("Open settings to add devices to favorites.")
+                        : Loc.t("Try changing the search query or check the connection.")
                     wrapMode: Text.WordWrap
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     color: Kirigami.Theme.disabledTextColor
@@ -260,7 +261,7 @@ ColumnLayout {
 
                 PlasmaComponents3.Button {
                     visible: listViewRoot.browserTab === 0
-                    text: i18n("Open Settings")
+                    text: Loc.t("Open Settings")
                     icon.name: "configure"
                     highlighted: true
                     Layout.alignment: Qt.AlignHCenter

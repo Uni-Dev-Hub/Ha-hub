@@ -5,11 +5,12 @@ import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
 import "../../services" as Services
-import "../../code/ha_helpers.js" as HAHelpers
+import "../../code/ha_helpers.mjs" as HAHelpers
+import "../../l10n"
 
 Kirigami.Page {
     id: favoritesSettings
-    title: i18n("Favorite Devices")
+    title: Loc.t("Favorite Devices")
 
     implicitWidth: Kirigami.Units.gridUnit * 34
     implicitHeight: Kirigami.Units.gridUnit * 28
@@ -125,7 +126,7 @@ Kirigami.Page {
         var rev = haManager ? haManager.entitiesRevision : 0;
         var cleanId = HAHelpers.cleanEntityId(entId);
         if (!haManager || !cleanId) {
-            return { title: entId || "", areaName: "", statusText: i18n("Unavailable"), isOn: false, isUnavailable: true };
+            return { title: entId || "", areaName: "", statusText: Loc.t("Unavailable"), isOn: false, isUnavailable: true };
         }
 
         var entObj = haManager.getEntity(cleanId);
@@ -137,7 +138,7 @@ Kirigami.Page {
         var deviceName = entry && entry.deviceName ? entry.deviceName : "";
         var domain = HAHelpers.getDomain(cleanId);
         var devId = entry && entry.deviceId ? entry.deviceId : (haManager.entityToDeviceMap ? (haManager.entityToDeviceMap[cleanId] || "") : "");
-        var statusText = HAHelpers.getStatusDetailsText(cleanId, entObj, devId, haManager);
+        var statusText = HAHelpers.getStatusDetailsText(cleanId, entObj, devId, haManager, Loc.language);
 
         var isUnavailable = (!entObj || entObj.state === "unavailable" || entObj.state === "unknown");
         var isOn = !isUnavailable && (entObj.state === "on" || entObj.state === "home" || entObj.state === "open" || entObj.state === "playing" || entObj.state === "unlocked");
@@ -227,7 +228,7 @@ Kirigami.Page {
         }
 
         PlasmaComponents3.Label {
-            text: i18n("Please wait, loading data...")
+            text: Loc.t("Please wait, loading data...")
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.15
             horizontalAlignment: Text.AlignHCenter
@@ -235,7 +236,7 @@ Kirigami.Page {
         }
 
         PlasmaComponents3.Label {
-            text: haManager ? haManager.connectionStatus : i18n("Connecting to Home Assistant...")
+            text: haManager ? haManager.connectionStatus : Loc.t("Connecting to Home Assistant...")
             font.pointSize: Kirigami.Theme.smallFont.pointSize
             color: Kirigami.Theme.disabledTextColor
             horizontalAlignment: Text.AlignHCenter
@@ -258,7 +259,7 @@ Kirigami.Page {
         }
 
         PlasmaComponents3.Label {
-            text: haManager ? haManager.connectionStatus : i18n("Connection Error")
+            text: haManager ? haManager.connectionStatus : Loc.t("Connection Error")
             font.pointSize: Kirigami.Theme.defaultFont.pointSize
             color: Kirigami.Theme.negativeTextColor
             horizontalAlignment: Text.AlignHCenter
@@ -267,7 +268,7 @@ Kirigami.Page {
         }
 
         PlasmaComponents3.Button {
-            text: i18n("Retry Connection")
+            text: Loc.t("Retry Connection")
             icon.name: "view-refresh-symbolic"
             Layout.alignment: Qt.AlignHCenter
             onClicked: {
@@ -292,7 +293,7 @@ Kirigami.Page {
 
                 Controls.TextField {
                     id: searchInput
-                    placeholderText: i18n("Search device by name or ID...")
+                    placeholderText: Loc.t("Search device by name or ID...")
                     Layout.fillWidth: true
                     text: favoritesSettings.searchFilter
                     onTextChanged: favoritesSettings.searchFilter = text
@@ -318,10 +319,10 @@ Kirigami.Page {
                 }
 
                 PlasmaComponents3.TabButton {
-                    text: i18n("All (%1)", favoritesSettings.rawAllEntitiesList.length)
+                    text: Loc.t("All (%1)", favoritesSettings.rawAllEntitiesList.length)
                 }
                 PlasmaComponents3.TabButton {
-                    text: i18n("Favorites (%1)", favoritesSettings.favEntitiesArray.length)
+                    text: Loc.t("Favorites (%1)", favoritesSettings.favEntitiesArray.length)
                 }
             }
 
@@ -330,13 +331,13 @@ Kirigami.Page {
                 spacing: Kirigami.Units.smallSpacing
 
                 Controls.CheckBox {
-                    text: i18n("Hidden")
+                    text: Loc.t("Hidden")
                     checked: favoritesSettings.cfg_showHiddenEntities
                     onToggled: favoritesSettings.cfg_showHiddenEntities = checked
                 }
 
                 Controls.CheckBox {
-                    text: i18n("Diagnostic / config")
+                    text: Loc.t("Diagnostic / config")
                     checked: favoritesSettings.cfg_showDiagnosticEntities
                     onToggled: favoritesSettings.cfg_showDiagnosticEntities = checked
                 }
@@ -344,7 +345,7 @@ Kirigami.Page {
                 Item { Layout.fillWidth: true }
 
                 PlasmaComponents3.Label {
-                    text: i18n("%1 entities", favoritesSettings.rawAllEntitiesList.length)
+                    text: Loc.t("%1 entities", favoritesSettings.rawAllEntitiesList.length)
                     font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
                     color: Kirigami.Theme.disabledTextColor
                 }

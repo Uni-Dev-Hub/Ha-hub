@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: personSec
@@ -27,7 +28,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("PRESENCE STATUS")
+                text: Loc.t("PRESENCE STATUS")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -42,7 +43,7 @@ Rectangle {
         }
 
         PlasmaComponents3.Label {
-            text: personSec.isHome ? i18n("Home") : (eObj && eObj.state === "not_home" ? i18n("Away") : (eObj ? eObj.state : "—"))
+            text: personSec.isHome ? Loc.t("Home") : (eObj && eObj.state === "not_home" ? Loc.t("Away") : (eObj ? eObj.state : "—"))
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.6
             color: personSec.isHome ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.textColor
@@ -52,7 +53,7 @@ Rectangle {
             visible: attrs.latitude !== undefined && attrs.longitude !== undefined
             Layout.fillWidth: true
             PlasmaComponents3.Button {
-                text: i18n("Open in Map")
+                text: Loc.t("Open in Map")
                 icon.name: "mark-location"
                 onClicked: {
                     Qt.openUrlExternally("https://www.openstreetmap.org/?mlat=" + attrs.latitude + "&mlon=" + attrs.longitude + "#map=16/" + attrs.latitude + "/" + attrs.longitude);

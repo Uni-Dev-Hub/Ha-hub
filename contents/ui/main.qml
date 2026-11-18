@@ -5,6 +5,7 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
 import "../services" as Services
 import "components" as Components
+import "../l10n"
 
 PlasmoidItem {
     id: root
@@ -17,11 +18,11 @@ PlasmoidItem {
         : "HA-Hub"
 
     toolTipSubText: {
-        if (!haManagerService) return i18n("Disconnected");
+        if (!haManagerService) return Loc.t("Disconnected");
         if (!haManagerService.isConnected) {
-            return haManagerService.connectionStatus || i18n("Disconnected");
+            return haManagerService.connectionStatus || Loc.t("Disconnected");
         }
-        return i18n("Connected (%1:%2)", haManagerService.host, haManagerService.port);
+        return Loc.t("Connected (%1:%2)", haManagerService.host, haManagerService.port);
     }
 
     readonly property string desktopEntityId: Plasmoid.configuration.desktopEntityId || ""
@@ -65,7 +66,7 @@ PlasmoidItem {
         if (Plasmoid.configuration.autoConnect !== false) {
             haManagerService.startAutoConnect();
         } else {
-            haManagerService.connectionStatus = i18n("Auto-connect is disabled in settings");
+            haManagerService.connectionStatus = Loc.t("Auto-connect is disabled in settings");
         }
     }
 

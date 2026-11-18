@@ -5,6 +5,7 @@ import org.kde.plasma.components 3.0 as PlasmaComponents3
 import org.kde.kirigami as Kirigami
 import "views" as Views
 import "details" as Details
+import "../l10n"
 
 PlasmaComponents3.Page {
     id: fullRoot
@@ -48,11 +49,11 @@ PlasmaComponents3.Page {
 
     readonly property string greetingText: {
         var hour = new Date().getHours();
-        var greeting = i18n("Welcome");
-        if (hour >= 5 && hour < 12) { greeting = i18n("Good morning"); }
-        else if (hour >= 12 && hour < 18) { greeting = i18n("Good afternoon"); }
-        else if (hour >= 18 && hour < 23) { greeting = i18n("Good evening"); }
-        else { greeting = i18n("Good night"); }
+        var greeting = Loc.t("Welcome");
+        if (hour >= 5 && hour < 12) { greeting = Loc.t("Good morning"); }
+        else if (hour >= 12 && hour < 18) { greeting = Loc.t("Good afternoon"); }
+        else if (hour >= 18 && hour < 23) { greeting = Loc.t("Good evening"); }
+        else { greeting = Loc.t("Good night"); }
         return fullRoot.userName.length > 0 ? (greeting + ", " + fullRoot.userName + "!") : (greeting + "!");
     }
 
@@ -75,12 +76,12 @@ PlasmaComponents3.Page {
             Layout.fillWidth: true
 
             PlasmaComponents3.TabButton {
-                text: i18n("Dashboard")
+                text: Loc.t("Dashboard")
                 icon.name: "view-grid-symbolic"
             }
 
             PlasmaComponents3.TabButton {
-                text: i18n("Devices")
+                text: Loc.t("Devices")
                 icon.name: "view-list-symbolic"
             }
         }

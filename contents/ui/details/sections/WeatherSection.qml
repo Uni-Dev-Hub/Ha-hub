@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: weatherSec
@@ -26,7 +27,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("WEATHER CONDITIONS")
+                text: Loc.t("WEATHER CONDITIONS")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -53,14 +54,14 @@ Rectangle {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
                 visible: attrs.humidity !== undefined
-                text: i18n("Humidity: %1%", attrs.humidity)
+                text: Loc.t("Humidity: %1%", attrs.humidity)
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.85
                 color: Kirigami.Theme.disabledTextColor
                 Layout.fillWidth: true
             }
             PlasmaComponents3.Label {
                 visible: attrs.wind_speed !== undefined
-                text: i18n("Wind: %1 km/h", attrs.wind_speed)
+                text: Loc.t("Wind: %1 km/h", attrs.wind_speed)
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.85
                 color: Kirigami.Theme.disabledTextColor
             }

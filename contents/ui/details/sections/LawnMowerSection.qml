@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: mowerSec
@@ -29,7 +30,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("ROBOTIC LAWN MOWER")
+                text: Loc.t("ROBOTIC LAWN MOWER")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -46,10 +47,10 @@ Rectangle {
 
         PlasmaComponents3.Label {
             text: {
-                if (mowerSec.rawState === "mowing") return i18n("Mowing lawn...");
-                if (mowerSec.rawState === "docked") return i18n("Docked");
-                if (mowerSec.rawState === "paused") return i18n("Paused");
-                if (mowerSec.rawState === "error") return i18n("Mower error!");
+                if (mowerSec.rawState === "mowing") return Loc.t("Mowing lawn...");
+                if (mowerSec.rawState === "docked") return Loc.t("Docked");
+                if (mowerSec.rawState === "paused") return Loc.t("Paused");
+                if (mowerSec.rawState === "error") return Loc.t("Mower error!");
                 return mowerSec.rawState;
             }
             font.bold: true
@@ -63,7 +64,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: mowerSec.rawState === "mowing" ? i18n("Pause") : i18n("Mow")
+                text: mowerSec.rawState === "mowing" ? Loc.t("Pause") : Loc.t("Mow")
                 icon.name: mowerSec.rawState === "mowing" ? "media-playback-pause" : "media-playback-start"
                 highlighted: mowerSec.rawState === "mowing"
                 onClicked: {
@@ -75,7 +76,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Dock")
+                text: Loc.t("Dock")
                 icon.name: "go-home"
                 onClicked: { if (haManager) haManager.callService("lawn_mower", "dock", detailsPage.cleanId, {}); }
             }

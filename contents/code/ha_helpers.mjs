@@ -1,3 +1,5 @@
+import * as T from "../l10n/translations.mjs";
+
 function cleanEntityId(id) {
     if (!id) return "";
     return id.toString().replace(/['"\[\]]/g, "").trim();
@@ -217,43 +219,46 @@ function getAreaName(cleanId, haManager) {
     return "";
 }
 
-function getBinarySensorStateTitle(state, deviceClass) {
+// The optional lang parameter (default "en") routes user-visible words
+// through the HA-Hub translation catalogs.
+function getBinarySensorStateTitle(state, deviceClass, lang) {
     var isOn = (state === "on");
     var dc = (deviceClass || "").toLowerCase();
+    function w(off, on) { return T.translate(lang, isOn ? on : off); }
     if (dc === "door" || dc === "garage_door" || dc === "window" || dc === "opening") {
-        return isOn ? "Open" : "Closed";
+        return w("Closed", "Open");
     }
     if (dc === "lock") {
-        return isOn ? "Unlocked" : "Locked";
+        return w("Locked", "Unlocked");
     }
     if (dc === "moisture") {
-        return isOn ? "Wet" : "Dry";
+        return w("Dry", "Wet");
     }
     if (dc === "gas" || dc === "smoke" || dc === "carbon_monoxide") {
-        return isOn ? "Detected" : "Clear";
+        return w("Clear", "Detected");
     }
     if (dc === "motion" || dc === "occupancy" || dc === "presence") {
-        return isOn ? "Detected" : "Clear";
+        return w("Clear", "Detected");
     }
     if (dc === "problem" || dc === "safety" || dc === "tamper") {
-        return isOn ? "Problem" : "OK";
+        return w("OK", "Problem");
     }
     if (dc === "plug" || dc === "power" || dc === "connectivity") {
-        return isOn ? "Connected" : "Disconnected";
+        return w("Disconnected", "Connected");
     }
     if (dc === "battery" || dc === "battery_charging") {
-        return isOn ? "Low" : "Normal";
+        return w("Normal", "Low");
     }
     if (dc === "sound" || dc === "vibration") {
-        return isOn ? "Detected" : "Clear";
+        return w("Clear", "Detected");
     }
     if (dc === "running") {
-        return isOn ? "Running" : "Stopped";
+        return w("Stopped", "Running");
     }
     if (dc === "update") {
-        return isOn ? "Update available" : "Up to date";
+        return w("Up to date", "Update available");
     }
-    return isOn ? "On" : "Off";
+    return w("Off", "On");
 }
 
 function getBinarySensorIcon(deviceClass, isOn) {
@@ -279,77 +284,78 @@ function getBinarySensorIcon(deviceClass, isOn) {
     return isOn ? "radiomenu-active" : "radiomenu-inactive";
 }
 
-function getStatusDetailsText(cleanId, entObj, devId, haManager) {
+function getStatusDetailsText(cleanId, entObj, devId, haManager, lang) {
+    function w(text) { return T.translate(lang, text); }
     if (!entObj || entObj.state === undefined || entObj.state === "unavailable" || entObj.state === "unknown") {
-        return "Unavailable";
+        return w("Unavailable");
     }
     var dom = cleanId ? cleanId.split(".")[0] : "";
     var state = entObj.state;
     var attrs = entObj.attributes || {};
 
     if (dom === "switch" || dom === "light" || dom === "outlet" || dom === "fan" || dom === "input_boolean") {
-        return (state === "on") ? "On" : "Off";
+        return w(state === "on" ? "On" : "Off");
     }
     if (dom === "cover") {
         var pos = attrs.current_position;
         if (pos !== undefined) {
-            return pos + "% • " + (state === "open" ? "Open" : "Closed");
+            return pos + "% • " + w(state === "open" ? "Open" : "Closed");
         }
-        return (state === "open") ? "Open" : "Closed";
+        return w(state === "open" ? "Open" : "Closed");
     }
     if (dom === "lock") {
-        return (state === "locked") ? "Locked" : "Unlocked";
+        return w(state === "locked" ? "Locked" : "Unlocked");
     }
     if (dom === "climate") {
         var curT = attrs.current_temperature;
         var hvac = attrs.hvac_action || state;
-        return (curT !== undefined ? curT + "°C • " : "") + hvac;
+        return (curT !== undefined ? curT + "°C • " : "") + w(hvac);
     }
     if (dom === "binary_sensor") {
-        return getBinarySensorStateTitle(state, attrs.device_class);
+        return getBinarySensorStateTitle(state, attrs.device_class, lang);
     }
     if (dom === "vacuum") {
-        if (state === "cleaning") return "Cleaning";
-        if (state === "docked") return "Docked";
-        if (state === "returning") return "Returning";
-        if (state === "paused") return "Paused";
-        if (state === "error") return "Error";
+        if (state === "cleaning") return w("Cleaning");
+        if (state === "docked") return w("Docked");
+        if (state === "returning") return w("Returning");
+        if (state === "paused") return w("Paused");
+        if (state === "error") return w("Error");
         return state;
     }
     if (dom === "media_player") {
-        if (state === "playing") return "Playing";
-        if (state === "paused") return "Paused";
-        if (state === "idle") return "Idle";
-        if (state === "off") return "Off";
+        if (state === "playing") return w("Playing");
+        if (state === "paused") return w("Paused");
+        if (state === "idle") return w("Idle");
+        if (state === "off") return w("Off");
         return state;
     }
     if (dom === "person") {
-        return (state === "home") ? "Home" : "Away";
+        return w(state === "home" ? "Home" : "Away");
     }
     if (dom === "sensor") {
         var u = attrs.unit_of_measurement ? " " + attrs.unit_of_measurement : "";
         return state + u;
     }
     if (dom === "alarm_control_panel") {
-        if (state === "disarmed") return "Disarmed";
-        if (state === "armed_home") return "Armed Home";
-        if (state === "armed_away") return "Armed Away";
-        if (state === "armed_night") return "Armed Night";
-        if (state === "triggered") return "Triggered";
+        if (state === "disarmed") return w("Disarmed");
+        if (state === "armed_home") return w("Armed Home");
+        if (state === "armed_away") return w("Armed Away");
+        if (state === "armed_night") return w("Armed Night");
+        if (state === "triggered") return w("Triggered");
         return state;
     }
     if (dom === "valve") {
-        return (state === "open") ? "Open" : "Closed";
+        return w(state === "open" ? "Open" : "Closed");
     }
     if (dom === "lawn_mower") {
-        if (state === "mowing") return "Mowing";
-        if (state === "docked") return "Docked";
-        if (state === "paused") return "Paused";
-        if (state === "error") return "Error";
+        if (state === "mowing") return w("Mowing");
+        if (state === "docked") return w("Docked");
+        if (state === "paused") return w("Paused");
+        if (state === "error") return w("Error");
         return state;
     }
     if (dom === "siren") {
-        return (state === "on") ? "On" : "Off";
+        return w(state === "on" ? "On" : "Off");
     }
 
     var unit = attrs.unit_of_measurement ? " " + attrs.unit_of_measurement : "";
@@ -374,7 +380,7 @@ function formatTimeInState(lastChanged) {
     return diffSec + "s";
 }
 
-function formatLastChangedDate(lastChanged, fallback) {
+function formatLastChangedDate(lastChanged, fallback, lang) {
     if (!lastChanged) return fallback || "—";
     var d = new Date(lastChanged);
     if (isNaN(d.getTime())) return fallback || "—";
@@ -382,6 +388,38 @@ function formatLastChangedDate(lastChanged, fallback) {
     var mins = String(d.getMinutes()).padStart(2, "0");
     var day = String(d.getDate()).padStart(2, "0");
     var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    var month = monthNames[d.getMonth()];
+    var month = T.translate(lang, monthNames[d.getMonth()]);
     return hours + ":" + mins + ", " + day + " " + month;
 }
+
+export {
+    cleanEntityId,
+    disambiguateCatalogTitles,
+    formatLastChangedDate,
+    formatTimeInState,
+    getAreaName,
+    getBinarySensorIcon,
+    getBinarySensorStateTitle,
+    getDeviceDisplayName,
+    getDeviceTitle,
+    getDomain,
+    getEntityFriendlyName,
+    getEntityRegistryInfo,
+    getEntityTitle,
+    getLabelName,
+    getLabelsText,
+    getStatusDetailsText,
+    humanizeEntityObjectName,
+    isActionDomain,
+    isControlDomain,
+    isHelperDomain,
+    isIgnoredDomain,
+    isInfoDomain,
+    isSecondaryEntity,
+    isSelectableEntity,
+    CONTROL_DOMAINS,
+    ACTION_DOMAINS,
+    INFO_DOMAINS,
+    HELPER_DOMAINS,
+    IGNORED_DOMAINS,
+};

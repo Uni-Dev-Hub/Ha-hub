@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: humSec
@@ -29,7 +30,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("HUMIDIFICATION")
+                text: Loc.t("HUMIDIFICATION")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -44,7 +45,7 @@ Rectangle {
         }
 
         PlasmaComponents3.Label {
-            text: detailsPage.isTurnedOn ? (i18n("Target humidity: ") + humSec.targetHumidity + "%") : i18n("Off")
+            text: detailsPage.isTurnedOn ? (Loc.t("Target humidity: ") + humSec.targetHumidity + "%") : Loc.t("Off")
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.5
             color: Kirigami.Theme.textColor

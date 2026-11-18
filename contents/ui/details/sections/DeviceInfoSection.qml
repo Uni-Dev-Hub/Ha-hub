@@ -2,7 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
-import "../../../code/ha_helpers.js" as HAHelpers
+import "../../../code/ha_helpers.mjs" as HAHelpers
+import "../../../l10n"
 
 Rectangle {
     id: infoSec
@@ -38,7 +39,7 @@ Rectangle {
 
                 Kirigami.Icon { source: "dialog-information"; implicitWidth: Kirigami.Units.iconSizes.small; implicitHeight: Kirigami.Units.iconSizes.small; color: Kirigami.Theme.disabledTextColor }
                 PlasmaComponents3.Label {
-                    text: i18n("Device Info & Entities (%1)", detailsPage.allDeviceEntities.length)
+                    text: Loc.t("Device Info & Entities (%1)", detailsPage.allDeviceEntities.length)
                     font.bold: true
                     font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.88
                     Layout.fillWidth: true
@@ -60,11 +61,11 @@ Rectangle {
             ColumnLayout {
                 spacing: 3
                 Layout.fillWidth: true
-                RowLayout { PlasmaComponents3.Label { text: i18n("Manufacturer:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 } PlasmaComponents3.Label { text: (detailsPage.deviceRaw && detailsPage.deviceRaw.manufacturer) ? detailsPage.deviceRaw.manufacturer : "—"; font.bold: true; font.pointSize: 8 } }
-                RowLayout { PlasmaComponents3.Label { text: i18n("Model:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 } PlasmaComponents3.Label { text: (detailsPage.deviceRaw && detailsPage.deviceRaw.model) ? detailsPage.deviceRaw.model : "—"; font.bold: true; font.pointSize: 8 } }
-                RowLayout { PlasmaComponents3.Label { text: i18n("Firmware:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 } PlasmaComponents3.Label { text: (detailsPage.deviceRaw && detailsPage.deviceRaw.sw_version) ? detailsPage.deviceRaw.sw_version : "—"; font.pointSize: 8 } }
+                RowLayout { PlasmaComponents3.Label { text: Loc.t("Manufacturer:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 } PlasmaComponents3.Label { text: (detailsPage.deviceRaw && detailsPage.deviceRaw.manufacturer) ? detailsPage.deviceRaw.manufacturer : "—"; font.bold: true; font.pointSize: 8 } }
+                RowLayout { PlasmaComponents3.Label { text: Loc.t("Model:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 } PlasmaComponents3.Label { text: (detailsPage.deviceRaw && detailsPage.deviceRaw.model) ? detailsPage.deviceRaw.model : "—"; font.bold: true; font.pointSize: 8 } }
+                RowLayout { PlasmaComponents3.Label { text: Loc.t("Firmware:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 } PlasmaComponents3.Label { text: (detailsPage.deviceRaw && detailsPage.deviceRaw.sw_version) ? detailsPage.deviceRaw.sw_version : "—"; font.pointSize: 8 } }
                 RowLayout {
-                    PlasmaComponents3.Label { text: i18n("Labels:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 }
+                    PlasmaComponents3.Label { text: Loc.t("Labels:"); color: Kirigami.Theme.disabledTextColor; font.pointSize: 8 }
                     PlasmaComponents3.Label {
                         text: HAHelpers.getLabelsText(detailsPage.deviceRaw ? detailsPage.deviceRaw.labels : [], haManager)
                         font.pointSize: 8
@@ -95,9 +96,9 @@ Rectangle {
                         text: {
                             if (!eObj || eObj.state === undefined) return "—";
                             var st = eObj.state;
-                            if (st === "unavailable" || st === "unknown") return i18n("Unavailable");
-                            if (st === "on") return i18n("On");
-                            if (st === "off") return i18n("Off");
+                            if (st === "unavailable" || st === "unknown") return Loc.t("Unavailable");
+                            if (st === "on") return Loc.t("On");
+                            if (st === "off") return Loc.t("Off");
                             var u = (eObj.attributes && eObj.attributes.unit_of_measurement) ? (" " + eObj.attributes.unit_of_measurement) : "";
                             return st + u;
                         }

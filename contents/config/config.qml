@@ -3,20 +3,21 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import org.kde.plasma.configuration
 import org.kde.plasma.plasmoid
+import "../l10n"
 
 ConfigModel {
     ConfigCategory {
-        name: i18n("General")
+        name: Loc.t("General")
         icon: "network-server-symbolic"
         source: "settings/ConfigGeneral.qml"
     }
     ConfigCategory {
-        name: i18n("Dashboard")
+        name: Loc.t("Dashboard")
         icon: "view-grid-symbolic"
         source: "settings/ConfigDashboard.qml"
     }
     ConfigCategory {
-        name: i18n("Favorite Devices")
+        name: Loc.t("Favorite Devices")
         icon: "starred-symbolic"
         source: "settings/ConfigFavorites.qml"
     }

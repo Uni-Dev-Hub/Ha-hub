@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: fanSec
@@ -29,7 +30,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("SPEED & MODES")
+                text: Loc.t("SPEED & MODES")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -44,7 +45,7 @@ Rectangle {
         }
 
         PlasmaComponents3.Label {
-            text: detailsPage.isTurnedOn ? (fanSec.percentage + "% • " + i18n("On")) : i18n("Off")
+            text: detailsPage.isTurnedOn ? (fanSec.percentage + "% • " + Loc.t("On")) : Loc.t("Off")
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.5
             color: Kirigami.Theme.textColor
@@ -70,7 +71,7 @@ Rectangle {
         RowLayout {
             visible: attrs.oscillating !== undefined
             Layout.fillWidth: true
-            PlasmaComponents3.Label { text: i18n("Oscillation mode"); Layout.fillWidth: true }
+            PlasmaComponents3.Label { text: Loc.t("Oscillation mode"); Layout.fillWidth: true }
             PlasmaComponents3.Switch {
                 checked: attrs.oscillating === true
                 onToggled: {

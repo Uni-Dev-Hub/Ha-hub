@@ -2,12 +2,13 @@ import QtQuick
 import QtQuick.LocalStorage
 import QtWebSockets
 import org.kde.plasma.plasmoid
-// Registers the KDE i18n() global; also required when this component is
+// Registers the KDE Loc.t() global; also required when this component is
 // instantiated outside the Plasma shell (e.g. qmltestrunner).
 import org.kde.plasma.core
 import "../code/ha_client.js" as HAClient
-import "../code/ha_helpers.js" as HAHelpers
+import "../code/ha_helpers.mjs" as HAHelpers
 import "../code/ha_storage.js" as HAStorage
+import "../l10n"
 
 Item {
     id: manager
@@ -38,7 +39,7 @@ Item {
     }
 
     property string state: "DISCONNECTED"
-    property string connectionStatus: i18n("Disconnected")
+    property string connectionStatus: Loc.t("Disconnected")
     property bool isConnected: false
     property bool autoReconnectAllowed: true
     property bool autoConnect: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.autoConnect !== false) : true
@@ -366,7 +367,7 @@ Item {
                 var floor = manager.getFloorRaw(floorId);
                 areaMap[key] = {
                     areaId: areaId || "",
-                    name: areaName || i18n("Unassigned"),
+                    name: areaName || Loc.t("Unassigned"),
                     floorId: floorId,
                     floorName: floor ? (floor.name || "") : "",
                     entityIds: [],
@@ -455,7 +456,7 @@ Item {
                 console.warn("HA-hub: Connection timed out for host:", manager.host);
                 manager.disconnectFromHA();
                 manager.state = "ERROR";
-                manager.connectionStatus = i18n("Error: Connection timed out for %1", manager.host);
+                manager.connectionStatus = Loc.t("Error: Connection timed out for %1", manager.host);
                 if (manager.autoReconnectAllowed && manager.accessToken.length > 0) {
                     manager._scheduleReconnect();
                 }
@@ -497,7 +498,7 @@ Item {
                 manager.isConnected = false;
                 manager._failPendingHandlers("connection_lost");
                 manager.state = "DISCONNECTED";
-                manager.connectionStatus = i18n("Connection lost");
+                manager.connectionStatus = Loc.t("Connection lost");
                 manager._scheduleReconnect();
             } else {
                 rxWatchdogTimer.restart();
@@ -536,9 +537,9 @@ Item {
             connTimeoutTimer.stop();
             manager.discoveredServers = serverList;
             if (serverList.length > 0) {
-                manager.connectionStatus = i18n("Found devices: %1", serverList.length);
+                manager.connectionStatus = Loc.t("Found devices: %1", serverList.length);
             } else {
-                manager.connectionStatus = i18n("No devices found in local network");
+                manager.connectionStatus = Loc.t("No devices found in local network");
             }
         }
     }
@@ -550,11 +551,11 @@ Item {
         onStatusChanged: function() {
             if (webSocket.status === WebSocket.Error) {
                 connTimeoutTimer.stop();
-                var err = webSocket.errorString || i18n("Unable to connect to server");
+                var err = webSocket.errorString || Loc.t("Unable to connect to server");
                 if (manager.useSsl && (err.indexOf("wrong version number") !== -1 || err.indexOf("SSL routines") !== -1 || err.indexOf("handshake") !== -1)) {
-                    manager.connectionStatus = i18n("SSL Error: HA server is running without SSL. Uncheck 'SSL (wss://)'");
+                    manager.connectionStatus = Loc.t("SSL Error: HA server is running without SSL. Uncheck 'SSL (wss://)'");
                 } else {
-                    manager.connectionStatus = i18n("Error: %1", err);
+                    manager.connectionStatus = Loc.t("Error: %1", err);
                 }
                 manager.state = "ERROR";
                 manager.isConnected = false;
@@ -573,7 +574,7 @@ Item {
 
                 if (manager.state !== "ERROR") {
                     manager.state = "DISCONNECTED";
-                    manager.connectionStatus = i18n("Disconnected");
+                    manager.connectionStatus = Loc.t("Disconnected");
                 }
                 manager.isConnected = false;
                 manager._failPendingHandlers("disconnected");
@@ -679,7 +680,7 @@ Item {
     function _connectSocket() {
         if (!accessToken || accessToken.length === 0) {
             state = "ERROR";
-            connectionStatus = i18n("Please enter Access Token");
+            connectionStatus = Loc.t("Please enter Access Token");
             return;
         }
 
@@ -688,7 +689,7 @@ Item {
 
         connTimeoutTimer.restart();
         state = "AUTHENTICATING";
-        connectionStatus = i18n("Connecting to %1:%2...", host, port);
+        connectionStatus = Loc.t("Connecting to %1:%2...", host, port);
 
         var protocol = useSsl ? "wss://" : "ws://";
         var targetUrl = protocol + host + ":" + port + "/api/websocket";
@@ -709,7 +710,7 @@ Item {
     function runAutoDiscovery() {
         if (mdns && mdns.isSearching) return;
         manager.discoveredServers = [];
-        connectionStatus = i18n("Searching for servers in network...");
+        connectionStatus = Loc.t("Searching for servers in network...");
         mdns.startDiscovery(host);
     }
 
@@ -746,7 +747,7 @@ Item {
         _isManualDisconnecting = true;
         webSocket.active = false;
         state = "DISCONNECTED";
-        connectionStatus = i18n("Disconnected");
+        connectionStatus = Loc.t("Disconnected");
         isConnected = false;
         manager._failPendingHandlers("disconnected");
     }
@@ -814,7 +815,7 @@ Item {
             manager._reconnectAttempts = 0;
             isConnected = true;
             state = "CONNECTED";
-            connectionStatus = i18n("Connected");
+            connectionStatus = Loc.t("Connected");
             manager._lastRxMs = Date.now();
             rxWatchdogTimer.start();
             manager.saveSharedCredentials();
@@ -829,7 +830,7 @@ Item {
             rxWatchdogTimer.stop();
             manager._failPendingHandlers("invalid_auth");
             state = "ERROR";
-            connectionStatus = i18n("Invalid Access Token");
+            connectionStatus = Loc.t("Invalid Access Token");
             manager.disconnectFromHA();
             return;
         }

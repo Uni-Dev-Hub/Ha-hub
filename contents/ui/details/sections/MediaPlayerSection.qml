@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: mediaSec
@@ -31,7 +32,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("MEDIA & AUDIO")
+                text: Loc.t("MEDIA & AUDIO")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -49,7 +50,7 @@ Rectangle {
             spacing: 2
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: attrs.media_title || (mediaSec.isPlaying ? i18n("Playing") : i18n("Stopped"))
+                text: attrs.media_title || (mediaSec.isPlaying ? Loc.t("Playing") : Loc.t("Stopped"))
                 font.bold: true
                 font.pointSize: Qt.application.font.pointSize * 1.2
                 elide: Text.ElideRight
@@ -76,7 +77,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 icon.name: mediaSec.isPlaying ? "media-playback-pause" : "media-playback-start"
-                text: mediaSec.isPlaying ? i18n("Pause") : i18n("Play")
+                text: mediaSec.isPlaying ? Loc.t("Pause") : Loc.t("Play")
                 highlighted: true
                 onClicked: { if (haManager) haManager.callService("media_player", "media_play_pause", detailsPage.cleanId, {}); }
             }

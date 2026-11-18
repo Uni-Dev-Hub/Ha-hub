@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 ColumnLayout {
     id: plugSec
@@ -27,7 +28,7 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
                 PlasmaComponents3.Label {
-                    text: i18n("INSTANT POWER")
+                    text: Loc.t("INSTANT POWER")
                     font.bold: true
                     font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                     color: Kirigami.Theme.disabledTextColor
@@ -101,9 +102,9 @@ ColumnLayout {
 
                 PlasmaComponents3.Label {
                     text: {
-                        if (!detailsPage.isTurnedOn) return i18n("Plug is off");
+                        if (!detailsPage.isTurnedOn) return Loc.t("Plug is off");
                         var pVal2 = detailsPage.powerEntityObj ? parseFloat(detailsPage.powerEntityObj.state) : (detailsPage.currentEntityObj ? parseFloat(detailsPage.currentEntityObj.state) : 0);
-                        return pVal2 > 1.0 ? i18n("Active load") : i18n("On • Standby mode");
+                        return pVal2 > 1.0 ? Loc.t("Active load") : Loc.t("On • Standby mode");
                     }
                     font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.82
                     color: detailsPage.isTurnedOn ? Kirigami.Theme.textColor : Kirigami.Theme.disabledTextColor
@@ -138,7 +139,7 @@ ColumnLayout {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 1
-                        PlasmaComponents3.Label { text: i18n("Today"); font.pointSize: 8; color: Kirigami.Theme.disabledTextColor }
+                        PlasmaComponents3.Label { text: Loc.t("Today"); font.pointSize: 8; color: Kirigami.Theme.disabledTextColor }
                         PlasmaComponents3.Label { text: energyStatsService.todayValueStr; font.bold: true; font.pointSize: Qt.application.font.pointSize * 1.2; color: Kirigami.Theme.textColor }
                     }
                     Kirigami.Icon { anchors.right: parent.right; anchors.top: parent.top; source: "speedometer"; implicitWidth: Kirigami.Units.iconSizes.small; implicitHeight: Kirigami.Units.iconSizes.small; color: Kirigami.Theme.highlightColor }
@@ -160,7 +161,7 @@ ColumnLayout {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 1
-                        PlasmaComponents3.Label { text: i18n("This month"); font.pointSize: 8; color: Kirigami.Theme.disabledTextColor }
+                        PlasmaComponents3.Label { text: Loc.t("This month"); font.pointSize: 8; color: Kirigami.Theme.disabledTextColor }
                         PlasmaComponents3.Label { text: energyStatsService.monthValueStr; font.bold: true; font.pointSize: Qt.application.font.pointSize * 1.2; color: Kirigami.Theme.textColor }
                     }
                     Kirigami.Icon { anchors.right: parent.right; anchors.top: parent.top; source: "view-calendar"; implicitWidth: Kirigami.Units.iconSizes.small; implicitHeight: Kirigami.Units.iconSizes.small; color: Kirigami.Theme.highlightColor }
@@ -181,8 +182,8 @@ ColumnLayout {
                 anchors.fill: parent
                 anchors.leftMargin: Kirigami.Units.smallSpacing * 1.2
                 anchors.rightMargin: Kirigami.Units.smallSpacing * 1.2
-                PlasmaComponents3.Label { text: i18n("Week: %1", energyStatsService.weekValueStr); font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.82; color: Kirigami.Theme.disabledTextColor; Layout.fillWidth: true }
-                PlasmaComponents3.Label { text: i18n("Total: %1", energyStatsService.totalValueStr); font.bold: true; font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.82; color: Kirigami.Theme.textColor; Layout.alignment: Qt.AlignRight }
+                PlasmaComponents3.Label { text: Loc.t("Week: %1", energyStatsService.weekValueStr); font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.82; color: Kirigami.Theme.disabledTextColor; Layout.fillWidth: true }
+                PlasmaComponents3.Label { text: Loc.t("Total: %1", energyStatsService.totalValueStr); font.bold: true; font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.82; color: Kirigami.Theme.textColor; Layout.alignment: Qt.AlignRight }
             }
         }
     }
@@ -204,8 +205,8 @@ ColumnLayout {
 
             RowLayout {
                 Layout.fillWidth: true
-                PlasmaComponents3.Label { text: i18n("7-Day History"); font.bold: true; font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.85; color: Kirigami.Theme.textColor; Layout.fillWidth: true }
-                PlasmaComponents3.Label { text: i18n("Max: %1 kWh", energyStatsService.max7DaysValue.toFixed(2)); font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75; color: Kirigami.Theme.disabledTextColor }
+                PlasmaComponents3.Label { text: Loc.t("7-Day History"); font.bold: true; font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.85; color: Kirigami.Theme.textColor; Layout.fillWidth: true }
+                PlasmaComponents3.Label { text: Loc.t("Max: %1 kWh", energyStatsService.max7DaysValue.toFixed(2)); font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75; color: Kirigami.Theme.disabledTextColor }
             }
 
             RowLayout {

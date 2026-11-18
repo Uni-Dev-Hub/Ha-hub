@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: alarmSec
@@ -29,7 +30,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("SECURITY & ALARM SYSTEM")
+                text: Loc.t("SECURITY & ALARM SYSTEM")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -45,12 +46,12 @@ Rectangle {
 
         PlasmaComponents3.Label {
             text: {
-                if (alarmSec.isTriggered) return i18n("ALARM TRIGGERED!");
-                if (alarmSec.rawState === "armed_home") return i18n("Armed Home");
-                if (alarmSec.rawState === "armed_away") return i18n("Armed Away");
-                if (alarmSec.rawState === "armed_night") return i18n("Armed Night");
-                if (alarmSec.rawState === "pending") return i18n("Arming delay...");
-                return i18n("Disarmed");
+                if (alarmSec.isTriggered) return Loc.t("ALARM TRIGGERED!");
+                if (alarmSec.rawState === "armed_home") return Loc.t("Armed Home");
+                if (alarmSec.rawState === "armed_away") return Loc.t("Armed Away");
+                if (alarmSec.rawState === "armed_night") return Loc.t("Armed Night");
+                if (alarmSec.rawState === "pending") return Loc.t("Arming delay...");
+                return Loc.t("Disarmed");
             }
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.45
@@ -65,7 +66,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Home")
+                text: Loc.t("Home")
                 icon.name: "go-home"
                 highlighted: alarmSec.rawState === "armed_home"
                 onClicked: { if (haManager) haManager.callService("alarm_control_panel", "alarm_arm_home", detailsPage.cleanId, {}); }
@@ -73,7 +74,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Away")
+                text: Loc.t("Away")
                 icon.name: "system-lock-screen"
                 highlighted: alarmSec.rawState === "armed_away"
                 onClicked: { if (haManager) haManager.callService("alarm_control_panel", "alarm_arm_away", detailsPage.cleanId, {}); }
@@ -81,7 +82,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Night")
+                text: Loc.t("Night")
                 icon.name: "weather-clear-night"
                 highlighted: alarmSec.rawState === "armed_night"
                 onClicked: { if (haManager) haManager.callService("alarm_control_panel", "alarm_arm_night", detailsPage.cleanId, {}); }
@@ -89,7 +90,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Disarm")
+                text: Loc.t("Disarm")
                 icon.name: "object-unlocked-symbolic"
                 highlighted: alarmSec.rawState === "disarmed"
                 onClicked: { if (haManager) haManager.callService("alarm_control_panel", "alarm_disarm", detailsPage.cleanId, {}); }

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: histSec
@@ -34,7 +35,7 @@ Rectangle {
             }
 
             PlasmaComponents3.Label {
-                text: i18n("RECENT HISTORY (72h)")
+                text: Loc.t("RECENT HISTORY (72h)")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.86
                 Layout.fillWidth: true
@@ -42,7 +43,7 @@ Rectangle {
 
             PlasmaComponents3.Label {
                 visible: historyService.isLoading
-                text: i18n("Loading…")
+                text: Loc.t("Loading…")
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
             }

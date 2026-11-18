@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import org.kde.plasma.components 3.0 as PlasmaComponents3
 import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
+import "../../l10n"
 
 PlasmaComponents3.ToolBar {
     id: headerView
@@ -53,7 +54,7 @@ PlasmaComponents3.ToolBar {
                     Layout.alignment: Qt.AlignVCenter
 
                     PlasmaComponents3.ToolTip.visible: betaMouseArea.containsMouse
-                    PlasmaComponents3.ToolTip.text: i18n("HA-Hub v1.0-beta1 (Public Beta)")
+                    PlasmaComponents3.ToolTip.text: Loc.t("HA-Hub v1.0-beta1 (Public Beta)")
 
                     MouseArea {
                         id: betaMouseArea
@@ -74,9 +75,9 @@ PlasmaComponents3.ToolBar {
 
             PlasmaComponents3.Label {
                 text: {
-                    if (!haManager) return i18n("Disconnected");
+                    if (!haManager) return Loc.t("Disconnected");
                     if (!haManager.isConnected) return haManager.connectionStatus;
-                    return haManager.serverName + " • " + i18n("Connected");
+                    return haManager.serverName + " • " + Loc.t("Connected");
                 }
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.85
                 color: (haManager && haManager.isConnected) ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.disabledTextColor
@@ -88,7 +89,7 @@ PlasmaComponents3.ToolBar {
         PlasmaComponents3.ToolButton {
             icon.name: "configure"
             PlasmaComponents3.ToolTip.visible: hovered
-            PlasmaComponents3.ToolTip.text: i18n("Settings")
+            PlasmaComponents3.ToolTip.text: Loc.t("Settings")
             onClicked: headerView.configureRequested()
         }
     }

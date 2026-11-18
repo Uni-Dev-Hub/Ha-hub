@@ -1,0 +1,2 @@
+module org.kde.plasma.hahub.l10n
+singleton Loc 1.0 Loc.qml

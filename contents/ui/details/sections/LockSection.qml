@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: lockSec
@@ -27,7 +28,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("SMART LOCK")
+                text: Loc.t("SMART LOCK")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -42,7 +43,7 @@ Rectangle {
         }
 
         PlasmaComponents3.Label {
-            text: lockSec.isLocked ? i18n("Locked") : i18n("Unlocked")
+            text: lockSec.isLocked ? Loc.t("Locked") : Loc.t("Unlocked")
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.6
             color: lockSec.isLocked ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.negativeTextColor
@@ -50,7 +51,7 @@ Rectangle {
 
         PlasmaComponents3.Button {
             Layout.fillWidth: true
-            text: lockSec.isLocked ? i18n("Unlock") : i18n("Lock")
+            text: lockSec.isLocked ? Loc.t("Unlock") : Loc.t("Lock")
             icon.name: lockSec.isLocked ? "object-unlocked-symbolic" : "object-locked-symbolic"
             highlighted: !lockSec.isLocked
             onClicked: {

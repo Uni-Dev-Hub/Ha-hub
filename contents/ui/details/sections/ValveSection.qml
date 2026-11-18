@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
+import "../../../l10n"
 
 Rectangle {
     id: valveSec
@@ -30,7 +31,7 @@ Rectangle {
         RowLayout {
             Layout.fillWidth: true
             PlasmaComponents3.Label {
-                text: i18n("SHUTOFF VALVE (WATER / GAS)")
+                text: Loc.t("SHUTOFF VALVE (WATER / GAS)")
                 font.bold: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
                 color: Kirigami.Theme.disabledTextColor
@@ -45,7 +46,7 @@ Rectangle {
         }
 
         PlasmaComponents3.Label {
-            text: valveSec.isOpen ? i18n("Valve open") : i18n("Fully closed")
+            text: valveSec.isOpen ? Loc.t("Valve open") : Loc.t("Fully closed")
             font.bold: true
             font.pointSize: Qt.application.font.pointSize * 1.5
             color: valveSec.isOpen ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.negativeTextColor
@@ -57,7 +58,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Open")
+                text: Loc.t("Open")
                 icon.name: "arrow-up"
                 highlighted: !valveSec.isOpen
                 onClicked: { if (haManager) haManager.callService("valve", "open_valve", detailsPage.cleanId, {}); }
@@ -65,7 +66,7 @@ Rectangle {
 
             PlasmaComponents3.Button {
                 Layout.fillWidth: true
-                text: i18n("Close")
+                text: Loc.t("Close")
                 icon.name: "dialog-error-symbolic"
                 highlighted: valveSec.isOpen
                 onClicked: { if (haManager) haManager.callService("valve", "close_valve", detailsPage.cleanId, {}); }
