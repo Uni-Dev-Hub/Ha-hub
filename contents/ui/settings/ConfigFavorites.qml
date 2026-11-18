@@ -5,6 +5,7 @@ import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
 import "../../services" as Services
+import "../components" as Components
 import "../../code/ha_helpers.mjs" as HAHelpers
 import "../../l10n"
 
@@ -23,12 +24,7 @@ Kirigami.Page {
     property bool cfg_showHiddenEntities: false
     property bool cfg_showDiagnosticEntities: false
 
-    property string searchFilter: ""
-    property string domainFilter: "all"
     property int currentTab: 0
-
-    readonly property string searchQuery: searchFilter
-    readonly property string domainQuery: domainFilter
 
     property var favoriteSet: ({})
     property var favEntitiesArray: []
@@ -159,59 +155,70 @@ Kirigami.Page {
         return (haManager && haManager.userDevicesList) ? haManager.userDevicesList : [];
     }
 
-    readonly property var availableDomains: {
+    // domain -> count over the full list (chip labels never change while
+    // filtering, only the rows below do).
+    readonly property var domainCounts: {
         var rev = haManager ? haManager.entitiesRevision : 0;
         var source = favoritesSettings.rawAllEntitiesList || [];
-        var seen = {};
-        var result = ["all"];
+        var counts = {};
         for (var i = 0; i < source.length; i++) {
             var domain = HAHelpers.getDomain(source[i]);
-            if (!domain || seen[domain]) continue;
-            seen[domain] = true;
-            result.push(domain);
+            if (!domain) continue;
+            counts[domain] = (counts[domain] || 0) + 1;
         }
-        result.sort(function(a, b) {
-            if (a === "all") return -1;
-            if (b === "all") return 1;
-            return a.localeCompare(b);
-        });
+        return counts;
+    }
+
+    readonly property var areaOptions: {
+        var rev = haManager ? haManager.entitiesRevision : 0;
+        var areas = (haManager && haManager.areasList) ? haManager.areasList : [];
+        var result = [];
+        for (var i = 0; i < areas.length; i++) {
+            var id = areas[i].area_id || areas[i].id || "";
+            if (!id) continue;
+            result.push({ id: id, name: areas[i].name || id });
+        }
+        result.sort(function(a, b) { return a.name.localeCompare(b.name); });
         return result;
+    }
+
+    function entityMatchesFilters(entId) {
+        var filterText = entityFilter.searchText.toLowerCase().trim();
+        var domain = entityFilter.selectedDomain;
+        var area = entityFilter.selectedArea;
+
+        var info = favoritesSettings.getLiveDeviceInfo(entId);
+        if (domain !== "all" && info.domain !== domain) return false;
+        if (area !== "all") {
+            var clean = HAHelpers.cleanEntityId(entId);
+            var entry = haManager && haManager.getCatalogEntry ? haManager.getCatalogEntry(clean) : null;
+            if (!entry || (entry.areaId || "") !== area) return false;
+        }
+        if (filterText.length === 0) return true;
+        return info.title.toLowerCase().indexOf(filterText) !== -1 ||
+               entId.toLowerCase().indexOf(filterText) !== -1 ||
+               info.statusText.toLowerCase().indexOf(filterText) !== -1 ||
+               info.areaName.toLowerCase().indexOf(filterText) !== -1 ||
+               info.deviceName.toLowerCase().indexOf(filterText) !== -1 ||
+               info.domain.toLowerCase().indexOf(filterText) !== -1;
     }
 
     readonly property var filteredAllEntitiesList: {
         var list = favoritesSettings.rawAllEntitiesList || [];
-        var filterText = favoritesSettings.searchQuery.toLowerCase().trim();
-        var domainFilter = favoritesSettings.domainQuery || "all";
-
-        return list.filter(function(entId) {
-            var info = favoritesSettings.getLiveDeviceInfo(entId);
-            if (domainFilter !== "all" && info.domain !== domainFilter) return false;
-            if (filterText.length === 0) return true;
-            return info.title.toLowerCase().indexOf(filterText) !== -1 ||
-                   entId.toLowerCase().indexOf(filterText) !== -1 ||
-                   info.statusText.toLowerCase().indexOf(filterText) !== -1 ||
-                   info.areaName.toLowerCase().indexOf(filterText) !== -1 ||
-                   info.deviceName.toLowerCase().indexOf(filterText) !== -1 ||
-                   info.domain.toLowerCase().indexOf(filterText) !== -1;
-        });
+        // Read filter-bar properties here so this binding re-evaluates
+        // when they change (method calls alone may not register deps).
+        var tb = entityFilter.searchText;
+        var d = entityFilter.selectedDomain;
+        var a = entityFilter.selectedArea;
+        return list.filter(function(entId) { return favoritesSettings.entityMatchesFilters(entId); });
     }
 
     readonly property var filteredFavEntitiesList: {
         var list = favoritesSettings.favEntitiesArray || [];
-        var filterText = favoritesSettings.searchQuery.toLowerCase().trim();
-        var domainFilter = favoritesSettings.domainQuery || "all";
-
-        return list.filter(function(entId) {
-            var info = favoritesSettings.getLiveDeviceInfo(entId);
-            if (domainFilter !== "all" && info.domain !== domainFilter) return false;
-            if (filterText.length === 0) return true;
-            return info.title.toLowerCase().indexOf(filterText) !== -1 ||
-                   entId.toLowerCase().indexOf(filterText) !== -1 ||
-                   info.statusText.toLowerCase().indexOf(filterText) !== -1 ||
-                   info.areaName.toLowerCase().indexOf(filterText) !== -1 ||
-                   info.deviceName.toLowerCase().indexOf(filterText) !== -1 ||
-                   info.domain.toLowerCase().indexOf(filterText) !== -1;
-        });
+        var tb = entityFilter.searchText;
+        var d = entityFilter.selectedDomain;
+        var a = entityFilter.selectedArea;
+        return list.filter(function(entId) { return favoritesSettings.entityMatchesFilters(entId); });
     }
 
     ColumnLayout {
@@ -287,24 +294,11 @@ Kirigami.Page {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing
 
-            RowLayout {
+            Components.EntityFilterBar {
+                id: entityFilter
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
-
-                Controls.TextField {
-                    id: searchInput
-                    placeholderText: Loc.t("Search device by name or ID...")
-                    Layout.fillWidth: true
-                    text: favoritesSettings.searchFilter
-                    onTextChanged: favoritesSettings.searchFilter = text
-                }
-
-                Controls.ComboBox {
-                    implicitWidth: Kirigami.Units.gridUnit * 7
-                    model: favoritesSettings.availableDomains
-                    currentIndex: Math.max(0, model.indexOf(favoritesSettings.domainFilter))
-                    onActivated: favoritesSettings.domainFilter = currentText
-                }
+                domainCounts: favoritesSettings.domainCounts
+                areaOptions: favoritesSettings.areaOptions
             }
 
             PlasmaComponents3.TabBar {

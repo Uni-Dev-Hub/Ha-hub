@@ -261,6 +261,53 @@ function getBinarySensorStateTitle(state, deviceClass, lang) {
     return w("Off", "On");
 }
 
+// Fallback icon when the entity/registry does not carry a custom icon.
+// Names verified against the Breeze icon theme (with sane generic fallback).
+var DOMAIN_ICONS = {
+    "light": "brightness-high-symbolic",
+    "switch": "media-flash-symbolic",
+    "input_boolean": "media-flash-symbolic",
+    "outlet": "media-flash-symbolic",
+    "climate": "temperature-normal-symbolic",
+    "water_heater": "temperature-warm-symbolic",
+    "humidifier": "temperature-cold-symbolic",
+    "fan": "view-refresh-symbolic",
+    "cover": "window-symbolic",
+    "lock": "object-locked-symbolic",
+    "valve": "applications-system-symbolic",
+    "media_player": "audio-speakers-symbolic",
+    "vacuum": "applications-utilities-symbolic",
+    "lawn_mower": "applications-utilities-symbolic",
+    "siren": "dialog-warning",
+    "camera": "camera-photo-symbolic",
+    "alarm_control_panel": "new-audio-alarm-symbolic",
+    "scene": "dialog-scripts-symbolic",
+    "script": "dialog-scripts-symbolic",
+    "automation": "dialog-scripts-symbolic",
+    "button": "dialog-scripts-symbolic",
+    "input_button": "dialog-scripts-symbolic",
+    "sensor": "speedometer-symbolic",
+    "binary_sensor": "network-wired-symbolic",
+    "person": "user-identity-symbolic",
+    "weather": "weather-clear-symbolic",
+    "update": "system-software-update",
+    "number": "speedometer-symbolic",
+    "select": "view-list-details-symbolic",
+    "text": "edit-none-symbolic",
+    "input_number": "speedometer-symbolic",
+    "input_select": "view-list-details-symbolic",
+    "input_text": "edit-none-symbolic",
+    "input_datetime": "preferences-system-time",
+    "timer": "preferences-system-time",
+    "date": "preferences-system-time",
+    "time": "preferences-system-time"
+};
+
+function getDomainIcon(domain) {
+    if (!domain) return "preferences-system-symbolic";
+    return DOMAIN_ICONS[domain] || "preferences-system-symbolic";
+}
+
 function getBinarySensorIcon(deviceClass, isOn) {
     var dc = (deviceClass || "").toLowerCase();
     if (dc === "door" || dc === "garage_door" || dc === "window" || dc === "opening") {
@@ -270,7 +317,7 @@ function getBinarySensorIcon(deviceClass, isOn) {
         return "flavor-symbolic";
     }
     if (dc === "smoke" || dc === "gas" || dc === "carbon_monoxide") {
-        return "dialog-warning-symbolic";
+        return "dialog-warning";
     }
     if (dc === "motion" || dc === "occupancy" || dc === "presence") {
         return "user-identity-symbolic";
@@ -399,6 +446,7 @@ export {
     formatTimeInState,
     getAreaName,
     getBinarySensorIcon,
+    getDomainIcon,
     getBinarySensorStateTitle,
     getDeviceDisplayName,
     getDeviceTitle,

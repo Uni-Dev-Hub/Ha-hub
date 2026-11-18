@@ -44,5 +44,11 @@
     <entry name="dashboardCards" type="String">
       <default>[]</default>
     </entry>
+    <entry name="dashboardColumns" type="Int">
+      <default>2</default>
+    </entry>
+    <entry name="dashboardCardSize" type="String">
+      <default>compact</default>
+    </entry>
   </group>
 </kcfg>

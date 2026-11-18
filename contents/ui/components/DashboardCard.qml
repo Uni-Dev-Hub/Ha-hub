@@ -11,6 +11,12 @@ Item {
     property string entityId: ""
     property var haManager: null
 
+    // Appearance switches driven by the dashboard settings:
+    // compact cards drop the extra rows, wide/tall cards bring them back.
+    property bool compact: true
+    property bool showArea: false
+    property bool showTime: false
+
     signal openDetailsRequested(string entId)
     signal configureRequested()
 
@@ -35,103 +41,158 @@ Item {
     readonly property string areaName: {
         return HAHelpers.getAreaName(cleanId, haManager);
     }
+    readonly property string entityIcon: {
+        if (entityObj && entityObj.attributes && entityObj.attributes.icon) {
+            return entityObj.attributes.icon;
+        }
+        if (registryInfo && registryInfo.icon) return registryInfo.icon;
+        return HAHelpers.getDomainIcon(domain);
+    }
     readonly property string statusText: {
         return HAHelpers.getStatusDetailsText(cleanId, entityObj, haManager && haManager.entityToDeviceMap ? (haManager.entityToDeviceMap[cleanId] || "") : "", haManager, Loc.language);
+    }
+    readonly property string changedAgo: {
+        if (!showTime || !entityObj) return "";
+        return HAHelpers.formatTimeInState(entityObj.last_changed);
     }
     readonly property bool isUnavailable: !entityObj || entityObj.state === "unavailable" || entityObj.state === "unknown"
     readonly property bool isOn: !isUnavailable && (entityObj.state === "on" || entityObj.state === "home" || entityObj.state === "open" || entityObj.state === "playing" || entityObj.state === "unlocked")
     readonly property bool isToggleable: ["switch", "light", "fan", "input_boolean", "outlet"].indexOf(domain) !== -1
     readonly property bool isLock: domain === "lock"
 
+    readonly property real cardPadding: compact ? Kirigami.Units.smallSpacing * 1.2 : Kirigami.Units.largeSpacing
+    readonly property real cardRadius: Kirigami.Units.smallSpacing * 1.6
+
     implicitWidth: Kirigami.Units.gridUnit * 9
-    implicitHeight: contentCol.implicitHeight + Kirigami.Units.smallSpacing * 2
+    implicitHeight: contentRow.implicitHeight + cardPadding * 2
     Layout.fillWidth: true
 
-    MouseArea {
+    // Card chrome: rounded panel, hairline border, soft shadow that lifts
+    // slightly on hover so the grid reads as cards, not as plain text rows.
+    Kirigami.ShadowedRectangle {
+        id: cardBg
         anchors.fill: parent
+        radius: dashboardCard.cardRadius
+        color: Kirigami.Theme.backgroundColor
+        border.width: 1
+        border.color: Qt.alpha(Kirigami.Theme.disabledTextColor, hoverArea.containsMouse ? 0.6 : 0.3)
+        shadow.size: hoverArea.containsMouse ? 16 : 10
+        shadow.color: Qt.alpha(Kirigami.Theme.shadowColor, hoverArea.containsMouse ? 0.4 : 0.25)
+        shadow.yOffset: 2
+        Behavior on border.color { ColorAnimation { duration: 120 } }
+    }
+
+    MouseArea {
+        id: hoverArea
+        anchors.fill: parent
+        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-            if (cleanId) dashboardCard.openDetailsRequested(cleanId);
+            if (dashboardCard.cleanId) dashboardCard.openDetailsRequested(dashboardCard.cleanId);
             else dashboardCard.configureRequested();
         }
     }
 
-    ColumnLayout {
-        id: contentCol
+    RowLayout {
+        id: contentRow
         anchors.fill: parent
-        anchors.margins: Kirigami.Units.smallSpacing
-        spacing: 4
+        anchors.margins: dashboardCard.cardPadding
+        spacing: Kirigami.Units.smallSpacing * 1.4
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
+        // Icon tile: entity icon on a state-tinted rounded square.
+        Rectangle {
+            id: iconTile
+            implicitWidth: dashboardCard.compact
+                ? Kirigami.Units.iconSizes.smallMedium + Kirigami.Units.smallSpacing * 2
+                : Kirigami.Units.iconSizes.medium + Kirigami.Units.smallSpacing * 2
+            implicitHeight: implicitWidth
+            radius: dashboardCard.cardRadius
+            color: dashboardCard.isUnavailable
+                ? Qt.alpha(Kirigami.Theme.disabledTextColor, 0.10)
+                : (dashboardCard.isOn ? Qt.alpha(Kirigami.Theme.highlightColor, 0.22) : Qt.alpha(Kirigami.Theme.textColor, 0.07))
+            Behavior on color { ColorAnimation { duration: 150 } }
+            Layout.alignment: Qt.AlignVCenter
 
             Kirigami.Icon {
-                source: isUnavailable ? "view-list-symbolic" : (isOn ? "media-playback-start-symbolic" : "media-playback-pause-symbolic")
-                implicitWidth: Kirigami.Units.iconSizes.small
-                implicitHeight: Kirigami.Units.iconSizes.small
-                color: isUnavailable ? Kirigami.Theme.disabledTextColor : (isOn ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.disabledTextColor)
+                anchors.centerIn: parent
+                source: dashboardCard.entityIcon
+                implicitWidth: dashboardCard.compact ? Kirigami.Units.iconSizes.small : Kirigami.Units.iconSizes.smallMedium
+                implicitHeight: implicitWidth
+                color: dashboardCard.isUnavailable
+                    ? Kirigami.Theme.disabledTextColor
+                    : (dashboardCard.isOn ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor)
+            }
+        }
+
+        ColumnLayout {
+            spacing: 1
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
+
+            PlasmaComponents3.Label {
+                text: dashboardCard.title
+                font.bold: true
+                font.pointSize: dashboardCard.compact
+                    ? Kirigami.Theme.smallFont.pointSize * 0.95
+                    : Kirigami.Theme.defaultFont.pointSize
+                elide: Text.ElideRight
+                Layout.fillWidth: true
             }
 
-            ColumnLayout {
-                spacing: 1
+            RowLayout {
+                spacing: Kirigami.Units.smallSpacing
                 Layout.fillWidth: true
 
                 PlasmaComponents3.Label {
-                    text: title
-                    font.bold: true
-                    font.pointSize: Kirigami.Theme.defaultFont.pointSize * 0.95
+                    text: dashboardCard.isUnavailable ? Loc.t("Unavailable") : dashboardCard.statusText
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.85
+                    color: dashboardCard.isUnavailable
+                        ? Kirigami.Theme.disabledTextColor
+                        : (dashboardCard.isOn ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor)
                     elide: Text.ElideRight
                     Layout.fillWidth: true
+                    Layout.minimumWidth: 0
                 }
 
                 PlasmaComponents3.Label {
-                    text: isUnavailable
-                        ? Loc.t("Unavailable")
-                        : statusText
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
-                    color: isUnavailable ? Kirigami.Theme.disabledTextColor : (isOn ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.textColor)
-                    font.bold: isOn
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
-                }
-            }
-        }
-
-        PlasmaComponents3.Label {
-            visible: areaName.length > 0
-            text: areaName.toUpperCase()
-            font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.70
-            color: Kirigami.Theme.disabledTextColor
-            font.bold: true
-            elide: Text.ElideRight
-            Layout.fillWidth: true
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
-
-            Item { Layout.fillWidth: true }
-
-            PlasmaComponents3.Switch {
-                visible: isToggleable
-                enabled: !isUnavailable
-                checked: isOn
-                onToggled: {
-                    if (!haManager || !entityObj || isUnavailable) return;
-                    haManager.callService(domain, checked ? "turn_on" : "turn_off", cleanId, {});
+                    visible: dashboardCard.changedAgo.length > 0
+                    text: dashboardCard.changedAgo
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.8
+                    color: Kirigami.Theme.disabledTextColor
+                    Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
                 }
             }
 
-            PlasmaComponents3.ToolButton {
-                visible: isLock
-                icon.name: isOn ? "object-unlocked-symbolic" : "object-locked-symbolic"
-                enabled: !isUnavailable
-                onClicked: {
-                    if (!haManager || !entityObj || isUnavailable) return;
-                    haManager.callService("lock", isOn ? "lock" : "unlock", cleanId, {});
-                }
+            PlasmaComponents3.Label {
+                visible: dashboardCard.showArea && dashboardCard.areaName.length > 0
+                text: dashboardCard.areaName.toUpperCase()
+                font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.75
+                font.bold: true
+                color: Kirigami.Theme.disabledTextColor
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+            }
+        }
+
+        PlasmaComponents3.Switch {
+            visible: dashboardCard.isToggleable
+            enabled: !dashboardCard.isUnavailable
+            checked: dashboardCard.isOn
+            Layout.alignment: Qt.AlignVCenter
+            onToggled: {
+                if (!dashboardCard.haManager || !dashboardCard.entityObj || dashboardCard.isUnavailable) return;
+                dashboardCard.haManager.callService(dashboardCard.domain, checked ? "turn_on" : "turn_off", dashboardCard.cleanId, {});
+            }
+        }
+
+        PlasmaComponents3.ToolButton {
+            visible: dashboardCard.isLock
+            icon.name: dashboardCard.isOn ? "object-unlocked-symbolic" : "object-locked-symbolic"
+            enabled: !dashboardCard.isUnavailable
+            Layout.alignment: Qt.AlignVCenter
+            onClicked: {
+                if (!dashboardCard.haManager || !dashboardCard.entityObj || dashboardCard.isUnavailable) return;
+                dashboardCard.haManager.callService("lock", dashboardCard.isOn ? "lock" : "unlock", dashboardCard.cleanId, {});
             }
         }
     }

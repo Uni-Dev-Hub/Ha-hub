@@ -16,6 +16,8 @@ PlasmaComponents3.Page {
 
     readonly property bool showDashboardTab: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.showDashboard || false) : false
     readonly property string dashboardCards: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardCards || "[]") : "[]"
+    readonly property int dashboardColumns: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardColumns || 2) : 2
+    readonly property string dashboardCardSize: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardCardSize || "compact") : "compact"
 
     signal configureRequested()
 
@@ -113,6 +115,8 @@ PlasmaComponents3.Page {
             activeTab: fullRoot.showDashboardTab ? mainTabBar.currentIndex : 1
             showDashboardTab: fullRoot.showDashboardTab
             dashboardCards: fullRoot.dashboardCards
+            dashboardColumns: fullRoot.dashboardColumns
+            dashboardCardSize: fullRoot.dashboardCardSize
             onConfigureRequested: fullRoot.configureRequested()
             onOpenDetailsRequested: function(entId) {
                 fullRoot.activeDetailEntityId = entId;

@@ -16,6 +16,8 @@ ColumnLayout {
     property int activeTab: 0
     property bool showDashboardTab: false
     property string dashboardCards: "[]"
+    property int dashboardColumns: 2
+    property string dashboardCardSize: "compact"
 
     signal configureRequested()
     signal openDetailsRequested(string entId)
@@ -178,6 +180,8 @@ ColumnLayout {
         Layout.fillHeight: true
         haManager: listViewRoot.haManager
         cardsJson: listViewRoot.dashboardCards
+        columns: listViewRoot.dashboardColumns
+        cardSize: listViewRoot.dashboardCardSize
         onConfigureRequested: listViewRoot.configureRequested()
         onOpenDetailsRequested: function(entId) {
             listViewRoot.openDetailsRequested(entId);

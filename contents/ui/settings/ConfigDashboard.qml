@@ -6,6 +6,8 @@ import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
 import "../../services" as Services
+import "../components" as Components
+import "../views" as Views
 import "../../code/ha_helpers.mjs" as HAHelpers
 import "../../l10n"
 
@@ -20,9 +22,8 @@ Kirigami.ScrollablePage {
     property string cfg_accessToken: ""
     property bool cfg_showDashboard: false
     property string cfg_dashboardCards: "[]"
-
-    property string searchText: ""
-    readonly property string searchQuery: searchText
+    property int cfg_dashboardColumns: 2
+    property string cfg_dashboardCardSize: "compact"
 
     readonly property var cards: {
         var raw = dashboardSettings.cfg_dashboardCards ? dashboardSettings.cfg_dashboardCards.trim() : "";
@@ -34,6 +35,10 @@ Kirigami.ScrollablePage {
             return [];
         }
     }
+
+    // Reference for inline Components where the inner object shadows the
+    // haManager id with a property of the same name.
+    readonly property var managerRef: haManager
 
     Services.HAManager {
         id: haManager
@@ -103,17 +108,68 @@ Kirigami.ScrollablePage {
         return HAHelpers.getEntityTitle(entityId, ent, reg, haManager);
     }
 
-    readonly property var availableEntities: {
+    function entitySubtitle(entityId) {
+        if (!haManager) return entityId || "";
+        var entry = haManager.getCatalogEntry ? haManager.getCatalogEntry(entityId) : null;
+        if (entry && entry.deviceName) {
+            return entityId + "  •  " + entry.deviceName;
+        }
+        return entityId;
+    }
+
+    // Candidates for the picker: everything selectable that is not on the
+    // dashboard yet.
+    readonly property var candidateEntities: {
         var rev = haManager ? haManager.entitiesRevision : 0;
         if (!haManager || !haManager.isConnected) return [];
-        var query = dashboardSettings.searchQuery.toLowerCase().trim();
         var source = haManager.userDevicesList || [];
         var result = [];
         for (var i = 0; i < source.length; i++) {
-            var id = source[i];
-            if (dashboardSettings.existingCardSet[id]) continue;
+            if (!dashboardSettings.existingCardSet[source[i]]) result.push(source[i]);
+        }
+        return result;
+    }
+
+    readonly property var domainCounts: {
+        var rev = haManager ? haManager.entitiesRevision : 0;
+        var source = dashboardSettings.candidateEntities || [];
+        var counts = {};
+        for (var i = 0; i < source.length; i++) {
+            var domain = HAHelpers.getDomain(source[i]);
+            if (!domain) continue;
+            counts[domain] = (counts[domain] || 0) + 1;
+        }
+        return counts;
+    }
+
+    readonly property var areaOptions: {
+        var rev = haManager ? haManager.entitiesRevision : 0;
+        var areas = (haManager && haManager.areasList) ? haManager.areasList : [];
+        var result = [];
+        for (var i = 0; i < areas.length; i++) {
+            var id = areas[i].area_id || areas[i].id || "";
+            if (!id) continue;
+            result.push({ id: id, name: areas[i].name || id });
+        }
+        result.sort(function(a, b) { return a.name.localeCompare(b.name); });
+        return result;
+    }
+
+    readonly property var availableEntities: {
+        if (!haManager || !haManager.isConnected) return [];
+        var list = dashboardSettings.candidateEntities || [];
+        // Read picker filters as properties so this binding re-evaluates.
+        var query = (pickerFilter.searchText || "").toLowerCase().trim();
+        var domain = pickerFilter.selectedDomain;
+        var area = pickerFilter.selectedArea;
+
+        var result = [];
+        for (var i = 0; i < list.length; i++) {
+            var id = list[i];
             var entry = haManager.getCatalogEntry ? haManager.getCatalogEntry(id) : null;
             if (!entry) continue;
+            if (domain !== "all" && entry.domain !== domain) continue;
+            if (area !== "all" && (entry.areaId || "") !== area) continue;
             if (query.length > 0) {
                 var haystack = [entry.name || "", id, entry.areaName || "", entry.deviceName || ""].join(" ").toLowerCase();
                 if (haystack.indexOf(query) === -1) continue;
@@ -136,6 +192,36 @@ Kirigami.ScrollablePage {
                 text: Loc.t("Show 'Dashboard' tab")
                 checked: dashboardSettings.cfg_showDashboard
                 onToggled: dashboardSettings.cfg_showDashboard = checked
+            }
+
+            Controls.ComboBox {
+                id: columnsCombo
+                Kirigami.FormData.label: Loc.t("Grid columns:")
+                visible: dashboardSettings.cfg_showDashboard
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 7
+                model: [2, 3, 4]
+                currentIndex: Math.max(0, model.indexOf(dashboardSettings.cfg_dashboardColumns))
+                onActivated: dashboardSettings.cfg_dashboardColumns = currentText
+            }
+
+            Controls.ComboBox {
+                id: cardSizeCombo
+                Kirigami.FormData.label: Loc.t("Card size:")
+                visible: dashboardSettings.cfg_showDashboard
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                readonly property var sizeOptions: [
+                    { value: "compact", label: Loc.t("Compact") },
+                    { value: "normal", label: Loc.t("Normal") }
+                ]
+                model: sizeOptions
+                textRole: "label"
+                currentIndex: {
+                    for (var i = 0; i < sizeOptions.length; i++) {
+                        if (sizeOptions[i].value === dashboardSettings.cfg_dashboardCardSize) return i;
+                    }
+                    return 0;
+                }
+                onActivated: dashboardSettings.cfg_dashboardCardSize = sizeOptions[currentIndex].value
             }
         }
 
@@ -213,7 +299,7 @@ Kirigami.ScrollablePage {
 
                         Controls.ComboBox {
                             implicitWidth: Kirigami.Units.gridUnit * 5
-                            model: ["1x1", "2x1", "2x2"]
+                            model: ["1x1", "2x1", "1x2", "2x2"]
                             currentIndex: Math.max(0, model.indexOf(modelData.size || "1x1"))
                             onActivated: dashboardSettings.setCardSize(index, currentText)
                         }
@@ -239,8 +325,68 @@ Kirigami.ScrollablePage {
             }
         }
 
+        // ---- Live layout preview -------------------------------------------
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.smallSpacing
+            visible: dashboardSettings.cfg_showDashboard && dashboardSettings.cards.length > 0
+
+            PlasmaComponents3.Label {
+                text: Loc.t("Layout Preview")
+                font.bold: true
+                font.pointSize: Qt.application.font.pointSize * 1.05
+                Layout.fillWidth: true
+            }
+
+            PlasmaComponents3.Label {
+                text: Loc.t("This is how the dashboard grid will look in the widget popup. Card size changes apply here instantly.")
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 10
+                radius: Kirigami.Units.smallSpacing
+                color: Kirigami.Theme.backgroundColor
+                border.color: Qt.alpha(Kirigami.Theme.textColor, 0.15)
+                border.width: 1
+                clip: true
+
+                Kirigami.Icon {
+                    anchors.centerIn: parent
+                    visible: !(haManager && haManager.isConnected)
+                    source: "network-connect-symbolic"
+                    implicitWidth: Kirigami.Units.iconSizes.large
+                    implicitHeight: implicitWidth
+                    color: Kirigami.Theme.disabledTextColor
+                }
+
+                Loader {
+                    id: previewLoader
+                    anchors.fill: parent
+                    anchors.margins: Kirigami.Units.largeSpacing
+                    active: haManager && haManager.isConnected && dashboardSettings.cards.length > 0
+                    sourceComponent: Component {
+                        Views.DashboardView {
+                            haManager: dashboardSettings.managerRef
+                            cardsJson: dashboardSettings.cfg_dashboardCards
+                            columns: dashboardSettings.cfg_dashboardColumns
+                            cardSize: dashboardSettings.cfg_dashboardCardSize
+                            // Preview clicks should not try to navigate.
+                            onConfigureRequested: {}
+                            onOpenDetailsRequested: function(entId) {}
+                        }
+                    }
+                }
+            }
+        }
+
         Kirigami.Separator { Layout.fillWidth: true }
 
+        // ---- Picker ----------------------------------------------------------
         ColumnLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing
@@ -252,11 +398,11 @@ Kirigami.ScrollablePage {
                 Layout.fillWidth: true
             }
 
-            Controls.TextField {
+            Components.EntityFilterBar {
+                id: pickerFilter
                 Layout.fillWidth: true
-                placeholderText: Loc.t("Search entities…")
-                text: dashboardSettings.searchText
-                onTextChanged: dashboardSettings.searchText = text
+                domainCounts: dashboardSettings.domainCounts
+                areaOptions: dashboardSettings.areaOptions
             }
 
             PlasmaComponents3.Label {
@@ -304,7 +450,7 @@ Kirigami.ScrollablePage {
                             }
 
                             PlasmaComponents3.Label {
-                                text: modelData
+                                text: dashboardSettings.entitySubtitle(modelData)
                                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
                                 color: Kirigami.Theme.disabledTextColor
                                 elide: Text.ElideRight
@@ -317,7 +463,7 @@ Kirigami.ScrollablePage {
 
             PlasmaComponents3.Label {
                 visible: haManager && haManager.isConnected && dashboardSettings.availableEntities.length === 0
-                text: Loc.t("No matching entities. Try another search or check Settings → Favorite Devices.")
+                text: Loc.t("No matching entities. Try another search or clear the filters.")
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: Kirigami.Theme.disabledTextColor
                 wrapMode: Text.WordWrap
