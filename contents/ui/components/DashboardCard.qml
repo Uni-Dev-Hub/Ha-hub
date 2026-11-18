@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components 3.0 as PlasmaComponents3
-import "../../../code/ha_helpers.js" as HAHelpers
+import "../../code/ha_helpers.js" as HAHelpers
 
 Item {
     id: dashboardCard
@@ -38,13 +38,8 @@ Item {
     readonly property bool isLock: domain === "lock"
 
     implicitWidth: Kirigami.Units.gridUnit * 9
-    implicitHeight: contentCol.implicitHeight + topPadding + bottomPadding
+    implicitHeight: contentCol.implicitHeight + Kirigami.Units.smallSpacing * 2
     Layout.fillWidth: true
-
-    topPadding: Kirigami.Units.smallSpacing
-    bottomPadding: Kirigami.Units.smallSpacing
-    leftPadding: Kirigami.Units.smallSpacing
-    rightPadding: Kirigami.Units.smallSpacing
 
     MouseArea {
         anchors.fill: parent

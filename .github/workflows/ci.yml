@@ -35,6 +35,8 @@ jobs:
           PY
       - name: Check kcfg XML
         run: python3 -c "import xml.dom.minidom as m; m.parse('contents/config/main.xml')"
+      - name: Check relative QML imports
+        run: python3 scripts/check_imports.py
 
   package:
     name: Build .plasmoid

@@ -22,6 +22,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Control-domain list is defined once in `ha_helpers.js` and reused by the manager.
 
 ### Fixed
+- Dashboard cards failed to load at runtime (broken relative import of `ha_helpers.js`, unsupported padding properties on a plain `Item`), which cascaded into "Type X unavailable" errors across the whole popup.
+- Access-token hint in General settings used a `Kirigami.FormData` property that does not exist in Kirigami 6 and prevented the settings page from loading.
+- New link test (`tests/qml/tst_imports.qml`) and CI check (`scripts/check_imports.py`) guard against these class of errors.
 - QML unit tests crashed outside the Plasma shell because the `i18n()` global was not available in `HAManager.qml`.
 - Pending request callbacks were never released when the connection dropped, leaking handlers and leaving UI spinners stuck.
 

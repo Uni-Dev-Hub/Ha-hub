@@ -71,8 +71,7 @@ Kirigami.ScrollablePage {
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
             font.italic: true
-            opacity: Kirigami.Theme.disabledTextColor.a
-            Kirigami.FormData.isEdgeToEdge: true
+            opacity: 0.65
         }
 
         Controls.CheckBox {
