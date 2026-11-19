@@ -3,6 +3,30 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-11-19
+
+Focus of this release: dashboard tile groups in the Metro style, entity names
+exactly as Home Assistant shows them, a new "Appearance" settings page (header
+avatar and entity, tray icon, which views are shown) and settings pickers that
+fit into the popup.
+
+### Added
+- New "Appearance" settings page.
+
+### Changed
+- Entity names are taken from the entity's friendly name — the same text Home
+  Assistant itself shows — instead of the short name stored in the entity
+  registry, which lost the device prefix ("Light" instead of "Corridor Light").
+- The header no longer shows the version badge; the user picture from Home
+  Assistant and a configurable entity (e.g. a temperature sensor) are shown
+  there instead.
+- Entity pickers in settings filter entity types through a drop-down list with
+  counts; the row of buttons did not fit into the settings dialog.
+
+### Fixed
+- Multi-channel rows only append a disambiguating suffix when two channels of
+  the same device really share a name.
+
 ## [1.0.0] - 2026-11-19
 
 First stable release. Highlights over the beta: real card-style dashboard with

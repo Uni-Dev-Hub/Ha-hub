@@ -4,7 +4,7 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 
 ![KDE Plasma 6](https://img.shields.io/badge/KDE_Plasma-6.0+-blue?logo=kde)
 ![License](https://img.shields.io/badge/License-GPL--3.0-green)
-![Version](https://img.shields.io/badge/Version-1.0.0-green)
+![Version](https://img.shields.io/badge/Version-1.1.0-green)
 
 ---
 
@@ -49,14 +49,14 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 
 ### Manual Installation (.plasmoid)
 
-1. Download the latest `org.kde.plasma.hahub-1.0.0.plasmoid` from the [Releases](https://github.com/Uni-Dev-Hub/Ha-hub/releases) section.
+1. Download the latest `org.kde.plasma.hahub-1.1.0.plasmoid` from the [Releases](https://github.com/Uni-Dev-Hub/Ha-hub/releases) section.
 2. Install via terminal:
    
-   kpackagetool6 --type Plasma/Applet --install org.kde.plasma.hahub-1.0.0.plasmoid
+   kpackagetool6 --type Plasma/Applet --install org.kde.plasma.hahub-1.1.0.plasmoid
    
 3. To update an existing installation:
 
-   kpackagetool6 --type Plasma/Applet --upgrade org.kde.plasma.hahub-1.0.0.plasmoid
+   kpackagetool6 --type Plasma/Applet --upgrade org.kde.plasma.hahub-1.1.0.plasmoid
 
 
 
@@ -100,7 +100,7 @@ QML unit tests (requires Qt 6 `qmltestrunner` and the Plasma QML modules
 ./scripts/make-plasmoid.sh   # writes dist/org.kde.plasma.hahub-<version>.plasmoid
 ```
 
-Pushing a tag named exactly like the `metadata.json` version (e.g. `v1.0.0`)
+Pushing a tag named exactly like the `metadata.json` version (e.g. `v1.1.0`)
 builds the package and publishes a GitHub Release automatically.
 
 ---

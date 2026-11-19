@@ -43,34 +43,6 @@ PlasmaComponents3.ToolBar {
                     elide: Text.ElideRight
                     Layout.fillWidth: true
                 }
-
-                Rectangle {
-                    implicitWidth: betaLabel.implicitWidth + 8
-                    implicitHeight: betaLabel.implicitHeight + 2
-                    radius: 4
-                    color: Qt.alpha(Kirigami.Theme.highlightColor, 0.18)
-                    border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.45)
-                    border.width: 1
-                    Layout.alignment: Qt.AlignVCenter
-
-                    PlasmaComponents3.ToolTip.visible: betaMouseArea.containsMouse
-                    PlasmaComponents3.ToolTip.text: "HA-Hub v1.0.0"
-
-                    MouseArea {
-                        id: betaMouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                    }
-
-                    PlasmaComponents3.Label {
-                        id: betaLabel
-                        anchors.centerIn: parent
-                        text: "BETA 1"
-                        font.bold: true
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.70
-                        color: Kirigami.Theme.highlightColor
-                    }
-                }
             }
 
             PlasmaComponents3.Label {
