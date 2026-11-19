@@ -15,6 +15,10 @@ PlasmaComponents3.Page {
     property string activeDetailEntityId: ""
 
     readonly property bool showDashboardTab: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.showDashboard || false) : false
+    readonly property bool showDevicesTab: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.showDevices !== false) : true
+    // The switch between the two views only makes sense when both are enabled;
+    // with a single view the popup opens it directly and hides the tab bar.
+    readonly property bool canSwitchViews: showDashboardTab && showDevicesTab
     readonly property string dashboardCards: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardCards || "[]") : "[]"
     readonly property int dashboardColumns: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardColumns || 2) : 2
     readonly property string dashboardCardSize: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardCardSize || "compact") : "compact"
@@ -74,7 +78,7 @@ PlasmaComponents3.Page {
 
         PlasmaComponents3.TabBar {
             id: mainTabBar
-            visible: haManager && haManager.isConnected && fullRoot.showDashboardTab
+            visible: haManager && haManager.isConnected && fullRoot.canSwitchViews
             Layout.fillWidth: true
 
             PlasmaComponents3.TabButton {

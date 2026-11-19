@@ -20,7 +20,6 @@ Kirigami.ScrollablePage {
     property string cfg_port: "8123"
     property bool cfg_useSsl: false
     property string cfg_accessToken: ""
-    property bool cfg_showDashboard: false
     property string cfg_dashboardCards: "[]"
     property int cfg_dashboardColumns: 2
     property string cfg_dashboardCardSize: "compact"
@@ -186,18 +185,9 @@ Kirigami.ScrollablePage {
         Kirigami.FormLayout {
             Layout.fillWidth: true
 
-            Controls.Switch {
-                id: showDashboardSwitch
-                Kirigami.FormData.label: Loc.t("Widget Tab:")
-                text: Loc.t("Show 'Dashboard' tab")
-                checked: dashboardSettings.cfg_showDashboard
-                onToggled: dashboardSettings.cfg_showDashboard = checked
-            }
-
             Controls.ComboBox {
                 id: columnsCombo
                 Kirigami.FormData.label: Loc.t("Grid columns:")
-                visible: dashboardSettings.cfg_showDashboard
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 7
                 model: [2, 3, 4]
                 currentIndex: Math.max(0, model.indexOf(dashboardSettings.cfg_dashboardColumns))
@@ -207,7 +197,6 @@ Kirigami.ScrollablePage {
             Controls.ComboBox {
                 id: cardSizeCombo
                 Kirigami.FormData.label: Loc.t("Card size:")
-                visible: dashboardSettings.cfg_showDashboard
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                 readonly property var sizeOptions: [
                     { value: "compact", label: Loc.t("Compact") },
@@ -330,7 +319,7 @@ Kirigami.ScrollablePage {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing
-            visible: dashboardSettings.cfg_showDashboard && dashboardSettings.cards.length > 0
+            visible: dashboardSettings.cards.length > 0
 
             PlasmaComponents3.Label {
                 text: Loc.t("Layout Preview")

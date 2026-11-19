@@ -1,5 +1,6 @@
 import QtQuick
 import QtTest
+import "../../contents/l10n"
 import "../../contents/ui/settings" as S
 
 // The settings pages were the source of several runtime breakages (missing
@@ -13,7 +14,6 @@ TestCase {
         width: 600
         height: 900
         visible: true
-        cfg_showDashboard: true
         cfg_dashboardColumns: 3
         cfg_dashboardCardSize: "normal"
         cfg_dashboardCards: JSON.stringify([
@@ -21,6 +21,15 @@ TestCase {
             { entityId: "cover.gate", size: "1x2" },
             { entityId: "switch.kitchen", size: "1x1" }
         ])
+    }
+
+    S.ConfigAppearance {
+        id: appearancePage
+        width: 600
+        height: 700
+        visible: true
+        cfg_showDashboard: true
+        cfg_showDevices: true
     }
 
     S.ConfigFavorites {
@@ -38,6 +47,17 @@ TestCase {
         var kids = item.children || []
         for (var i = 0; i < kids.length; i++) {
             var found = findByProperty(kids[i], property)
+            if (found) return found
+        }
+        return null
+    }
+
+    function findByText(item, text) {
+        if (!item) return null
+        if (item.text === text) return item
+        var kids = item.children || []
+        for (var i = 0; i < kids.length; i++) {
+            var found = findByText(kids[i], text)
             if (found) return found
         }
         return null
@@ -79,5 +99,39 @@ TestCase {
         compare(filter.selectedDomain, "all")
         compare(filter.selectedArea, "all")
         compare(filter.searchText, "")
+    }
+
+    function test_filter_bar_lists_types_with_counts() {
+        var filter = findByProperty(favoritesPage, "selectedDomain")
+        filter.domainCounts = { cover: 2, light: 3 }
+        compare(filter.totalCount, 5)
+        // "All" plus one entry per domain, each with its count in the label.
+        compare(filter.domainOptions.length, 3)
+        compare(filter.domainOptions[0].id, "all")
+        verify(filter.domainOptions[0].label.indexOf("5") !== -1)
+        var coverIndex = filter.indexOfId(filter.domainOptions, "cover")
+        verify(coverIndex > 0, "cover is listed")
+        verify(filter.domainOptions[coverIndex].label.indexOf("cover (2)") === 0,
+               "expected a counted label, got " + filter.domainOptions[coverIndex].label)
+        // Unknown selection falls back to the first entry instead of -1.
+        compare(filter.indexOfId(filter.domainOptions, "nope"), 0)
+        filter.domainCounts = {}
+    }
+
+    function test_appearance_keeps_at_least_one_view() {
+        wait(50)
+        compare(appearancePage.enabledViewCount, 2)
+        var dashboardCheck = findByText(appearancePage, Loc.t("Show 'Dashboard' tab"))
+        var devicesCheck = findByText(appearancePage, Loc.t("Show 'Devices' tab"))
+        verify(!!dashboardCheck && !!devicesCheck, "both view checkboxes exist")
+        verify(dashboardCheck.enabled && devicesCheck.enabled, "both switchable while two views are on")
+
+        appearancePage.cfg_showDevices = false
+        compare(appearancePage.enabledViewCount, 1)
+        verify(!dashboardCheck.enabled, "the last view cannot be switched off")
+        verify(devicesCheck.enabled, "the hidden view can be switched back on")
+
+        appearancePage.cfg_showDevices = true
+        verify(dashboardCheck.enabled, "both switchable again")
     }
 }

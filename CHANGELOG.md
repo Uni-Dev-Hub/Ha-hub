@@ -11,7 +11,9 @@ avatar and entity, tray icon, which views are shown) and settings pickers that
 fit into the popup.
 
 ### Added
-- New "Appearance" settings page.
+- New "Appearance" settings page: choose which views the popup shows (Dashboard
+  and/or Devices). With a single view the switch button between them is hidden
+  and the popup opens that view directly.
 
 ### Changed
 - Entity names are taken from the entity's friendly name — the same text Home

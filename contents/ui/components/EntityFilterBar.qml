@@ -4,12 +4,14 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components 3.0 as PlasmaComponents3
 import "../../code/ha_helpers.mjs" as HAHelpers
 import "../../l10n"
 
 // Shared filter strip for the entity pickers (favorites & dashboard):
-// free-text search + area selector + scrollable domain chips with counts.
+// free-text search plus two drop-down lists - entity type and area - each
+// entry carrying the number of entities it would leave visible. Drop-downs
+// rather than a row of buttons: a HA instance easily has 20 domains and the
+// buttons did not fit into the settings dialog.
 ColumnLayout {
     id: filterBar
 
@@ -34,6 +36,37 @@ ColumnLayout {
         return sum;
     }
 
+    readonly property var domainOptions: {
+        var result = [{
+            id: "all",
+            label: Loc.t("All") + " (" + filterBar.totalCount + ")",
+            icon: "view-list-symbolic"
+        }];
+        var domains = filterBar.sortedDomains;
+        for (var i = 0; i < domains.length; i++) {
+            result.push({
+                id: domains[i],
+                label: domains[i] + " (" + (filterBar.domainCounts[domains[i]] || 0) + ")",
+                icon: HAHelpers.getDomainIcon(domains[i])
+            });
+        }
+        return result;
+    }
+
+    readonly property var areaChoice: [{ id: "all", name: Loc.t("All areas") }].concat(filterBar.areaOptions)
+
+    function indexOfId(options, id) {
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].id === id) return i;
+        }
+        return 0;
+    }
+
+    function optionIcon(options, index) {
+        var item = options && index >= 0 && index < options.length ? options[index] : null;
+        return item && item.icon ? item.icon : "";
+    }
+
     spacing: Kirigami.Units.smallSpacing
 
     RowLayout {
@@ -47,51 +80,48 @@ ColumnLayout {
         }
 
         Controls.ComboBox {
+            id: domainCombo
+            visible: filterBar.sortedDomains.length > 0
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 9
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 7
+            model: filterBar.domainOptions
+            textRole: "label"
+            currentIndex: filterBar.indexOfId(filterBar.domainOptions, filterBar.selectedDomain, "label")
+            onActivated: {
+                var item = model[currentIndex];
+                filterBar.selectedDomain = item ? item.id : "all";
+            }
+
+            // Icon of the current entity type, then its label.
+            contentItem: RowLayout {
+                spacing: Kirigami.Units.smallSpacing
+
+                Kirigami.Icon {
+                    source: filterBar.optionIcon(domainCombo.model, domainCombo.currentIndex)
+                    visible: source.length > 0
+                    implicitWidth: Kirigami.Units.iconSizes.small
+                    implicitHeight: implicitWidth
+                }
+
+                Controls.Label {
+                    text: domainCombo.currentText
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true
+                }
+            }
+        }
+
+        Controls.ComboBox {
             id: areaCombo
             visible: filterBar.areaOptions.length > 0
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 8
-            model: [{ id: "all", name: Loc.t("All areas") }].concat(filterBar.areaOptions)
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 9
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 7
+            model: filterBar.areaChoice
             textRole: "name"
-            currentIndex: 0
+            currentIndex: filterBar.indexOfId(filterBar.areaChoice, filterBar.selectedArea, "name")
             onActivated: {
                 var item = model[currentIndex];
                 filterBar.selectedArea = item ? item.id : "all";
-            }
-        }
-    }
-
-    Flickable {
-        Layout.fillWidth: true
-        Layout.preferredHeight: chipsRow.implicitHeight
-        visible: filterBar.sortedDomains.length > 0
-        contentWidth: chipsRow.implicitWidth
-        boundsBehavior: Flickable.StopAtBounds
-        clip: true
-
-        RowLayout {
-            id: chipsRow
-            spacing: Kirigami.Units.smallSpacing
-
-            PlasmaComponents3.Button {
-                flat: false
-                checkable: true
-                checked: filterBar.selectedDomain === "all"
-                text: Loc.t("All") + " (" + filterBar.totalCount + ")"
-                onToggled: if (checked) filterBar.selectedDomain = "all"
-            }
-
-            Repeater {
-                model: filterBar.sortedDomains
-
-                delegate: PlasmaComponents3.Button {
-                    required property string modelData
-                    flat: false
-                    checkable: true
-                    checked: filterBar.selectedDomain === modelData
-                    text: modelData + " (" + (filterBar.domainCounts[modelData] || 0) + ")"
-                    icon.name: HAHelpers.getDomainIcon(modelData)
-                    onToggled: if (checked) filterBar.selectedDomain = modelData
-                }
             }
         }
     }
