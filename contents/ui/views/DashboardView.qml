@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import org.kde.plasma.components 3.0 as PlasmaComponents3
 import org.kde.kirigami as Kirigami
 import "../components" as Components
+import "../../l10n"
 
 ColumnLayout {
     id: dashboardRoot
