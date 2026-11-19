@@ -255,6 +255,7 @@ Kirigami.ScrollablePage {
             Repeater {
                 model: dashboardSettings.cards
                 delegate: Rectangle {
+                    id: cardRowDelegate
                     required property var modelData
                     required property int index
 
@@ -283,13 +284,13 @@ Kirigami.ScrollablePage {
                             Layout.fillWidth: true
 
                             PlasmaComponents3.Label {
-                                text: dashboardSettings.entityTitle(modelData.entityId)
+                                text: dashboardSettings.entityTitle(cardRowDelegate.modelData.entityId)
                                 font.bold: true
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
                             }
                             PlasmaComponents3.Label {
-                                text: modelData.entityId || ""
+                                text: cardRowDelegate.modelData.entityId || ""
                                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
                                 color: Kirigami.Theme.disabledTextColor
                                 elide: Text.ElideRight
@@ -300,25 +301,25 @@ Kirigami.ScrollablePage {
                         Controls.ComboBox {
                             implicitWidth: Kirigami.Units.gridUnit * 5
                             model: ["1x1", "2x1", "1x2", "2x2"]
-                            currentIndex: Math.max(0, model.indexOf(modelData.size || "1x1"))
-                            onActivated: dashboardSettings.setCardSize(index, currentText)
+                            currentIndex: Math.max(0, model.indexOf(cardRowDelegate.modelData.size || "1x1"))
+                            onActivated: dashboardSettings.setCardSize(cardRowDelegate.index, currentText)
                         }
 
                         PlasmaComponents3.ToolButton {
                             icon.name: "arrow-up-symbolic"
-                            enabled: index > 0
-                            onClicked: dashboardSettings.moveCard(index, -1)
+                            enabled: cardRowDelegate.index > 0
+                            onClicked: dashboardSettings.moveCard(cardRowDelegate.index, -1)
                         }
 
                         PlasmaComponents3.ToolButton {
                             icon.name: "arrow-down-symbolic"
-                            enabled: index < dashboardSettings.cards.length - 1
-                            onClicked: dashboardSettings.moveCard(index, 1)
+                            enabled: cardRowDelegate.index < dashboardSettings.cards.length - 1
+                            onClicked: dashboardSettings.moveCard(cardRowDelegate.index, 1)
                         }
 
                         PlasmaComponents3.ToolButton {
                             icon.name: "delete"
-                            onClicked: dashboardSettings.removeCard(index)
+                            onClicked: dashboardSettings.removeCard(cardRowDelegate.index)
                         }
                     }
                 }
@@ -425,6 +426,7 @@ Kirigami.ScrollablePage {
                 }
 
                 delegate: PlasmaComponents3.ItemDelegate {
+                    id: pickerDelegate
                     required property string modelData
                     width: ListView.view ? ListView.view.width : 0
                     onClicked: dashboardSettings.addCard(modelData)
@@ -444,13 +446,13 @@ Kirigami.ScrollablePage {
                             Layout.fillWidth: true
 
                             PlasmaComponents3.Label {
-                                text: dashboardSettings.entityTitle(modelData)
+                                text: dashboardSettings.entityTitle(pickerDelegate.modelData)
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
                             }
 
                             PlasmaComponents3.Label {
-                                text: dashboardSettings.entitySubtitle(modelData)
+                                text: dashboardSettings.entitySubtitle(pickerDelegate.modelData)
                                 font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
                                 color: Kirigami.Theme.disabledTextColor
                                 elide: Text.ElideRight

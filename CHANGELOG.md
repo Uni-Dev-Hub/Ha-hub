@@ -22,6 +22,7 @@ switching from settings) and hardened connection handling.
 - Shared filter strip in the Favorite Devices and Dashboard pickers: search, entity-type chips with counts and an area picker (`EntityFilterBar`).
 - Localization for 9 languages (English, Russian, Kazakh, Ukrainian, German, Spanish, French, Turkish, Chinese) with instant switching in Settings → General; "System language" is the default and untranslated strings fall back to English.
 - Tests for the translation catalogs (key and placeholder parity across all languages, language routing through the helpers) and for release metadata (version matches `metadata.json` and the changelog).
+- QML tests that instantiate the settings pages (card rows, ordering and resize, shared filter bar) and the dashboard empty state, so a broken page shows up as a failing test instead of a blank popup; `scripts/check_imports.py` additionally verifies that every file using `Loc` imports the l10n module.
 
 ### Changed
 - Multi-gang devices (switches, covers, climate zones…) list every control entity as its own object — "Corridor • Light", "Corridor • Toilet" — instead of hiding the extra channels behind the primary one.
