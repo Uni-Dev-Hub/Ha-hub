@@ -37,9 +37,11 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
   - **Media Players:** Track info, volume control, mute, and playback transport buttons.
   - **Valves & Water Heaters:** Shutoff valves (water/gas) and boiler temperature settings.
   - **Presence & Sensors:** Person location tracking (with OpenStreetMap links) and binary sensors.
-- **Favorite Devices Manager:** Simple search, filtering, and custom ordering for your pinned devices.
+- **Favorite Devices Manager:** Search plus filters by entity type and area, and custom ordering for your pinned devices.
+- **Card-Style Dashboard:** Compact, informative cards (icon, state, last change) on a configurable grid — 2 to 4 columns, compact or normal density, per-card 1x1/2x1/1x2/2x2 size — with a live layout preview in the settings.
+- **Multi-Channel Devices:** Every gang of a multi-gang switch or relay is its own controllable object ("Corridor • Light", "Corridor • Toilet") instead of one hidden entity.
 - **Native Look & Feel:** Seamless integration with your KDE color scheme and font settings using Kirigami and PlasmaComponents 3.0.
-- **Internationalization (i18n):** Clean base English interface ready for community translations.
+- **Internationalization:** 9 built-in languages — English, Russian, Kazakh, Ukrainian, German, Spanish, French, Turkish and Chinese. Follows the system language by default and can be switched instantly in the widget settings.
 
 ---
 
