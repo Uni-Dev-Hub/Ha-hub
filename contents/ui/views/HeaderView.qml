@@ -54,7 +54,7 @@ PlasmaComponents3.ToolBar {
                     Layout.alignment: Qt.AlignVCenter
 
                     PlasmaComponents3.ToolTip.visible: betaMouseArea.containsMouse
-                    PlasmaComponents3.ToolTip.text: Loc.t("HA-Hub v1.0-beta1 (Public Beta)")
+                    PlasmaComponents3.ToolTip.text: "HA-Hub v1.0.0"
 
                     MouseArea {
                         id: betaMouseArea

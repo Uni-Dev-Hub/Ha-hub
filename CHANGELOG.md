@@ -17,14 +17,21 @@ switching from settings) and hardened connection handling.
 - Reconnection with exponential backoff (2s … 60s) and a watchdog that resets half-open WebSocket connections when no data arrives for 90s.
 - The "Connect on startup" (autoConnect) setting is now actually respected.
 - New unit tests for entity helpers, WebSocket payloads and the device catalog (including QML tests for catalog updates via `state_changed` and pending-request cleanup).
+- Dashboard cards are real cards now: shadowed panel that lifts on hover, entity icon on a state-tinted tile, live status and time since the last state change.
+- Dashboard grid options: 2/3/4 columns, compact or normal card density, per-card 1x1/2x1/1x2/2x2 size and a live layout preview in Settings → Dashboard that reuses the actual dashboard view.
+- Shared filter strip in the Favorite Devices and Dashboard pickers: search, entity-type chips with counts and an area picker (`EntityFilterBar`).
+- Localization for 9 languages (English, Russian, Kazakh, Ukrainian, German, Spanish, French, Turkish, Chinese) with instant switching in Settings → General; "System language" is the default and untranslated strings fall back to English.
+- Tests for the translation catalogs (key and placeholder parity across all languages, language routing through the helpers) and for release metadata (version matches `metadata.json` and the changelog).
 
 ### Changed
+- Multi-gang devices (switches, covers, climate zones…) list every control entity as its own object — "Corridor • Light", "Corridor • Toilet" — instead of hiding the extra channels behind the primary one.
+- Helper scripts are ES modules (`contents/code/ha_helpers.mjs`): Qt 6 cannot parse `import` statements inside `.js` QML scripts, so shared code must use `.mjs`.
 - The access token is now stored in a single place (the widget's shared private storage) and is removed from Plasma's config file (`plasmarc`) once persisted. Direct KWallet access is not possible from pure-QML applets on Plasma 6 (no QML API exists; tracked for a future C++ extension).
 - All WebSocket requests (`get_states`, registries, `call_service`) are dispatched through per-request callbacks; concurrent registry refreshes can no longer overwrite each other's message ids.
 - Device catalog titles now refresh immediately when a friendly name changes through `state_changed` events, and removed entities are dropped from the catalog right away.
 - Default HA host is `homeassistant.local` instead of a hard-coded LAN IP.
 - Port setting is stored as an integer (validated 1–65535) instead of a free-form string.
-- Control-domain list is defined once in `ha_helpers.js` and reused by the manager.
+- Control-domain list is defined once in `ha_helpers.mjs` and reused by the manager.
 
 ### Fixed
 - Dashboard cards failed to load at runtime (broken relative import of `ha_helpers.js`, unsupported padding properties on a plain `Item`), which cascaded into "Type X unavailable" errors across the whole popup.

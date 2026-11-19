@@ -1,14 +1,43 @@
 import QtQuick
 import QtTest
 import "../../contents/l10n"
+import "../../contents/l10n/translations.mjs" as T
 
 TestCase {
     name: "Localization"
 
+    function test_catalogs_loaded_in_qml() {
+        // The catalogs live in one big module; if Qt failed to parse it the
+        // languages would still be listed but every catalog empty.
+        compare(T.LANGUAGES.length, 9)
+        for (var i = 0; i < T.LANGUAGES.length; i++) {
+            var code = T.LANGUAGES[i].code
+            if (code === "en") continue
+            var catalog = T.CATALOGS[code]
+            verify(catalog && Object.keys(catalog).length > 200, code + " catalog loaded")
+        }
+    }
+
+    function test_catalogs_are_translated() {
+        compare(T.translate("ru", "Settings"), "Настройки")
+        compare(T.translate("kk", "Settings"), "Баптаулар")
+        compare(T.translate("ru", "%1 cards", [4]), "4 карт.")
+        compare(T.translate("de", "Dashboard"), "Dashboard")
+        // Language switches are instant: the same call, another language.
+        T.setLanguage("ru")
+        compare(T.tr("Favorite Devices"), "Избранные устройства")
+        T.setLanguage("en")
+        compare(T.tr("Favorite Devices"), "Favorite Devices")
+        T.setLanguage(Loc.language)
+    }
+
     function test_t_passthrough_and_args() {
-        compare(Loc.t("Connected"), "Connected")
-        compare(Loc.t("%1 cards", 3), "3 cards")
-        compare(Loc.t("Error: %1 of %2", "a", "b"), "Error: a of b")
+        // The active language follows the test host locale, so expectations
+        // are expressed through the module rather than hard-coded English.
+        compare(Loc.t("Connected"), T.translate(Loc.language, "Connected"))
+        compare(Loc.t("zzz %1 zzz %2", "a", "b"), "zzz a zzz b")
+        compare(Loc.t("Error: %1 of %2", "a", "b").indexOf("%1"), -1)
+        compare(Loc.t("Unknown key %1", null), "Unknown key ")
     }
 
     function test_language_normalized() {
