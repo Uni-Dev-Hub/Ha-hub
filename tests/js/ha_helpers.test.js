@@ -57,7 +57,7 @@ test("telemetry sensors still use suffix heuristics", () => {
     assert.equal(helpers.isSecondaryEntity("sensor.living_room_humidity", null), true);
 });
 
-test("entity title prefers registry/entity name over device name", () => {
+test("entity title prefers the entity name over the device name", () => {
     const reg = { name: "Left gang", deviceId: "dev1" };
     const manager = {
         entityToDeviceMap: { "switch.left": "dev1" },
@@ -75,6 +75,41 @@ test("device fallback works when entity has no friendly name", () => {
         getDeviceRaw: (id) => (id === "dev1" ? { id: "dev1", name: "Kitchen switch" } : null)
     };
     assert.equal(helpers.getEntityTitle("switch.left", {}, null, manager), "Kitchen switch");
+});
+
+test("friendly name of the entity wins over the short registry name", () => {
+    // Realistic HA pair: the registry keeps only the custom (short) name,
+    // attributes.friendly_name carries the name Home Assistant displays.
+    const reg = { name: "Свет", originalName: "light", deviceId: "dev1" };
+    const ent = { attributes: { friendly_name: "Коридор Свет" } };
+    assert.equal(helpers.getEntityTitle("switch.corridor_light", ent, reg, {}), "Коридор Свет");
+    assert.equal(helpers.getEntityFriendlyName("switch.corridor_light", ent, reg), "Коридор Свет");
+});
+
+test("registry and original names are still used when the entity is unknown", () => {
+    assert.equal(helpers.getEntityFriendlyName("switch.x", null, { name: "Коридор Свет" }), "Коридор Свет");
+    assert.equal(helpers.getEntityFriendlyName("switch.x", {}, { name: "", originalName: "light" }), "light");
+    assert.equal(helpers.getEntityFriendlyName("switch.x", null, null), "switch.x");
+});
+
+test("multi-channel rows keep distinct friendly names untouched", () => {
+    const entries = [
+        { id: "switch.a_light", deviceId: "d1", deviceName: "Corridor", name: "Коридор Свет" },
+        { id: "switch.a_nightlight", deviceId: "d1", deviceName: "Corridor", name: "Коридор Ночник" }
+    ];
+    helpers.disambiguateCatalogTitles(entries);
+    assert.equal(entries[0].name, "Коридор Свет");
+    assert.equal(entries[1].name, "Коридор Ночник");
+});
+
+test("channels of the same device with the same name get a suffix", () => {
+    const entries = [
+        { id: "switch.corridor_switch_1", deviceId: "d1", deviceName: "Corridor", name: "Corridor" },
+        { id: "switch.corridor_switch_2", deviceId: "d1", deviceName: "Corridor", name: "Corridor" }
+    ];
+    helpers.disambiguateCatalogTitles(entries);
+    assert.equal(entries[0].name, "Corridor • Switch 1");
+    assert.equal(entries[1].name, "Corridor • Switch 2");
 });
 
 test("CONTROL_DOMAINS stays in sync with isControlDomain", () => {

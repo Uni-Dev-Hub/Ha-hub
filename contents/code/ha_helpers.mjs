@@ -95,11 +95,16 @@ function getEntityRegistryInfo(entId, haManager) {
     return haManager.entityRegistryMap[entId] || null;
 }
 
+// Home Assistant computes `attributes.friendly_name` as the effective, fully
+// qualified name of an entity ("Corridor Light"). The entity registry `name`
+// field is only the *custom* name a user typed for that entity and usually
+// drops the device prefix ("Light"), so the entity object always wins: that is
+// the text the Home Assistant UI shows.
 function getEntityFriendlyName(entId, entObj, regInfo) {
-    if (regInfo && regInfo.name) return regInfo.name;
     if (entObj && entObj.attributes && entObj.attributes.friendly_name) {
         return entObj.attributes.friendly_name;
     }
+    if (regInfo && regInfo.name) return regInfo.name;
     if (regInfo && regInfo.originalName) return regInfo.originalName;
     return entId || "";
 }
