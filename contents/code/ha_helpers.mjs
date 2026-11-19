@@ -427,6 +427,68 @@ function getEntityHeaderValue(entId, entObj, haManager, lang, withName) {
     return name ? (name + ": " + value) : (value || "");
 }
 
+// The tray icon is stored as a mode plus an icon name or an image path, so the
+// plasmoid can offer "follow the connection state", "an icon from the theme"
+// or "my own picture". Returns { name, path }; exactly one of them is set.
+function resolveIconChoice(mode, iconName, iconPath, onlineName, offlineName, connected) {
+    if (mode === "theme" && iconName) return { name: iconName, path: "" };
+    if (mode === "custom" && iconPath) return { name: "", path: iconPath };
+    return { name: connected ? (onlineName || "") : (offlineName || ""), path: "" };
+}
+
+// Icons offered in the tray icon gallery. Every name was checked against the
+// Breeze theme that ships with Plasma 6.
+var TRAY_ICON_CHOICES = [
+    "home",
+    "network-server",
+    "network-server-symbolic",
+    "network-wireless",
+    "network-workgroup",
+    "internet-services",
+    "computer",
+    "applications-system",
+    "preferences-system",
+    "preferences-desktop-color",
+    "preferences-desktop-display",
+    "preferences-desktop-theme-global",
+    "view-grid-symbolic",
+    "configure",
+    "security-high",
+    "security-low",
+    "object-locked",
+    "object-unlocked",
+    "dialog-warning",
+    "dialog-information",
+    "system-run",
+    "utilities-system-monitor",
+    "weather-clear",
+    "weather-clear-night",
+    "weather-few-clouds",
+    "weather-overcast",
+    "weather-showers-day",
+    "weather-snow",
+    "weather-fog",
+    "weather-storm",
+    "thermometer",
+    "thermometer-1-celsius",
+    "clock",
+    "view-calendar",
+    "player-volume",
+    "media-playback-start",
+    "applications-multimedia",
+    "headphones",
+    "tv",
+    "phone",
+    "printer",
+    "camera-web",
+    "scanner",
+    "applications-games",
+    "tag",
+    "bookmarks",
+    "system-search",
+    "user-identity"
+];
+
 function formatTimeInState(lastChanged) {
     if (!lastChanged) return "";
     var changedDate = new Date(lastChanged);
@@ -484,6 +546,8 @@ export {
     isInfoDomain,
     isSecondaryEntity,
     isSelectableEntity,
+    resolveIconChoice,
+    TRAY_ICON_CHOICES,
     CONTROL_DOMAINS,
     ACTION_DOMAINS,
     INFO_DOMAINS,

@@ -5,12 +5,22 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
 import "../services" as Services
 import "components" as Components
+import "../code/ha_helpers.mjs" as HAHelpers
 import "../l10n"
 
 PlasmoidItem {
     id: root
 
-    Plasmoid.icon: (haManagerService && haManagerService.isConnected) ? "network-server-symbolic" : "network-offline"
+    // Settings -> Appearance: which icon the panel/tray shows.
+    readonly property var trayIcon: HAHelpers.resolveIconChoice(
+        Plasmoid.configuration.trayIconMode || "auto",
+        Plasmoid.configuration.trayIconName || "",
+        Plasmoid.configuration.trayIconPath || "",
+        "network-server-symbolic", "network-offline",
+        haManagerService ? haManagerService.isConnected : false)
+
+    Plasmoid.icon: trayIcon.path.length > 0 ? trayIcon.path
+        : (trayIcon.name.length > 0 ? trayIcon.name : "network-server-symbolic")
     Plasmoid.title: "HA-Hub"
 
     toolTipMainText: (haManagerService && haManagerService.isConnected)
@@ -72,6 +82,8 @@ PlasmoidItem {
 
     compactRepresentation: CompactRepresentation {
         haManager: haManagerService
+        preferredIconName: root.trayIcon.name
+        preferredImagePath: root.trayIcon.path
         onClicked: root.expanded = !root.expanded
     }
 

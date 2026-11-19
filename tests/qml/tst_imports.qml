@@ -20,6 +20,7 @@ TestCase {
         "../../contents/ui/components/DeviceCard.qml",
         "../../contents/ui/components/EntityFilterBar.qml",
         "../../contents/ui/components/EntityPickerField.qml",
+        "../../contents/ui/components/IconPickerField.qml",
         "../../contents/ui/components/MarqueeLabel.qml",
         "../../contents/ui/components/NativeDeviceItem.qml",
         "../../contents/ui/details/DeviceDetailsPage.qml",

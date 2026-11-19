@@ -22,6 +22,9 @@ Kirigami.ScrollablePage {
     property string cfg_headerPersonEntityId: ""
     property string cfg_headerEntityId: ""
     property bool cfg_headerEntityLabel: false
+    property string cfg_trayIconMode: "auto"
+    property string cfg_trayIconName: ""
+    property string cfg_trayIconPath: ""
     property string cfg_host: "homeassistant.local"
     property string cfg_port: "8123"
     property bool cfg_useSsl: false
@@ -159,6 +162,42 @@ Kirigami.ScrollablePage {
                 text: Loc.t("Preview") + ": " + appearancePage.headerPreviewText
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: Kirigami.Theme.disabledTextColor
+                Layout.fillWidth: true
+            }
+        }
+
+        Kirigami.Separator { Layout.fillWidth: true }
+
+        Kirigami.FormLayout {
+            Layout.fillWidth: true
+
+            Item {
+                Kirigami.FormData.label: Loc.t("Widget Icon:")
+                Kirigami.FormData.isSection: true
+            }
+
+            Item {
+                Kirigami.FormData.label: Loc.t("Panel and tray:")
+
+                Components.IconPickerField {
+                    Layout.fillWidth: true
+                    mode: appearancePage.cfg_trayIconMode
+                    iconName: appearancePage.cfg_trayIconName
+                    iconPath: appearancePage.cfg_trayIconPath
+                    connected: headerManager.isConnected
+                    onIconChanged: {
+                        appearancePage.cfg_trayIconMode = mode;
+                        appearancePage.cfg_trayIconName = iconName;
+                        appearancePage.cfg_trayIconPath = iconPath;
+                    }
+                }
+            }
+
+            PlasmaComponents3.Label {
+                text: Loc.t("The custom picture is loaded from its file, so keep it where it will not be deleted.")
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
         }

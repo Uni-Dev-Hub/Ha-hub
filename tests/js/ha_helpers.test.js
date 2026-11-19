@@ -181,6 +181,30 @@ test("device display name prefers user name", () => {
     assert.equal(helpers.getDeviceDisplayName(null, "fallback"), "fallback");
 });
 
+test("tray icon choice resolves to exactly one of name or path", () => {
+    const resolve = (mode, name, path, connected) =>
+        helpers.resolveIconChoice(mode, name, path, "network-server-symbolic", "network-offline", connected);
+
+    // The module is loaded through vm, so compare the plain shape.
+    const shape = (r) => ({ name: r.name, path: r.path });
+    assert.deepStrictEqual(shape(resolve("auto", "", "", true)), { name: "network-server-symbolic", path: "" });
+    assert.deepStrictEqual(shape(resolve("auto", "", "", false)), { name: "network-offline", path: "" });
+    assert.deepStrictEqual(shape(resolve("theme", "home", "", false)), { name: "home", path: "" });
+    assert.deepStrictEqual(shape(resolve("custom", "", "/home/user/ha.png", true)), { name: "", path: "/home/user/ha.png" });
+    // Half-configured values fall back to the automatic icon.
+    assert.deepStrictEqual(shape(resolve("theme", "", "", true)), { name: "network-server-symbolic", path: "" });
+    assert.deepStrictEqual(shape(resolve("custom", "", "", false)), { name: "network-offline", path: "" });
+});
+
+test("the tray icon gallery is a non-empty list of unique names", () => {
+    const names = helpers.TRAY_ICON_CHOICES;
+    assert.ok(names.length > 20, "the gallery should offer a real choice");
+    assert.equal(new Set(names).size, names.length, "no duplicates in the gallery");
+    for (const name of names) {
+        assert.match(name, /^[a-z0-9-]+$/, name + " must be a freedesktop icon name");
+    }
+});
+
 test("humanizeEntityObjectName turns object ids into labels", () => {
     assert.equal(helpers.humanizeEntityObjectName("switch.gang_1"), "Gang 1");
     assert.equal(helpers.humanizeEntityObjectName("light.toilet_light"), "Toilet light");
