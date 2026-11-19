@@ -16,8 +16,9 @@ ColumnLayout {
     property int activeTab: 0
     property bool showDashboardTab: false
     property string dashboardCards: "[]"
-    property int dashboardColumns: 2
-    property string dashboardCardSize: "compact"
+    property string dashboardGroups: ""
+    property int dashboardColumns: 4
+    property string dashboardTileContent: "both"
 
     signal configureRequested()
     signal openDetailsRequested(string entId)
@@ -179,9 +180,10 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
         haManager: listViewRoot.haManager
-        cardsJson: listViewRoot.dashboardCards
+        groupsJson: listViewRoot.dashboardGroups
+        legacyCardsJson: listViewRoot.dashboardCards
         columns: listViewRoot.dashboardColumns
-        cardSize: listViewRoot.dashboardCardSize
+        tileContent: listViewRoot.dashboardTileContent
         onConfigureRequested: listViewRoot.configureRequested()
         onOpenDetailsRequested: function(entId) {
             listViewRoot.openDetailsRequested(entId);

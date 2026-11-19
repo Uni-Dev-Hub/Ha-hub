@@ -127,7 +127,7 @@ RowLayout {
     Controls.Popup {
         id: iconPopup
         parent: Controls.Overlay.overlay
-        anchors.centerIn: Overlay.overlay
+        anchors.centerIn: Controls.Overlay.overlay
         width: Kirigami.Units.gridUnit * 22
         height: Kirigami.Units.gridUnit * 20
         modal: true
@@ -175,7 +175,7 @@ RowLayout {
                     checkable: true
                     checked: iconField.mode === "theme" && iconField.iconName === modelData
                     flat: !checked
-                    display: AbstractButton.IconOnly
+                    display: Controls.AbstractButton.IconOnly
                     icon.name: modelData
                     Accessible.name: modelData
                     onClicked: {

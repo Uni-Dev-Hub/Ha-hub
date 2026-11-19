@@ -24,8 +24,16 @@ fit into the popup.
 - Tray/panel icon is now selectable: a gallery of Breeze icons or an own image
   file, with the old automatic connection-status behaviour as default. Offline
   still dims the icon.
+- Metro-style dashboard: tiles grouped under their own heading, each group
+  filled with one selectable colour (20-swatch palette or any `#rrggbb`), the
+  text colour adapting for contrast. Tiles come in four sizes and can show the
+  entity name, its icon or both — per tile or as a dashboard-wide default.
 
 ### Changed
+- The dashboard card grid was replaced by the Metro tile groups. Cards saved
+  in 1.0 migrate automatically into one untitled group that keeps following
+  the system accent colour (1x1 → small, 2x1 → wide, 1x2 → medium, 2x2 →
+  large).
 - Entity names are taken from the entity's friendly name — the same text Home
   Assistant itself shows — instead of the short name stored in the entity
   registry, which lost the device prefix ("Light" instead of "Corridor Light").

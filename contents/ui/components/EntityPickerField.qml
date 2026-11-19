@@ -129,8 +129,8 @@ RowLayout {
 
     Controls.Popup {
         id: pickerPopup
-        parent: Overlay.overlay
-        anchors.centerIn: Overlay.overlay
+        parent: Controls.Overlay.overlay
+        anchors.centerIn: Controls.Overlay.overlay
         width: Kirigami.Units.gridUnit * 26
         height: Kirigami.Units.gridUnit * 22
         modal: true

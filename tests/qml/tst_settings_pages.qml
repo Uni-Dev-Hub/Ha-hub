@@ -15,7 +15,7 @@ TestCase {
         height: 900
         visible: true
         cfg_dashboardColumns: 3
-        cfg_dashboardCardSize: "normal"
+        cfg_dashboardTileContent: "both"
         cfg_dashboardCards: JSON.stringify([
             { entityId: "light.hall", size: "2x1" },
             { entityId: "cover.gate", size: "1x2" },
@@ -63,28 +63,63 @@ TestCase {
         return null
     }
 
-    function test_dashboard_page_renders_card_rows() {
+    function test_1_dashboard_page_migrates_legacy_cards() {
         wait(150)
-        compare(dashboardPage.cards.length, 3)
+        // With no saved groups the v1.0 cards become one untitled group.
+        compare(dashboardPage.groups.length, 1)
+        compare(dashboardPage.groups[0].tiles.length, 3)
+        compare(dashboardPage.totalTiles, 3)
         verify(dashboardPage.managerRef !== null, "preview keeps a manager reference")
         // Without a connection the picker stays empty but must not throw.
         compare(dashboardPage.availableEntities.length, 0)
         compare(Object.keys(dashboardPage.domainCounts).length, 0)
         // Titles fall back to the entity id when nothing is known about it.
         compare(dashboardPage.entityTitle("light.hall"), "light.hall")
+        // Group options label the untitled group.
+        compare(dashboardPage.groupOptions.length, 1)
+        verify(dashboardPage.groupOptions[0].label.length > 0)
     }
 
-    function test_dashboard_card_edits_persist() {
-        dashboardPage.addCard("light.hall")   // already present: ignored
-        compare(dashboardPage.cards.length, 3)
-        dashboardPage.addCard("sensor.outside")
-        compare(dashboardPage.cards.length, 4)
-        dashboardPage.setCardSize(3, "2x2")
-        compare(JSON.parse(dashboardPage.cfg_dashboardCards)[3].size, "2x2")
-        dashboardPage.moveCard(3, -1)
-        compare(JSON.parse(dashboardPage.cfg_dashboardCards)[2].entityId, "sensor.outside")
-        dashboardPage.removeCard(2)
-        compare(dashboardPage.cards.length, 3)
+    function test_2_dashboard_group_edits_persist() {
+        var saved = function () {
+            return JSON.parse(dashboardPage.cfg_dashboardGroups)
+        }
+        // The first add materialises the migrated model...
+        dashboardPage.addEntity("sensor.outside")
+        compare(saved().length, 1)
+        compare(saved()[0].tiles.length, 4)
+        // ...and the entity cannot be added twice.
+        dashboardPage.addEntity("sensor.outside")
+        compare(saved()[0].tiles.length, 4)
+
+        // A second group receives the next tile once selected.
+        dashboardPage.createGroup()
+        compare(saved().length, 2)
+        var freshId = saved()[1].id
+        dashboardPage.activeGroupId = freshId
+        dashboardPage.addEntity("fan.bedroom")
+        compare(saved()[1].tiles.length, 1)
+        compare(saved()[1].tiles[0].entityId, "fan.bedroom")
+
+        dashboardPage.renameGroupById(freshId, "Night")
+        compare(saved()[1].name, "Night")
+        dashboardPage.colorGroup(freshId, "#FF0000")
+        compare(saved()[1].color, "#ff0000")
+        dashboardPage.colorGroup(freshId, "bogus")
+        compare(saved()[1].color, null, "an invalid colour clears back to the accent")
+
+        dashboardPage.sizeTile(freshId, "fan.bedroom", "large")
+        compare(saved()[1].tiles[0].size, "large")
+        dashboardPage.contentTile(freshId, "fan.bedroom", "icon")
+        compare(saved()[1].tiles[0].content, "icon")
+        dashboardPage.moveTileTo("fan.bedroom", saved()[0].id)
+        compare(saved()[1].tiles.length, 0)
+        compare(saved()[0].tiles.length, 5)
+
+        dashboardPage.removeTileFrom(saved()[0].id, "fan.bedroom")
+        compare(dashboardPage.totalTiles, 4)
+        dashboardPage.deleteGroup(freshId)
+        compare(saved().length, 1)
     }
 
     function test_favorites_page_renders_without_connection() {

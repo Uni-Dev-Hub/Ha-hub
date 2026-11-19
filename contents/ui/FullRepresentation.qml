@@ -20,8 +20,9 @@ PlasmaComponents3.Page {
     // with a single view the popup opens it directly and hides the tab bar.
     readonly property bool canSwitchViews: showDashboardTab && showDevicesTab
     readonly property string dashboardCards: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardCards || "[]") : "[]"
-    readonly property int dashboardColumns: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardColumns || 2) : 2
-    readonly property string dashboardCardSize: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardCardSize || "compact") : "compact"
+    readonly property string dashboardGroups: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardGroups || "") : ""
+    readonly property int dashboardColumns: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardColumns || 4) : 4
+    readonly property string dashboardTileContent: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardTileContent || "both") : "both"
 
     signal configureRequested()
 
@@ -113,8 +114,9 @@ PlasmaComponents3.Page {
                 : (fullRoot.showDashboardTab && !fullRoot.showDevicesTab ? 0 : 1)
             showDashboardTab: fullRoot.showDashboardTab
             dashboardCards: fullRoot.dashboardCards
+            dashboardGroups: fullRoot.dashboardGroups
             dashboardColumns: fullRoot.dashboardColumns
-            dashboardCardSize: fullRoot.dashboardCardSize
+            dashboardTileContent: fullRoot.dashboardTileContent
             onConfigureRequested: fullRoot.configureRequested()
             onOpenDetailsRequested: function(entId) {
                 fullRoot.activeDetailEntityId = entId;

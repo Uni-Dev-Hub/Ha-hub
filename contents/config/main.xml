@@ -48,10 +48,16 @@
       <default>[]</default>
     </entry>
     <entry name="dashboardColumns" type="Int">
-      <default>2</default>
+      <default>4</default>
     </entry>
     <entry name="dashboardCardSize" type="String">
       <default>compact</default>
+    </entry>
+    <entry name="dashboardGroups" type="String">
+      <default></default>
+    </entry>
+    <entry name="dashboardTileContent" type="String">
+      <default>both</default>
     </entry>
     <entry name="headerPersonEntityId" type="String">
       <default></default>
