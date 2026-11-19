@@ -21,7 +21,7 @@ TestCase {
     function test_catalogs_are_translated() {
         compare(T.translate("ru", "Settings"), "Настройки")
         compare(T.translate("kk", "Settings"), "Баптаулар")
-        compare(T.translate("ru", "%1 cards", [4]), "4 карт.")
+        compare(T.translate("ru", "%1 tiles", [4]), "4 плиток")
         compare(T.translate("de", "Dashboard"), "Dashboard")
         // Language switches are instant: the same call, another language.
         T.setLanguage("ru")
