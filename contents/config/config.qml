@@ -17,13 +17,13 @@ ConfigModel {
         source: "settings/ConfigDashboard.qml"
     }
     ConfigCategory {
-        name: Loc.t("Appearance")
-        icon: "preferences-desktop-theme-global"
-        source: "settings/ConfigAppearance.qml"
-    }
-    ConfigCategory {
         name: Loc.t("Favorite Devices")
         icon: "starred-symbolic"
         source: "settings/ConfigFavorites.qml"
+    }
+    ConfigCategory {
+        name: Loc.t("Appearance")
+        icon: "preferences-desktop-theme-global"
+        source: "settings/ConfigAppearance.qml"
     }
 }

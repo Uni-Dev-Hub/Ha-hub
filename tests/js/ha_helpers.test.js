@@ -92,24 +92,19 @@ test("registry and original names are still used when the entity is unknown", ()
     assert.equal(helpers.getEntityFriendlyName("switch.x", null, null), "switch.x");
 });
 
-test("multi-channel rows keep distinct friendly names untouched", () => {
-    const entries = [
-        { id: "switch.a_light", deviceId: "d1", deviceName: "Corridor", name: "Коридор Свет" },
-        { id: "switch.a_nightlight", deviceId: "d1", deviceName: "Corridor", name: "Коридор Ночник" }
-    ];
-    helpers.disambiguateCatalogTitles(entries);
-    assert.equal(entries[0].name, "Коридор Свет");
-    assert.equal(entries[1].name, "Коридор Ночник");
-});
-
-test("channels of the same device with the same name get a suffix", () => {
-    const entries = [
-        { id: "switch.corridor_switch_1", deviceId: "d1", deviceName: "Corridor", name: "Corridor" },
-        { id: "switch.corridor_switch_2", deviceId: "d1", deviceName: "Corridor", name: "Corridor" }
-    ];
-    helpers.disambiguateCatalogTitles(entries);
-    assert.equal(entries[0].name, "Corridor • Switch 1");
-    assert.equal(entries[1].name, "Corridor • Switch 2");
+// Deliberately no channel disambiguation anymore: the user asked for exactly
+// the friendly name Home Assistant shows, even when several channels of one
+// device then carry the same title.
+test("titles are pure friendly names, even for duplicated channel names", () => {
+    const device = { name: "Corridor", name_by_user: null };
+    const manager = { getDeviceRaw: () => device, entityToDeviceMap: {} };
+    const channel = (obj, friendly) => ({ attributes: { friendly_name: friendly }, entity_id: obj });
+    assert.equal(helpers.getEntityTitle("switch.a_light", channel("switch.a_light", "Коридор Свет"), null, manager), "Коридор Свет");
+    assert.equal(helpers.getEntityTitle("switch.a_1", channel("switch.a_1", "Corridor"), null, manager), "Corridor");
+    assert.equal(helpers.getEntityTitle("switch.a_2", channel("switch.a_2", "Corridor"), null, manager), "Corridor");
+    assert.equal(helpers.getEntityTitle("switch.a_2", channel("switch.a_2", "Corridor"), null, manager),
+                 helpers.getEntityTitle("switch.a_1", channel("switch.a_1", "Corridor"), null, manager),
+                 "identical names stay identical");
 });
 
 test("CONTROL_DOMAINS stays in sync with isControlDomain", () => {
@@ -205,33 +200,3 @@ test("the tray icon gallery is a non-empty list of unique names", () => {
     }
 });
 
-test("humanizeEntityObjectName turns object ids into labels", () => {
-    assert.equal(helpers.humanizeEntityObjectName("switch.gang_1"), "Gang 1");
-    assert.equal(helpers.humanizeEntityObjectName("light.toilet_light"), "Toilet light");
-    assert.equal(helpers.humanizeEntityObjectName("fan.x-2"), "X 2");
-    assert.equal(helpers.humanizeEntityObjectName(""), "");
-});
-
-test("catalog titles of same-named device channels are disambiguated", () => {
-    const entries = [
-        { id: "light.corridor_light", deviceId: "dev1", name: "Corridor" },
-        { id: "light.corridor_toilet", deviceId: "dev1", name: "Corridor" },
-        { id: "switch.other", deviceId: "dev1", name: "Other" },
-        { id: "sensor.battery", deviceId: "", name: "Corridor" }
-    ];
-    helpers.disambiguateCatalogTitles(entries);
-    assert.equal(entries[0].name, "Corridor • Light");
-    assert.equal(entries[1].name, "Corridor • Toilet");
-    assert.equal(entries[2].name, "Other");
-    assert.equal(entries[3].name, "Corridor");
-});
-
-test("disambiguation keeps existing suffixes intact", () => {
-    const entries = [
-        { id: "switch.gang_1", deviceId: "d", name: "Switch • Gang 1" },
-        { id: "switch.gang_2", deviceId: "d", name: "Switch • Gang 2" }
-    ];
-    helpers.disambiguateCatalogTitles(entries);
-    assert.equal(entries[0].name, "Switch • Gang 1");
-    assert.equal(entries[1].name, "Switch • Gang 2");
-});

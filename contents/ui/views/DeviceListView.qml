@@ -231,11 +231,17 @@ ColumnLayout {
                 }
             }
 
-            ColumnLayout {
+            // Anchors on a layout-managed item is undefined behaviour, so the
+            // empty state is centred inside a fill-height host item.
+            Item {
                 visible: listViewRoot.currentRows.length === 0
-                anchors.centerIn: parent
-                spacing: Kirigami.Units.mediumSpacing
-                width: parent.width * 0.85
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    width: parent.width * 0.85
+                    spacing: Kirigami.Units.mediumSpacing
 
                 Kirigami.Icon {
                     source: listViewRoot.browserTab === 0 ? "starred-symbolic" : "view-list-symbolic"
@@ -272,6 +278,7 @@ ColumnLayout {
                     highlighted: true
                     Layout.alignment: Qt.AlignHCenter
                     onClicked: listViewRoot.configureRequested()
+                }
                 }
             }
 

@@ -293,8 +293,6 @@ Item {
             byId[id] = entry;
         }
 
-        HAHelpers.disambiguateCatalogTitles(list);
-
         list.sort(function(a, b) {
             var titleA = (a.name || a.id || "").toString().trim();
             var titleB = (b.name || b.id || "").toString().trim();

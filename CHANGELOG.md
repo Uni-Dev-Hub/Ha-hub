@@ -34,18 +34,30 @@ fit into the popup.
   in 1.0 migrate automatically into one untitled group that keeps following
   the system accent colour (1x1 → small, 2x1 → wide, 1x2 → medium, 2x2 →
   large).
-- Entity names are taken from the entity's friendly name — the same text Home
-  Assistant itself shows — instead of the short name stored in the entity
-  registry, which lost the device prefix ("Light" instead of "Corridor Light").
+- Entity titles are exactly the entity's friendly name — the text Home
+  Assistant itself shows. The previous "Device • Channel" suffix for
+  same-named channels of one device was removed on request; the dashboard
+  entity filter now lists every domain that exists in Home Assistant (it used
+  to drop a domain once all of its entities were already placed).
 - The header no longer shows the version badge; the user picture from Home
   Assistant and a configurable entity (e.g. a temperature sensor) are shown
   there instead.
 - Entity pickers in settings filter entity types through a drop-down list with
   counts; the row of buttons did not fit into the settings dialog.
+- Settings pages are ordered: General, Dashboard, Favorite Devices,
+  Appearance.
 
 ### Fixed
-- Multi-channel rows only append a disambiguating suffix when two channels of
-  the same device really share a name.
+- Dashboard tile groups finally render in the popup: the model module runs in
+  its own JS realm, so its arrays failed `Array.isArray()` inside QML and the
+  tile repeater always received an empty list (the dashboard stayed blank).
+- Language chosen in settings now actually switches the whole interface
+  instantly: the translation facade now listens to the configuration change
+  signal instead of relying on the kcfg property notification.
+- "Appearance" settings page: labels and fields no longer overlap each other
+  (cells that Kirigami.FormLayout measured as zero height).
+- Error output of the dashboard settings page (`containsMouse is not defined`
+  on the group colour chip) is gone.
 
 ## [1.0.0] - 2026-11-19
 

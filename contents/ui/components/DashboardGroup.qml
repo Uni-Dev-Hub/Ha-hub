@@ -51,7 +51,9 @@ ColumnLayout {
         rowSpacing: groupRoot.tileSpacing
 
         Repeater {
-            model: groupRoot.group && Array.isArray(groupRoot.group.tiles)
+            // Not Array.isArray(): modules run in their own JS realm in QML,
+            // so module-returned arrays answer false there. Duck-type instead.
+            model: groupRoot.group && groupRoot.group.tiles
                 ? groupRoot.group.tiles : []
 
             delegate: MetroTile {

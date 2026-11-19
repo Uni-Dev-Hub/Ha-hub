@@ -40,7 +40,7 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 - **Favorite Devices Manager:** Search plus filters by entity type and area, and custom ordering for your pinned devices.
 - **Metro Tile Dashboard:** Tile groups with their own heading and colour (palette or any hex value), four tile sizes, tiles showing the entity name, icon or both — with a live layout preview in the settings. Cards saved in 1.0 migrate automatically.
 - **Appearance Settings:** Choose the views the popup shows, the Home Assistant user picture and one entity value (e.g. a temperature) in the header, and the panel/tray icon from a gallery or your own image.
-- **Multi-Channel Devices:** Every gang of a multi-gang switch or relay is its own controllable object ("Corridor • Light", "Corridor • Toilet") instead of one hidden entity.
+- **Multi-Channel Devices:** Every gang of a multi-gang switch or relay is its own controllable object instead of one hidden entity. Each is shown by its Home Assistant friendly name, exactly as HA displays it.
 - **Native Look & Feel:** Seamless integration with your KDE color scheme and font settings using Kirigami and PlasmaComponents 3.0.
 - **Internationalization:** 9 built-in languages — English, Russian, Kazakh, Ukrainian, German, Spanish, French, Turkish and Chinese. Follows the system language by default and can be switched instantly in the widget settings.
 

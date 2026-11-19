@@ -99,54 +99,54 @@ Kirigami.ScrollablePage {
 
         Kirigami.Separator { Layout.fillWidth: true }
 
+        // Section headings live outside the forms: Kirigami.FormLayout has no
+        // section concept, and a zero-height placeholder Item inside it made
+        // the following fields overlap (the bug this rewrite fixes).
+        PlasmaComponents3.Label {
+            text: Loc.t("Popup Header:")
+            font.bold: true
+            font.pointSize: Qt.application.font.pointSize * 1.05
+        }
+
         Kirigami.FormLayout {
             Layout.fillWidth: true
 
-            Item {
-                Kirigami.FormData.label: Loc.t("Popup Header:")
-                Kirigami.FormData.isSection: true
-            }
-
-            Item {
+            // Combo plus its hint as one real Layout cell: the FormLayout can
+            // measure it, so the label on the left lines up with its centre.
+            ColumnLayout {
                 Kirigami.FormData.label: Loc.t("User picture:")
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 24
+                spacing: Kirigami.Units.smallSpacing * 0.6
 
-                ColumnLayout {
-                    anchors.fill: parent
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Controls.ComboBox {
-                        id: personCombo
-                        Layout.fillWidth: true
-                        enabled: headerManager.isConnected
-                        model: appearancePage.personChoice
-                        textRole: "name"
-                        currentIndex: appearancePage.personIndex
-                        onActivated: {
-                            var item = model[currentIndex];
-                            appearancePage.cfg_headerPersonEntityId = item ? item.id : "";
-                        }
+                Controls.ComboBox {
+                    id: personCombo
+                    Layout.fillWidth: true
+                    enabled: headerManager.isConnected
+                    model: appearancePage.personChoice
+                    textRole: "name"
+                    currentIndex: appearancePage.personIndex
+                    onActivated: {
+                        var item = model[currentIndex];
+                        appearancePage.cfg_headerPersonEntityId = item ? item.id : "";
                     }
+                }
 
-                    PlasmaComponents3.Label {
-                        text: Loc.t("The picture comes from the selected person in Home Assistant. Nothing is shown when that person has no picture.")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        color: Kirigami.Theme.disabledTextColor
-                        wrapMode: Text.WordWrap
-                        Layout.fillWidth: true
-                    }
+                PlasmaComponents3.Label {
+                    text: Loc.t("The picture comes from the selected person in Home Assistant. Nothing is shown when that person has no picture.")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    color: Kirigami.Theme.disabledTextColor
+                    wrapMode: Text.WordWrap
+                    Layout.fillWidth: true
                 }
             }
 
-            Item {
+            Components.EntityPickerField {
                 Kirigami.FormData.label: Loc.t("Value next to greeting:")
-
-                Components.EntityPickerField {
-                    Layout.fillWidth: true
-                    haManager: headerManager
-                    value: appearancePage.cfg_headerEntityId
-                    onEntityPicked: function(entityId) {
-                        appearancePage.cfg_headerEntityId = entityId;
-                    }
+                Layout.fillWidth: true
+                haManager: headerManager
+                value: appearancePage.cfg_headerEntityId
+                onEntityPicked: function(entityId) {
+                    appearancePage.cfg_headerEntityId = entityId;
                 }
             }
 
@@ -168,16 +168,19 @@ Kirigami.ScrollablePage {
 
         Kirigami.Separator { Layout.fillWidth: true }
 
+        PlasmaComponents3.Label {
+            text: Loc.t("Widget Icon:")
+            font.bold: true
+            font.pointSize: Qt.application.font.pointSize * 1.05
+        }
+
         Kirigami.FormLayout {
             Layout.fillWidth: true
 
-            Item {
-                Kirigami.FormData.label: Loc.t("Widget Icon:")
-                Kirigami.FormData.isSection: true
-            }
-
-            Item {
+            ColumnLayout {
                 Kirigami.FormData.label: Loc.t("Panel and tray:")
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 24
+                spacing: Kirigami.Units.smallSpacing * 0.6
 
                 Components.IconPickerField {
                     Layout.fillWidth: true
@@ -191,14 +194,14 @@ Kirigami.ScrollablePage {
                         appearancePage.cfg_trayIconPath = iconPath;
                     }
                 }
-            }
 
-            PlasmaComponents3.Label {
-                text: Loc.t("The custom picture is loaded from its file, so keep it where it will not be deleted.")
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                color: Kirigami.Theme.disabledTextColor
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
+                PlasmaComponents3.Label {
+                    text: Loc.t("The custom picture is loaded from its file, so keep it where it will not be deleted.")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    color: Kirigami.Theme.disabledTextColor
+                    wrapMode: Text.WordWrap
+                    Layout.fillWidth: true
+                }
             }
         }
     }

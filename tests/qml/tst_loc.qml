@@ -6,6 +6,26 @@ import "../../contents/l10n/translations.mjs" as T
 TestCase {
     name: "Localization"
 
+    Item {
+        Text { id: liveLabel; text: Loc.t("Settings") }
+    }
+
+    function test_language_switch_updates_text_bindings() {
+        wait(50)
+        var ru = T.translate("ru", "Settings")
+        var de = T.translate("de", "Settings")
+        verify(ru !== de, "the two translations differ")
+        // A Text bound to Loc.t must retranslate instantly - this is the
+        // exact mechanism the popup relies on when the language is changed
+        // in settings.
+        Loc.forcedLanguage = "ru"
+        compare(liveLabel.text, ru)
+        Loc.forcedLanguage = "de"
+        compare(liveLabel.text, de)
+        Loc.forcedLanguage = ""
+        wait(50)
+    }
+
     function test_catalogs_loaded_in_qml() {
         // The catalogs live in one big module; if Qt failed to parse it the
         // languages would still be listed but every catalog empty.

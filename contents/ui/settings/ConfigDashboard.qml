@@ -170,7 +170,10 @@ Kirigami.ScrollablePage {
 
     readonly property var domainCounts: {
         var rev = haManager ? haManager.entitiesRevision : 0;
-        var source = dashboardSettings.candidateEntities || [];
+        // Counts come from every selectable entity in Home Assistant, so a
+        // domain never disappears from the filter just because all of its
+        // entities already sit on the dashboard.
+        var source = (haManager && haManager.isConnected) ? (haManager.userDevicesList || []) : [];
         var counts = {};
         for (var i = 0; i < source.length; i++) {
             var domain = HAHelpers.getDomain(source[i]);
@@ -328,14 +331,16 @@ Kirigami.ScrollablePage {
                                 border.width: 1
 
                                 MouseArea {
+                                    id: chipMouse
                                     anchors.fill: parent
+                                    hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         dashboardSettings.colorTargetId = groupSection.modelData.id;
                                         colorPopup.open();
                                     }
                                 }
-                                PlasmaComponents3.ToolTip.visible: containsMouse
+                                PlasmaComponents3.ToolTip.visible: chipMouse.containsMouse
                                 PlasmaComponents3.ToolTip.text: Loc.t("Group color:")
                             }
 

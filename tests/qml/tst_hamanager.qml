@@ -71,8 +71,10 @@ TestCase {
         verify(kitchen.entityIds.indexOf("switch.gang_2") !== -1, "gang 2 listed in area")
     }
 
-    function test_same_named_channels_get_disambiguated_titles() {
-        // Both entities of dev1 inherit the device name -> titles diverge.
+    function test_same_named_channels_keep_pure_friendly_titles() {
+        // Both entities of dev1 inherit the device name. The user asked for
+        // exactly the Home Assistant friendly name, so the titles stay equal
+        // instead of getting a synthetic channel suffix.
         manager.entityRegistryMap["switch.gang_1"].name = ""
         manager.entityRegistryMap["switch.gang_2"].name = ""
         manager.entities["switch.gang_1"].attributes.friendly_name = "Multi Gang"
@@ -81,9 +83,8 @@ TestCase {
 
         var t1 = manager.getCatalogEntry("switch.gang_1").name
         var t2 = manager.getCatalogEntry("switch.gang_2").name
-        verify(t1 !== t2, "titles differ")
-        verify(t1.indexOf("Gang 1") !== -1, "gang 1 suffix: " + t1)
-        verify(t2.indexOf("Gang 2") !== -1, "gang 2 suffix: " + t2)
+        compare(t1, "Multi Gang")
+        compare(t2, "Multi Gang")
     }
 
     function test_standalone_entities_are_in_area_group() {

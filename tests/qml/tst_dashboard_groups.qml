@@ -99,6 +99,26 @@ TestCase {
         return null
     }
 
+    function findByObjectName(item, name, out) {
+        out = out || []
+        if (!item) return out
+        if (item.objectName === name) out.push(item)
+        var kids = item.children || []
+        for (var i = 0; i < kids.length; i++) findByObjectName(kids[i], name, out)
+        return out
+    }
+
+    function test_view_renders_tiles_from_the_model_module() {
+        // Regression: dashboard_model.mjs runs in its own JS realm, so its
+        // arrays fail Array.isArray() inside QML and the tile Repeater used
+        // to receive an empty list - the whole dashboard rendered nothing.
+        wait(150)
+        var tiles = findByObjectName(view, "metroTile")
+        compare(tiles.length, 4, "every tile of both visible groups exists")
+        var groups = findByObjectName(view, "dashboardGroup")
+        compare(groups.length, 2)
+    }
+
     function test_view_model_skips_empty_groups() {
         wait(100)
         compare(view.groups.length, 2, "the tile-less group is hidden")
