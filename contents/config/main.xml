@@ -53,5 +53,14 @@
     <entry name="dashboardCardSize" type="String">
       <default>compact</default>
     </entry>
+    <entry name="headerPersonEntityId" type="String">
+      <default></default>
+    </entry>
+    <entry name="headerEntityId" type="String">
+      <default></default>
+    </entry>
+    <entry name="headerEntityLabel" type="Bool">
+      <default>false</default>
+    </entry>
   </group>
 </kcfg>

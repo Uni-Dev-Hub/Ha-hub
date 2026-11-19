@@ -134,4 +134,19 @@ TestCase {
         appearancePage.cfg_showDevices = true
         verify(dashboardCheck.enabled, "both switchable again")
     }
+
+    function test_appearance_header_controls_without_connection() {
+        wait(50)
+        compare(appearancePage.headerPreviewText, "")
+        // "Auto" plus one entry per known person: none while disconnected.
+        compare(appearancePage.personChoice.length, 1)
+        compare(appearancePage.personIndex, 0)
+
+        var picker = findByProperty(appearancePage, "emptyText")
+        verify(!!picker, "the header has an entity picker")
+        verify(!picker.isSet, "no header entity selected by default")
+        compare(picker.value, "")
+        // Nothing to pick from without a connection.
+        compare(picker.candidates.length, 0)
+    }
 }

@@ -38,20 +38,10 @@ PlasmaComponents3.Page {
     Layout.minimumHeight: preferredPanelHeight
     Layout.maximumHeight: preferredPanelHeight
 
-    readonly property string userName: {
-        if (!haManager || !haManager.isConnected) return "";
-        var rev = haManager.entitiesRevision;
-        var keys = Object.keys(haManager.entities);
-        for (var i = 0; i < keys.length; i++) {
-            if (keys[i].startsWith("person.")) {
-                var p = haManager.entities[keys[i]];
-                if (p && p.attributes && p.attributes.friendly_name) {
-                    return p.attributes.friendly_name;
-                }
-            }
-        }
-        return "";
-    }
+    readonly property string headerEntityId: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.headerEntityId || "") : ""
+    readonly property bool headerEntityLabel: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.headerEntityLabel || false) : false
+
+    readonly property string userName: haManager ? (haManager.primaryPersonName || "") : ""
 
     readonly property string greetingText: {
         var hour = new Date().getHours();
@@ -72,6 +62,8 @@ PlasmaComponents3.Page {
         Views.HeaderView {
             fullRoot: fullRoot
             haManager: fullRoot.haManager
+            headerEntityId: fullRoot.headerEntityId
+            headerEntityLabel: fullRoot.headerEntityLabel
             Layout.fillWidth: true
             onConfigureRequested: fullRoot.configureRequested()
         }
@@ -116,7 +108,9 @@ PlasmaComponents3.Page {
         Views.DeviceListView {
             haManager: fullRoot.haManager
             favoriteEntities: fullRoot.favoriteEntities
-            activeTab: fullRoot.showDashboardTab ? mainTabBar.currentIndex : 1
+            activeTab: fullRoot.canSwitchViews
+                ? mainTabBar.currentIndex
+                : (fullRoot.showDashboardTab && !fullRoot.showDevicesTab ? 0 : 1)
             showDashboardTab: fullRoot.showDashboardTab
             dashboardCards: fullRoot.dashboardCards
             dashboardColumns: fullRoot.dashboardColumns

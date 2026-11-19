@@ -633,6 +633,83 @@ Item {
         return manager._catalogById ? (manager._catalogById[entId] || null) : null;
     }
 
+    // ---- Static HTTP resources ------------------------------------------
+    // Avatars (and camera snapshots) are served over plain HTTP, not through
+    // the WebSocket. QML's Image cannot send an Authorization header, so the
+    // token travels as a query parameter, which Home Assistant still accepts
+    // for image resources.
+    readonly property string httpBaseUrl: {
+        var clean = String(host || "").replace(/^https?:\/\//i, "").replace(/^wss?:\/\//i, "").replace(/\/+$/, "");
+        if (!clean) return "";
+        return (useSsl ? "https://" : "http://") + clean + ":" + port;
+    }
+
+    function resourceUrl(pathOrUrl) {
+        if (!pathOrUrl) return "";
+        if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+        var base = manager.httpBaseUrl;
+        if (!base) return "";
+        var url = base + (pathOrUrl.charAt(0) === "/" ? pathOrUrl : "/" + pathOrUrl);
+        if (manager.accessToken && url.indexOf("auth_token=") === -1) {
+            url += (url.indexOf("?") === -1 ? "?" : "&") + "auth_token=" + manager.accessToken;
+        }
+        return url;
+    }
+
+    // The person whose picture and name the header shows. Configured id wins,
+    // otherwise the first person that actually has a picture.
+    property string headerPersonEntityId: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration)
+        ? (Plasmoid.configuration.headerPersonEntityId || "")
+        : ""
+
+    readonly property string primaryPersonEntityId: {
+        var rev = manager.entitiesRevision;
+        if (manager.headerPersonEntityId && manager.entities[manager.headerPersonEntityId]) {
+            return manager.headerPersonEntityId;
+        }
+        var keys = Object.keys(manager.entities || {});
+        var fallback = "";
+        for (var i = 0; i < keys.length; i++) {
+            if (keys[i].indexOf("person.") !== 0) continue;
+            if (!fallback) fallback = keys[i];
+            var ent = manager.entities[keys[i]];
+            if (ent && ent.attributes && ent.attributes.entity_picture) return keys[i];
+        }
+        return fallback;
+    }
+
+    readonly property var personOptions: {
+        var rev = manager.entitiesRevision;
+        var keys = Object.keys(manager.entities || {});
+        var result = [];
+        for (var i = 0; i < keys.length; i++) {
+            if (keys[i].indexOf("person.") !== 0) continue;
+            var ent = manager.entities[keys[i]];
+            result.push({
+                id: keys[i],
+                name: (ent && ent.attributes && ent.attributes.friendly_name) ? ent.attributes.friendly_name : keys[i]
+            });
+        }
+        result.sort(function(a, b) { return a.name.localeCompare(b.name); });
+        return result;
+    }
+
+    readonly property string primaryPersonName: {
+        var id = manager.primaryPersonEntityId;
+        if (!id) return "";
+        var ent = manager.entities[id];
+        return (ent && ent.attributes && ent.attributes.friendly_name) ? ent.attributes.friendly_name : "";
+    }
+
+    // Empty when the person has no picture in Home Assistant.
+    readonly property string primaryPersonPictureUrl: {
+        var id = manager.primaryPersonEntityId;
+        if (!id) return "";
+        var ent = manager.entities[id];
+        var picture = (ent && ent.attributes) ? (ent.attributes.entity_picture || "") : "";
+        return picture ? manager.resourceUrl(picture) : "";
+    }
+
     function getEntityTitle(entId) {
         var entry = manager.getCatalogEntry(entId);
         if (entry) return entry.name;

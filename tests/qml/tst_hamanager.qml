@@ -173,3 +173,4 @@ TestCase {
         compare(manager._sharedToken, "db-token")
     }
 }
+

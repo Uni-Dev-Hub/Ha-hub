@@ -12,8 +12,14 @@ fit into the popup.
 
 ### Added
 - New "Appearance" settings page: choose which views the popup shows (Dashboard
-  and/or Devices). With a single view the switch button between them is hidden
-  and the popup opens that view directly.
+  and/or Devices), which Home Assistant person provides the header picture and
+  which entity value is displayed next to the greeting (with a live preview).
+  With only one view enabled the switch button between them is hidden and the
+  popup opens that view directly.
+- Header: round user picture from Home Assistant (the `entity_picture` of the
+  selected person) and a configurable entity value, e.g. `-3.5 °C`. The picture
+  falls back to the identity icon when the person has none or it cannot be
+  loaded.
 
 ### Changed
 - Entity names are taken from the entity's friendly name — the same text Home

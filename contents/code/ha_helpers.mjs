@@ -414,6 +414,19 @@ function getStatusDetailsText(cleanId, entObj, devId, haManager, lang) {
     return state + unit;
 }
 
+// One-line value for the popup header: "23.5 °C", optionally prefixed with the
+// entity name ("Гостиная: 23.5 °C"). Used by the header and its settings
+// preview so both always show the same text.
+function getEntityHeaderValue(entId, entObj, haManager, lang, withName) {
+    var cleanId = cleanEntityId(entId);
+    if (!cleanId || !entObj) return "";
+    var value = getStatusDetailsText(cleanId, entObj, null, haManager, lang);
+    if (!withName) return value || "";
+    var entry = haManager && haManager.getCatalogEntry ? haManager.getCatalogEntry(cleanId) : null;
+    var name = entry && entry.name ? entry.name : "";
+    return name ? (name + ": " + value) : (value || "");
+}
+
 function formatTimeInState(lastChanged) {
     if (!lastChanged) return "";
     var changedDate = new Date(lastChanged);
@@ -457,6 +470,7 @@ export {
     getDeviceTitle,
     getDomain,
     getEntityFriendlyName,
+    getEntityHeaderValue,
     getEntityRegistryInfo,
     getEntityTitle,
     getLabelName,

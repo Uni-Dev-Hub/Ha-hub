@@ -164,6 +164,17 @@ test("relative and absolute time formatting", () => {
     assert.equal(helpers.formatLastChangedDate(null, "—"), "—");
 });
 
+test("header value line formats one entity, optionally with its name", () => {
+    const manager = { getCatalogEntry: (id) => (id === "sensor.room_temp" ? { name: "Гостиная" } : null) };
+    const ent = { state: "23.5", attributes: { unit_of_measurement: "°C" } };
+    assert.equal(helpers.getEntityHeaderValue("sensor.room_temp", ent, manager, "en", false), "23.5 °C");
+    assert.equal(helpers.getEntityHeaderValue("sensor.room_temp", ent, manager, "en", true), "Гостиная: 23.5 °C");
+    // Unknown entity must not print anything; a missing catalog entry drops
+    // the prefix instead of showing "undefined".
+    assert.equal(helpers.getEntityHeaderValue("sensor.gone", null, manager, "en", true), "");
+    assert.equal(helpers.getEntityHeaderValue("sensor.other", { state: "7", attributes: {} }, manager, "en", true), "7");
+});
+
 test("device display name prefers user name", () => {
     assert.equal(helpers.getDeviceDisplayName({ name_by_user: "My Lamp", name: "Hue" }, ""), "My Lamp");
     assert.equal(helpers.getDeviceDisplayName({ name: "Hue" }, "fallback"), "Hue");
