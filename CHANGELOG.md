@@ -28,6 +28,8 @@ fit into the popup.
   filled with one selectable colour (20-swatch palette or any `#rrggbb`), the
   text colour adapting for contrast. Tiles come in four sizes and can show the
   entity name, its icon or both — per tile or as a dashboard-wide default.
+  Tapping a tile switches the entity directly (lights, switches, fans, locks,
+  scripts, scenes…), a long press opens its details.
 
 ### Changed
 - The dashboard card grid was replaced by the Metro tile groups. Cards saved
@@ -48,9 +50,17 @@ fit into the popup.
   Appearance.
 
 ### Fixed
-- Dashboard tile groups finally render in the popup: the model module runs in
-  its own JS realm, so its arrays failed `Array.isArray()` inside QML and the
-  tile repeater always received an empty list (the dashboard stayed blank).
+- Dashboard rendering and responsiveness rebuilt end to end:
+  - tiles are placed by a pure packing function with explicit coordinates
+    instead of a layout manager — the old grid fed the tiles' preferred widths
+    back into the unit width, so tiles grew unbounded or vanished behind the
+    clip area and taps hit the wrong geometry;
+  - every tile title, status and icon is now precomputed once per debounced
+    burst of Home Assistant state changes (and once per settings or language
+    change), so state storms no longer re-resolve every tile on every message;
+  - the settings pages (Dashboard, Favorite Devices, Appearance) open their
+    Home Assistant connection only when first shown instead of keeping three
+    extra WebSocket clients and entity catalogues alive.
 - Language chosen in settings now actually switches the whole interface
   instantly: the translation facade now listens to the configuration change
   signal instead of relying on the kcfg property notification.

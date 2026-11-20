@@ -38,12 +38,23 @@ Kirigami.Page {
         includeDiagnosticEntities: favoritesSettings.cfg_showDiagnosticEntities
     }
 
-    Component.onCompleted: {
+    // Connect only once the page is actually shown for the first time (the
+    // settings dialog builds every page up front); see ConfigDashboard.
+    property bool managerStarted: false
+
+    function maybeStartManager() {
+        if (managerStarted) return;
+        managerStarted = true;
         // HAManager prefers the shared credential store; startAutoConnect()
         // loads from it and connects when credentials exist.
         haManager.startAutoConnect();
+    }
+
+    Component.onCompleted: {
+        if (visible) maybeStartManager();
         favoritesSettings.loadFavoriteSet();
     }
+    onVisibleChanged: if (visible) maybeStartManager()
 
     onCfg_favoriteEntitiesChanged: {
         favoritesSettings.loadFavoriteSet();

@@ -71,6 +71,61 @@ function tileSpan(size, columns) {
     return { cols: Math.min(4, cols), rows: 4 }; // large
 }
 
+// Metro-style first-fit packing as plain rectangles, so the UI can place the
+// tiles with explicit x/y/width/height instead of a layout manager: a layout
+// that sizes its columns from the tiles' preferred widths feeds the tile width
+// back into the unit width (the feedback loop that made the grid explode).
+// Here the unit comes from the popup width alone and never travels back up.
+// `tiles` entries need a `size`; returns { rects, rows, height } with rects
+// aligned to the input order (one rect per tile).
+function layoutTiles(tiles, columns, unit, spacing) {
+    var cols = Math.max(1, Math.floor(columns) || 1);
+    var step = unit + spacing;
+    var list = tiles || [];
+    var occupied = []; // [rowStart, rowEnd, colStart, colEnd] per placed tile
+    var maxRow = 0;
+
+    function fits(r, c, w, h) {
+        if (c + w > cols) return false;
+        for (var i = 0; i < occupied.length; i++) {
+            var o = occupied[i];
+            if (r < o[1] && o[0] < r + h && c < o[3] && o[2] < c + w) return false;
+        }
+        return true;
+    }
+
+    var rects = [];
+    for (var t = 0; t < list.length; t++) {
+        var span = tileSpan(list[t] && list[t].size, cols);
+        var w = Math.min(span.cols, cols);
+        var h = span.rows;
+        var placed = false;
+        for (var r = 0; !placed && r <= 4096; r++) {
+            for (var c = 0; c <= cols - w; c++) {
+                if (fits(r, c, w, h)) {
+                    occupied.push([r, r + h, c, c + w]);
+                    if (r + h > maxRow) maxRow = r + h;
+                    rects.push({
+                        x: c * step,
+                        y: r * step,
+                        w: w * unit + (w - 1) * spacing,
+                        h: h * unit + (h - 1) * spacing
+                    });
+                    placed = true;
+                    break;
+                }
+            }
+        }
+        // Pathological input guard: never drop a tile from the output.
+        if (!placed) rects.push({ x: 0, y: 0, w: unit, h: unit });
+    }
+    return {
+        rects: rects,
+        rows: maxRow,
+        height: maxRow > 0 ? maxRow * unit + (maxRow - 1) * spacing : 0
+    };
+}
+
 function parseGroups(json) {
     var raw = (json || "").toString().trim();
     if (!raw) return [];
@@ -369,6 +424,7 @@ export {
     normalizeColor,
     readableTextColor,
     tileSpan,
+    layoutTiles,
     parseGroups,
     dumpGroups,
     generateId,

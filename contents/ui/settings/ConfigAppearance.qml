@@ -42,7 +42,20 @@ Kirigami.ScrollablePage {
         useSsl: appearancePage.cfg_useSsl
     }
 
-    Component.onCompleted: headerManager.startAutoConnect()
+    // The settings dialog builds its pages up front; connecting a full
+    // WebSocket + entity catalogue for a page the user never opened made the
+    // whole dialog sluggish, so each page connects only once it is actually
+    // shown for the first time.
+    property bool managerStarted: false
+
+    function maybeStartManager() {
+        if (managerStarted) return;
+        managerStarted = true;
+        headerManager.startAutoConnect();
+    }
+
+    Component.onCompleted: if (visible) maybeStartManager()
+    onVisibleChanged: if (visible) maybeStartManager()
 
     readonly property var personChoice: [{ id: "", name: Loc.t("Auto (first person with a picture)") }]
         .concat(headerManager.personOptions)

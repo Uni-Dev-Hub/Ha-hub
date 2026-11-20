@@ -67,11 +67,22 @@ Kirigami.ScrollablePage {
         useSsl: dashboardSettings.cfg_useSsl
     }
 
-    Component.onCompleted: {
+    // The settings dialog builds its pages up front; connecting a full
+    // WebSocket + entity catalogue for a page the user never opened made the
+    // whole dialog (and the popup beside it) sluggish, so each page connects
+    // only once it is actually shown for the first time.
+    property bool managerStarted: false
+
+    function maybeStartManager() {
+        if (managerStarted) return;
+        managerStarted = true;
         // HAManager prefers the shared credential store; startAutoConnect()
         // loads from it and connects when credentials exist.
         haManager.startAutoConnect();
     }
+
+    Component.onCompleted: if (visible) maybeStartManager()
+    onVisibleChanged: if (visible) maybeStartManager()
 
     function saveGroups(next) {
         dashboardSettings.cfg_dashboardGroups = DashboardModel.dumpGroups(next);

@@ -120,6 +120,51 @@ test("tile spans stay inside the grid", () => {
     eq(model.tileSpan("nonsense", 4), { cols: 4, rows: 4 }, "unknown sizes read as large");
 });
 
+test("layoutTiles packs tiles without any layout manager", () => {
+    // 4 columns, unit 70 px, 6 px gaps.
+    const tiles = [
+        { size: "small" },  // 1x1 at (0,0)
+        { size: "small" },  // 1x1 at (76,0)
+        { size: "medium" }, // 2x2 still fits in row 0: columns 2..4
+        { size: "wide" }    // 4x2 needs the rows below the medium
+    ];
+    const out = model.layoutTiles(tiles, 4, 70, 6);
+    eq(out.rects[0], { x: 0, y: 0, w: 70, h: 70 });
+    eq(out.rects[1], { x: 76, y: 0, w: 70, h: 70 });
+    eq(out.rects[2], { x: 152, y: 0, w: 146, h: 146 });
+    eq(out.rects[3], { x: 0, y: 152, w: 298, h: 146 });
+    assert.equal(out.rows, 4);
+    assert.equal(out.height, 4 * 70 + 3 * 6);
+    assert.equal(out.rects.length, tiles.length, "one rect per tile, in order");
+});
+
+test("layoutTiles never overlaps and never exceeds the columns", () => {
+    const sizes = ["large", "wide", "medium", "small", "medium", "wide", "small"];
+    for (const columns of [1, 2, 3, 4]) {
+        const out = model.layoutTiles(sizes.map(size => ({ size })), columns, 50, 5);
+        assert.equal(out.rects.length, sizes.length);
+        for (let i = 0; i < out.rects.length; i++) {
+            const a = out.rects[i];
+            assert.ok(a.x >= 0 && a.y >= 0 && a.w > 0 && a.h > 0);
+            assert.ok(a.x + a.w <= columns * 50 + (columns - 1) * 5 + 0.001,
+                "tile stays inside " + columns + " columns");
+            for (let j = i + 1; j < out.rects.length; j++) {
+                const b = out.rects[j];
+                const disjoint = a.x + a.w <= b.x || b.x + b.w <= a.x ||
+                    a.y + a.h <= b.y || b.y + b.h <= a.y;
+                assert.ok(disjoint, "rects " + i + " and " + j + " must not overlap");
+            }
+        }
+    }
+});
+
+test("layoutTiles of nothing is nothing", () => {
+    const out = model.layoutTiles([], 4, 70, 6);
+    eq(out.rects, []);
+    assert.equal(out.height, 0);
+    assert.equal(out.rows, 0);
+});
+
 test("group CRUD never mutates the stored list", () => {
     const groups = model.sanitizeGroups(sampleGroups());
     const frozen = JSON.stringify(groups);
