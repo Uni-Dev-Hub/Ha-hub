@@ -15,6 +15,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   as English to someone browsing in it. Which codes must exist is asked of the
   module, so a new catalog without its description fails the build.
 
+### Fixed
+- A language saved in Settings reaches a widget that is already running. The
+  values an applet is given are a property map, and the only thing that map says
+  about a change is which key moved — `valueChanged`. The bridge now listens for
+  that, and the popup asks the configuration again as it opens, so a language
+  chosen while the popup was closed is painted the next time the widget is
+  clicked. Until now a read happened once, at startup: the language of the moment
+  the widget was created, however often it was reopened, which is why the picker
+  in Settings could look like it did nothing at all.
+- `journalctl --user -g HA-hub` says the language the widget settled on again when
+  it settles on a different one, not only once at startup, and it says so from the
+  value being painted rather than the one just left behind.
+
 ## [1.3.0] - 2026-11-21
 
 ### Added

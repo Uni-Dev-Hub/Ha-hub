@@ -42,11 +42,25 @@ test("the bridge re-reads the file instead of trusting a cached key", () => {
     const bridge = read("contents/ui/components/LanguageBridge.qml");
     assert.match(bridge, /function readValue/, "the read is a function, so it runs again on demand");
     assert.match(bridge, /cfg\.readConfig\("language"/, "it asks the configuration object first");
-    assert.match(bridge, /function refresh/, "and the applet can call it whenever the interface opens");
+    assert.match(bridge, /function recheck/, "and the applet can ask it again when the interface opens");
+    // What the configuration does report is the keys its property map changes -
+    // that is how a language saved in the settings dialog reaches a running
+    // widget. A bridge that only reads at startup misses it.
+    assert.match(bridge, /function onValueChanged\(key, value\)/, "it listens to the map reporting a key");
+    assert.match(bridge, /String\(key\) === "language"/, "for the language key in particular");
+    assert.match(bridge, /ignoreUnknownSignals: true/, "and it tolerates a source that reports nothing");
+    // The one mistake that makes the whole thing pointless: a read that happens
+    // once is the value of the moment it happened forever, because the map Plasma
+    // hands out has no change signal at all.
+    assert.match(bridge, /property int revision/, "a token for asking again");
+    assert.match(bridge, /readonly property string configured:\s*bridge\.readConfigured\(bridge\.revision\)/,
+        "and the value is a function of that token, not a one-shot read");
+    assert.match(bridge, /function refresh/, "the value is handed to the singleton with it");
     // "The language does not apply" is either a value that was never stored or a
     // value that never arrived, and only the journal tells those apart.
     assert.match(bridge, /function report/, "and it says in one line what it could see");
     assert.match(bridge, /console\.log\(/, "in the journal, at startup");
+    assert.match(bridge, /function reportIfNew/, "and again whenever it settles on another language");
 });
 
 // The settings dialog keeps a copy of the configuration. A pick that wrote the
@@ -109,7 +123,10 @@ test("every engine is told where to read the language", () => {
     const applet = main.match(/Components\.LanguageBridge\s*\{[\s\S]*?\n {4}\}/);
     assert.ok(applet, "the applet mounts the bridge");
     assert.match(applet[0], /configuration:\s*Plasmoid\.configuration/, "with the applet's configuration");
-    assert.match(main, /appletLanguageBridge\.refresh\(\)/, "and re-reads it when the popup is opened");
+    // The configuration notifies nothing, so the moment to ask is the moment the
+    // language is looked at: the popup opening.
+    assert.match(main, /onExpandedChanged/, "the applet notices its popup opening");
+    assert.match(main, /appletLanguageBridge\.recheck\(\)/, "and asks the configuration again then");
 
     const general = read("contents/ui/settings/ConfigGeneral.qml");
     const page = general.match(/Components\.LanguageBridge\s*\{[\s\S]*?\n {8}\}/);

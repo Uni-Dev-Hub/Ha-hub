@@ -67,12 +67,22 @@ PlasmoidItem {
     // Hands the language saved in Settings to the Loc singleton: the applet's
     // engine has its own Loc, and LanguageBridge lives in its own file's
     // context, where Plasma's `Plasmoid` is not visible - so the configuration
-    // is handed to it from here. Re-read on every click that opens the popup,
-    // so a language chosen while the popup was hidden is applied the next time
-    // the user opens it, even if the two engines never tell each other anything.
+    // is handed to it from here.
+    //
+    // The configuration is asked again every time the popup opens, because the
+    // map Plasma hands out notifies nothing: the settings dialog runs in a
+    // process of its own and writes the file, and the running applet hears
+    // nothing about it. Asking at the moment the language is looked at is what
+    // makes a language chosen in Settings reach a widget that was never
+    // restarted.
     Components.LanguageBridge {
         id: appletLanguageBridge
         configuration: Plasmoid.configuration
+    }
+
+    onExpandedChanged: {
+        if (root.expanded)
+            appletLanguageBridge.recheck()
     }
 
     Services.HAManager {
@@ -98,10 +108,7 @@ PlasmoidItem {
         haManager: haManagerService
         preferredIconName: root.trayIcon.name
         preferredImagePath: root.trayIcon.path
-        onClicked: {
-            appletLanguageBridge.refresh()
-            root.expanded = !root.expanded
-        }
+        onClicked: root.expanded = !root.expanded
     }
 
     fullRepresentation: FullRepresentation {

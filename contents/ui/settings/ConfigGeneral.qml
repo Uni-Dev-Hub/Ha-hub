@@ -57,19 +57,19 @@ Kirigami.ScrollablePage {
         languageCombo.currentIndex = languageCombo.indexForCode(cfg_language)
     }
 
-    // One way to change the language, used by the picker (and by the tests):
-    // straight into the configuration through the bridge, so the choice is
-    // saved and reaches the widget at once, and into cfg_language, so the
-    // dialog still knows there is something to apply. The language is the one
-    // setting that applies on pick rather than on Apply - Apply cannot undo a
-    // language the user is already reading.
+    // One way to change the language, used by the picker (and by the tests): into
+    // cfg_language, the value the dialog was opened with and Apply stores. The
+    // language is also the one setting the dialog repaints itself with at once,
+    // through the bridge below - a dialog that changed language only on Apply
+    // would be unreadable in a language the user cannot yet read.
+    //
     // One writer for the language: the page. The settings dialog keeps a copy of
     // the configuration of its own, and a write that goes around it - straight
-    // into the applet's configuration, however tempting - leaves that copy
-    // holding the old value, which the dialog then writes back over the choice
-    // when it closes. So the language travels the way every other setting does:
-    // in cfg_language, which Apply copies. The running widget still picks it up
-    // at once, because the bridge watches the configuration Apply writes to.
+    // into the applet's configuration, however tempting - leaves that copy holding
+    // the old value, which the dialog then writes back over the choice when it
+    // closes. So the language travels the way every other setting does: in
+    // cfg_language, which Apply stores. The widget reads the language from the
+    // configuration it is given, which is the one place a saved value arrives.
     function selectLanguage(code) {
         if (code === generalSettings.cfg_language && Loc.configuredLanguage === code) return
         generalSettings.cfg_language = code

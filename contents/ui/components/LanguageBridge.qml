@@ -27,12 +27,18 @@ QtObject {
     // language it is showing, which is not necessarily the one in the file yet.
     property string pendingLanguage: ""
 
+    // What makes the read happen again. The values a running applet is given are
+    // a map, and the map reports the keys it changes - that is the notification
+    // Apply in the settings dialog produces, and the listener below acts on it.
+    // Nothing is reported for a value that moved while nobody was listening: a
+    // read that happened once is the value of the moment it happened, forever, so
+    // every moment the language could have moved in the meantime bumps this - the
+    // popup opening, the dialog handing over a language of its own.
+    property int revision: 0
+
     // What the source answers, before it is turned into a catalog code: a code,
-    // "system", or "" when nothing was said. A function of the reading below, so
-    // it is asked again whenever the configuration changes.
-    readonly property string configured: bridge.pendingLanguage.length > 0
-        ? bridge.pendingLanguage
-        : (bridge.settings() ? bridge.readValue() : "")
+    // "system", or "" when nothing was said.
+    readonly property string configured: bridge.readConfigured(bridge.revision)
 
     // The language of this engine: a catalog code, or "" meaning the system
     // language, which is what Loc resolves from the operating system.
@@ -43,6 +49,20 @@ QtObject {
     // configuration nor a language of its own would otherwise answer "the system
     // language" and undo the language the dialog is already showing.
     readonly property bool speaks: bridge.pendingLanguage.length > 0 || bridge.settings() !== null
+
+    // `revision` is only an argument so that the binding above is asked again
+    // when it moves; the reading itself depends on nothing else it could watch.
+    function readConfigured(revision) {
+        if (bridge.pendingLanguage.length > 0)
+            return bridge.pendingLanguage
+        return bridge.settings() ? bridge.readValue() : ""
+    }
+
+    // Asks again what the configuration says. Without this the language an
+    // engine paints is the language that was in the file when it started.
+    function recheck() {
+        bridge.revision = bridge.revision + 1
+    }
 
     // Either handed in by the mount point or, where it happens to be visible,
     // found on its own. Kept a function so it is decided again on every read.
@@ -85,36 +105,83 @@ QtObject {
     // Hands the language to the Loc singleton. Everything painted through
     // Loc.t() follows the binding on its own; the call is kept because text put
     // together in JavaScript - a model, a summary line - has no binding to
-    // blame, and asking the applet to refresh when its popup opens is what makes
-    // a language chosen in Settings reach a running widget.
+    // blame.
     function refresh() {
         if (!bridge.speaks)
             return
         Loc.configuredLanguage = bridge.configured
+        bridge.reportIfNew()
     }
 
-    // Either source can move on its own: the configuration from the other
-    // engine, the pending value from a pick in the dialog.
+    property string lastLanguage: ""
+    property bool reported: false
+
+    // The one notification that exists. What Plasma hands out as a configuration
+    // is a property map (`KConfigPropertyMap`, a `QQmlPropertyMap`), and a property
+    // map reports the keys it changes. There is no `configChanged`, no
+    // `configUpdated`, no `languageChanged` on it - all three were looked for and
+    // none is there - so this is how a running widget learns that the language
+    // moved, and `recheck()` is what makes the read happen again afterwards.
+    //
+    // Kept tolerant: the object handed in is not always Plasma's - a settings page
+    // hands over nothing, a test hands over a plain object - and those carry no
+    // such signal.
+    property Connections configListener: Connections {
+        target: bridge.configuration
+        ignoreUnknownSignals: true
+        function onValueChanged(key, value) {
+            if (String(key) === "language")
+                bridge.recheck()
+        }
+    }
+
+    // One line per language this bridge actually settled on. Saying it again when
+    // it settles on a different one is what makes the live path - Apply in the
+    // dialog, a popup that repaints without a restart - visible in the journal at
+    // all; without it, "the setting never arrived" and "it arrived and nothing
+    // listened" look the same from the outside.
+    //
+    // The language is worked out here rather than read from `bridge.language`:
+    // inside a change notification that property's own binding has not been
+    // re-run yet, so a line written from it names the language being left, not
+    // the one being entered.
+    function reportIfNew() {
+        var now = L10N.normalizeLanguage(bridge.configured)
+        if (bridge.reported && now === bridge.lastLanguage)
+            return
+        bridge.reported = true
+        bridge.lastLanguage = now
+        console.log("HA-hub: language bridge (" + bridge.report() + ")")
+    }
+
+    // The pending value can move on its own; so can the configuration, once
+    // somebody rechecks it.
     onConfiguredChanged: bridge.refresh()
-    onPendingLanguageChanged: bridge.refresh()
 
     // What this bridge can see, in one line, for `journalctl --user -g HA-hub`.
     // Reading the journal is the only way to tell "the configuration holds
     // nothing" from "the configuration was never read", which is the difference
     // between a setting that was not saved and a setting that cannot arrive.
     function report() {
+        var catalog = L10N.normalizeLanguage(bridge.configured)
         if (bridge.pendingLanguage.length > 0)
             return "the dialog shows " + bridge.pendingLanguage
-                + ", catalog " + (bridge.language || "system default")
+                + ", catalog " + (catalog || "system default")
         if (!bridge.settings())
             return "nothing to read in this engine, staying quiet"
-        var raw = bridge.readValue()
-        return "configuration says " + (raw.length > 0 ? raw : "nothing")
-            + ", catalog " + (bridge.language || "system default")
+        var line = "configuration says " + (bridge.configured.length > 0 ? bridge.configured : "nothing")
+            + ", catalog " + (catalog || "system default")
+        // The difference between the language being painted and the language in
+        // the file: someone has to ask for it, and this says when nobody has.
+        var file = bridge.readValue()
+        if (file !== bridge.configured)
+            line += ", the file says " + (file.length > 0 ? file : "nothing") + ", not re-read yet"
+        return line
     }
 
     Component.onCompleted: {
         bridge.refresh()
-        console.log("HA-hub: language bridge (" + bridge.report() + ")")
+        // A bridge that could not speak at all still says what it could see.
+        bridge.reportIfNew()
     }
 }
