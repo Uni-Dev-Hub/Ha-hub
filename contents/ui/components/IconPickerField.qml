@@ -13,6 +13,7 @@ import "../../l10n"
 // icon from the system theme, or point at an own picture.
 RowLayout {
     id: iconField
+    objectName: "trayIconField"
 
     // "auto" | "theme" | "custom"
     property string mode: "auto"
@@ -23,6 +24,11 @@ RowLayout {
     property string autoOfflineIconName: "network-offline"
     property bool connected: true
     signal iconChanged()
+
+    // Exposed because a popup lives outside the item's children until it opens:
+    // this is the handle a test (or a caller) reaches the picker by.
+    readonly property var pickerDialog: iconDialog
+    readonly property var pickerGrid: iconGrid
 
     readonly property var resolved: HAHelpers.resolveIconChoice(mode, iconName, iconPath,
         autoIconName, autoOfflineIconName, connected)
@@ -108,7 +114,7 @@ RowLayout {
 
     PlasmaComponents3.Button {
         text: Loc.t("Select…")
-        onClicked: iconPopup.open()
+        onClicked: iconDialog.open()
     }
 
     QtDialogs.FileDialog {
@@ -124,38 +130,31 @@ RowLayout {
         }
     }
 
-    Controls.Popup {
-        id: iconPopup
-        parent: Controls.Overlay.overlay
-        anchors.centerIn: Controls.Overlay.overlay
-        width: Kirigami.Units.gridUnit * 22
-        height: Kirigami.Units.gridUnit * 20
-        modal: true
+    // A dialog, not a hand-placed popup. Anchoring a Popup to
+    // `Overlay.overlay` from inside its own scope and forcing `modal: true` made
+    // it land wherever the overlay happened to be - over the settings dialog's
+    // header, half outside it - and dimmed a dialog that was already modal.
+    // Kirigami.Dialog places itself properly (Plasma's own configuration dialog
+    // uses it), closes on Escape and on a click outside, and brings its title
+    // and close button along.
+    Kirigami.Dialog {
+        id: iconDialog
+        objectName: "trayIconDialog"
+        title: Loc.t("Select an icon")
+        preferredWidth: Kirigami.Units.gridUnit * 22
+        preferredHeight: Kirigami.Units.gridUnit * 20
+        standardButtons: Kirigami.Dialog.NoButton
         padding: Kirigami.Units.smallSpacing
 
         ColumnLayout {
-            anchors.fill: parent
             spacing: Kirigami.Units.smallSpacing
-
-            RowLayout {
-                Layout.fillWidth: true
-
-                PlasmaComponents3.Label {
-                    text: Loc.t("Select an icon")
-                    font.bold: true
-                    Layout.fillWidth: true
-                }
-
-                PlasmaComponents3.ToolButton {
-                    icon.name: "dialog-close-symbolic"
-                    onClicked: iconPopup.close()
-                }
-            }
 
             GridView {
                 id: iconGrid
+                objectName: "trayIconGrid"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 15
                 clip: true
                 cellWidth: Kirigami.Units.gridUnit * 3
                 cellHeight: Kirigami.Units.gridUnit * 3
@@ -180,7 +179,7 @@ RowLayout {
                     Accessible.name: modelData
                     onClicked: {
                         iconField.chooseThemeIcon(modelData);
-                        iconPopup.close();
+                        iconDialog.close();
                     }
                 }
             }
@@ -192,7 +191,7 @@ RowLayout {
                     icon.name: "document-open-symbolic"
                     text: Loc.t("Custom image…")
                     onClicked: {
-                        iconPopup.close();
+                        iconDialog.close();
                         imageDialog.open();
                     }
                 }
@@ -202,7 +201,7 @@ RowLayout {
                     text: Loc.t("Automatic (connection status)")
                     onClicked: {
                         iconField.chooseAuto();
-                        iconPopup.close();
+                        iconDialog.close();
                     }
                 }
 

@@ -29,6 +29,19 @@ if [[ -z "$RUNNER" ]]; then
     exit 1
 fi
 
+# "minimal" has no font database at all, so FontLoader always fails there and
+# tests that draw from a bundled font could never pass; offscreen is the
+# headless platform that keeps font loading (and rendering) working.
+QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-}"
+if [[ -z "$QT_QPA_PLATFORM" ]]; then
+    for platform_root in /usr/lib/qt6/plugins/platforms /usr/lib/x86_64-linux-gnu/qt6/plugins/platforms \
+        /usr/lib64/qt6/plugins/platforms /usr/local/lib/qt6/plugins/platforms; do
+        if [[ -f "$platform_root/libqoffscreen.so" ]]; then
+            QT_QPA_PLATFORM="offscreen"
+            break
+        fi
+    done
+fi
 export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-minimal}"
 export QML_IMPORT_PATH="${QML_IMPORT_PATH:-/usr/lib/qt6/qml}"
 

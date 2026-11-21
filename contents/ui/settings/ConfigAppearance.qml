@@ -15,6 +15,16 @@ Kirigami.ScrollablePage {
     title: Loc.t("Appearance")
     topPadding: Kirigami.Units.smallSpacing
 
+    // This dialog has its own Loc instance: without the bridge every page here
+    // would stay in the system language no matter what is configured.
+    Components.LanguageBridge {
+        // Handed over where Plasma lets a settings page see the configuration
+        // at all; a page normally cannot, and then the language is saved the
+        // Plasma way - through the cfg_ property and Apply.
+        configuration: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration)
+            ? Plasmoid.configuration : null
+    }
+
     // cfg_* properties are bound to the kcfg entries by the Plasma 6
     // configuration backend. Declared values only act as fallback defaults.
     property bool cfg_showDashboard: false
