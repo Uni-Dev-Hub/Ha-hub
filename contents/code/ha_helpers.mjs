@@ -186,6 +186,18 @@ function getEntityTitle(entId, entObj, regInfo, haManager) {
     return entityTitleFromAssistant(entId, entObj, regInfo, haManager);
 }
 
+// The small line under an entity's name in the settings list: what Home
+// Assistant calls it, then its id. One line for every row, whether or not the
+// name was changed - a row that grew a second line only when renamed stood
+// taller than its neighbours and left their controls off-centre. When Home
+// Assistant has nothing to add, the id is the whole line.
+function entityRowSubtitle(haName, entityId) {
+    var id = entityId || "";
+    var name = haName || "";
+    if (!name || name === id) return id;
+    return name + "  •  " + id;
+}
+
 function getDeviceDisplayName(dev, fallback) {
     if (!dev) return fallback || "";
     return dev.name_by_user || dev.name || fallback || dev.id || "";
@@ -568,6 +580,7 @@ export {
     getEntityFriendlyName,
     getEntityHeaderValue,
     getEntityRegistryInfo,
+    entityRowSubtitle,
     entityTitleFromAssistant,
     getEntityTitle,
     getLabelName,

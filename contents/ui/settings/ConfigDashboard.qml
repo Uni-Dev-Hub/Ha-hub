@@ -14,7 +14,15 @@ import "../../l10n"
 
 Kirigami.ScrollablePage {
     id: dashboardSettings
-    title: Loc.t("Dashboard")
+    // The page's own heading. Plasma assigns a title of its own when it opens a
+    // page - the category name it read *before* this page's bridge had set the
+    // language, from a copy made while the dialog was still in the system
+    // language - and an assignment breaks the binding, so the heading of the
+    // first page opened kept that language. Re-asserting it here, and whenever
+    // the language moves, puts the right one back.
+    readonly property string pageTitle: Loc.t("Dashboard")
+    title: pageTitle
+    onPageTitleChanged: dashboardSettings.title = dashboardSettings.pageTitle
     topPadding: Kirigami.Units.smallSpacing
 
     // This dialog has its own Loc instance: without the bridge every page here
@@ -101,7 +109,10 @@ Kirigami.ScrollablePage {
         haManager.startAutoConnect();
     }
 
-    Component.onCompleted: if (visible) maybeStartManager()
+    Component.onCompleted: {
+        if (visible) maybeStartManager()
+        dashboardSettings.title = dashboardSettings.pageTitle
+    }
     onVisibleChanged: if (visible) maybeStartManager()
 
     function saveGroups(next) {
@@ -213,9 +224,15 @@ Kirigami.ScrollablePage {
                     alias: alias,
                     haName: haName,
                     name: alias || haName,
-                    // Worked out once here so the two places that show an
-                    // override - the line under the name and the reset button -
-                    // read a fact about the row instead of each computing one.
+                    // One line, always there, whatever the row is called: what
+                    // Home Assistant calls the entity and its id. Made here
+                    // rather than in the row, so every row of the list is the
+                    // same height - a line that appears only on a renamed row
+                    // made that row taller and left its controls off-centre.
+                    subtitle: HAHelpers.entityRowSubtitle(haName, tile.entityId),
+                    // Worked out once here so the row that offers to take a
+                    // name back reads a fact about itself instead of
+                    // computing one through the page.
                     hasAlias: alias.length > 0
                 });
             }
@@ -544,9 +561,9 @@ Kirigami.ScrollablePage {
 
                         delegate: Rectangle {
                             id: tileRowDelegate
+                            objectName: "tileRowCard"
                             required property var modelData
                             required property int index
-
 
                             Layout.fillWidth: true
                             implicitHeight: tileRow.implicitHeight + Kirigami.Units.smallSpacing * 1.2
@@ -565,6 +582,11 @@ Kirigami.ScrollablePage {
                                 ColumnLayout {
                                     spacing: 1
                                     Layout.fillWidth: true
+                                    // Shrinkable, and to a small width: the name
+                                    // gives way first, with an ellipsis, before
+                                    // the controls of the row are pushed past the
+                                    // edge of a narrow window.
+                                    Layout.minimumWidth: Kirigami.Units.gridUnit * 4
 
                                     // A click on the name edits it. The name is
                                     // the entity's, not this tile's: it follows
@@ -629,16 +651,8 @@ Kirigami.ScrollablePage {
                                         }
                                     }
                                     PlasmaComponents3.Label {
-                                        objectName: "tileNameHaLabel"
-                                        visible: tileRowDelegate.modelData.hasAlias === true
-                                        text: tileRowDelegate.modelData.haName
-                                        font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
-                                        color: Kirigami.Theme.disabledTextColor
-                                        elide: Text.ElideRight
-                                        Layout.fillWidth: true
-                                    }
-                                    PlasmaComponents3.Label {
-                                        text: tileRowDelegate.modelData.entityId || ""
+                                        objectName: "tileNameSubtitle"
+                                        text: tileRowDelegate.modelData.subtitle || ""
                                         font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
                                         color: Kirigami.Theme.disabledTextColor
                                         elide: Text.ElideRight
@@ -648,6 +662,8 @@ Kirigami.ScrollablePage {
 
                                 Controls.ComboBox {
                                     Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                                    Layout.fillWidth: true
+                                    Layout.minimumWidth: Kirigami.Units.gridUnit * 3
                                     readonly property var sizeOptions: [
                                         { value: "small", label: Loc.t("1 column") },
                                         { value: "medium", label: Loc.t("2 columns") },
@@ -670,6 +686,8 @@ Kirigami.ScrollablePage {
 
                                 Controls.ComboBox {
                                     Layout.preferredWidth: Kirigami.Units.gridUnit * 9
+                                    Layout.fillWidth: true
+                                    Layout.minimumWidth: Kirigami.Units.gridUnit * 3
                                     readonly property var contentOptions: [
                                         { value: "", label: Loc.t("Default") },
                                         { value: "both", label: Loc.t("Name and icon") },
@@ -693,6 +711,8 @@ Kirigami.ScrollablePage {
 
                                 Controls.ComboBox {
                                     Layout.preferredWidth: Kirigami.Units.gridUnit * 9
+                                    Layout.fillWidth: true
+                                    Layout.minimumWidth: Kirigami.Units.gridUnit * 3
                                     model: dashboardSettings.groupOptions
                                     textRole: "label"
                                     currentIndex: {

@@ -308,3 +308,19 @@ test("what Home Assistant calls it, and what the user renamed it to, are differe
     // And with neither, the id is.
     assert.equal(helpers.entityTitleFromAssistant("sensor.x", {}, null, {}), "sensor.x");
 });
+
+// The small line under an entity's name in the settings list. It is one line
+// for every row, renamed or not: a row that grew a second line only when it was
+// renamed stood taller than its neighbours and left their controls off-centre.
+test("the line under an entity's name is one line, whatever it is called", () => {
+    assert.equal(helpers.entityRowSubtitle("light.hall", "light.hall"), "light.hall");
+    assert.equal(helpers.entityRowSubtitle("", "light.hall"), "light.hall");
+    assert.equal(helpers.entityRowSubtitle(null, ""), "");
+    assert.equal(helpers.entityRowSubtitle("Hall light", "light.hall"),
+                 "Hall light  •  light.hall");
+    // Home Assistant often builds the friendly name from the device and the
+    // entity, so the line may hold both; it is still one line.
+    const long = helpers.entityRowSubtitle("Свет в ванной Ванная", "light.svet_v_vannoi");
+    assert.equal(long.split("\n").length, 1);
+    assert.ok(long.endsWith("light.svet_v_vannoi"), long);
+});

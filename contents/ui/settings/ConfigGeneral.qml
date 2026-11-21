@@ -9,7 +9,15 @@ import "../../l10n"
 
 Kirigami.ScrollablePage {
     id: generalSettings
-    title: Loc.t("General")
+    // The page's own heading. Plasma assigns a title of its own when it opens a
+    // page - the category name it read *before* this page's bridge had set the
+    // language, from a copy made while the dialog was still in the system
+    // language - and an assignment breaks the binding, so the heading of the
+    // first page opened kept that language. Re-asserting it here, and whenever
+    // the language moves, puts the right one back.
+    readonly property string pageTitle: Loc.t("General")
+    title: pageTitle
+    onPageTitleChanged: generalSettings.title = generalSettings.pageTitle
     topPadding: 0
 
     // This dialog has its own Loc instance: without a language pushed into it
@@ -68,6 +76,16 @@ Kirigami.ScrollablePage {
         generalSettings.cfg_language = code
     }
 
+    // How wide a row of the form below may ask to be. Kirigami sizes a form to
+    // the widest thing it holds, and a hint line that may wrap asks for the
+    // width of its whole text in one line - the form took that for its columns,
+    // and the fields, their labels and their text ran past the window and were
+    // cut off. What is bounded here is everything the form has no other measure
+    // by; the allowance covers the column of labels, and the floor keeps a
+    // field usable in a window dragged narrow.
+    readonly property real formFieldWidth: Math.max(Kirigami.Units.gridUnit * 12,
+        availableWidth - Kirigami.Units.gridUnit * 22)
+
     Kirigami.FormLayout {
         id: formLayout
         Layout.fillWidth: true
@@ -78,6 +96,7 @@ Kirigami.ScrollablePage {
             placeholderText: "homeassistant.local or 192.168.1.100"
             text: generalSettings.cfg_host
             Layout.fillWidth: true
+            Layout.preferredWidth: generalSettings.formFieldWidth
             onTextEdited: generalSettings.cfg_host = text
         }
 
@@ -110,6 +129,7 @@ Kirigami.ScrollablePage {
             text: generalSettings.cfg_accessToken
             echoMode: TextInput.Password
             Layout.fillWidth: true
+            Layout.preferredWidth: generalSettings.formFieldWidth
             onTextEdited: generalSettings.cfg_accessToken = text
         }
 
@@ -118,6 +138,7 @@ Kirigami.ScrollablePage {
             text: Loc.t("A previously saved token is kept in the widget's private storage and used automatically. Enter a new token here only to replace it.")
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
+            Layout.preferredWidth: generalSettings.formFieldWidth
             font.italic: true
             opacity: 0.65
         }
@@ -135,6 +156,7 @@ Kirigami.ScrollablePage {
             objectName: "languageCombo"
             Kirigami.FormData.label: Loc.t("Language:")
             Layout.fillWidth: true
+            Layout.preferredWidth: generalSettings.formFieldWidth
 
             // The model carries only what never changes: the codes and the
             // names each language writes about itself. A translated string
@@ -200,6 +222,7 @@ Kirigami.ScrollablePage {
             color: Kirigami.Theme.disabledTextColor
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
+            Layout.preferredWidth: generalSettings.formFieldWidth
         }
 
         Controls.CheckBox {
@@ -210,9 +233,11 @@ Kirigami.ScrollablePage {
             onToggled: generalSettings.cfg_showHiddenEntities = checked
         }
 
+        // The two belong together, so only the first of them is labelled and
+        // the second sits under it in the column of fields. Labelled twice, the
+        // page read the same heading out twice for two different settings.
         Controls.CheckBox {
             id: showDiagnosticCheckBox
-            Kirigami.FormData.label: Loc.t("Device List:")
             text: Loc.t("Show diagnostic / config entities")
             checked: generalSettings.cfg_showDiagnosticEntities
             onToggled: generalSettings.cfg_showDiagnosticEntities = checked

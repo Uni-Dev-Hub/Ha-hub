@@ -1,5 +1,6 @@
 import QtQuick
 import QtTest
+import org.kde.kirigami as Kirigami
 import "../../contents/l10n"
 import "../../contents/ui/settings" as S
 
@@ -386,12 +387,26 @@ TestCase {
         verify(!!renamed, "the name the user typed is the one shown")
         verify(!!untouched, "and an entity without one keeps what Home Assistant calls it")
 
-        var overridden = findByObjectName(dashboardPage, "tileNameHaLabel")
-        var shown = 0
-        for (var h = 0; h < overridden.length; h++) {
-            if (overridden[h].visible) shown++
-        }
-        compare(shown, 1, "what the rename overrides stays visible under it")
+        // The line under a name is one line, on every row, whether the entity
+        // was renamed or not: a row that grew a second line only when renamed
+        // stood taller than its neighbours and left their controls off-centre.
+        var subs = findByObjectName(dashboardPage, "tileNameSubtitle")
+        compare(subs.length, labels.length, "every row carries its second line")
+        var subShown = 0
+        for (var s = 0; s < subs.length; s++) if (subs[s].visible) subShown++
+        compare(subShown, labels.length, "and none of them is hidden")
+        var renamedSub = null
+        for (var t = 0; t < subs.length; t++)
+            if (subs[t].text.indexOf("light.hall") === 0) renamedSub = subs[t]
+        verify(!!renamedSub, "it names the entity even where the name was changed")
+
+        var cards = findByObjectName(dashboardPage, "tileRowCard")
+        var heights = []
+        for (var y = 0; y < cards.length; y++) heights.push(Math.round(cards[y].height))
+        var distinct = {}
+        for (var z = 0; z < heights.length; z++) distinct[heights[z]] = true
+        compare(Object.keys(distinct).length, 1,
+                "so the rows are one height: " + heights.join(", "))
 
         var resets = findByObjectName(dashboardPage, "tileNameReset")
         var offered = 0
@@ -428,4 +443,101 @@ TestCase {
 
         dashboardPage.cfg_entityAliases = "{}"
     }
+    // The pages ask Kirigami.FormLayout for a label column and a field column,
+    // and the layout sizes itself to the widest thing it holds - a hint line
+    // that may wrap asks for the width of its whole text in one line. Bounded,
+    // everything stays inside the window; unbounded, the form and every field
+    // with it ran past the right edge and were cut off.
+    function textBearing(item, out) {
+        out = out || []
+        if (!item) return out
+        // Anything the user sees and reads: text, and the icon-only buttons of
+        // a tile row, which carry an icon instead of a word.
+        if ((item.text !== undefined || item.icon !== undefined)
+            && item.visible && item.height > 0) out.push(item)
+        var kids = item.children || []
+        for (var i = 0; i < kids.length; i++) textBearing(kids[i], out)
+        return out
+    }
+
+    // How Plasma hosts a settings page: the dialog is a Kirigami.ApplicationItem
+    // whose pageStack shows one page at a time and hands it the cfg_ values. The
+    // pages lay out differently inside a plain item than they do inside that -
+    // which is where the overflow below was hiding, and why this test goes
+    // through the same host rather than the pages above.
+    Kirigami.ApplicationItem {
+        id: dialogHost
+        width: 620
+        height: 900
+        visible: true
+    }
+
+    function pageFits(host, page, label, width) {
+        var items = textBearing(page)
+        var atLeast = { general: 6, dashboard: 5, appearance: 4, favorites: 1 }
+        var problems = []
+        for (var i = 0; i < items.length; i++) {
+            var edge = items[i].mapToItem(page, items[i].width, 0, 0, 0).x
+            if (edge > page.width + 1) {
+                problems.push("x=" + Math.round(edge) + " of " + Math.round(page.width)
+                              + " text=" + JSON.stringify(String(items[i].text).substring(0, 24)))
+            }
+        }
+        verify(page.width >= width - 2 * Kirigami.Units.gridUnit,
+                label + " at " + width + "px really got that width: " + Math.round(page.width))
+        verify(items.length >= atLeast[label], label + " at " + width
+               + "px shows enough to measure: " + items.length)
+        verify(problems.length === 0, label + " at " + width + "px: " + problems.join(" ; "))
+    }
+
+    function test_7_every_page_fits_the_width_it_is_given() {
+        var names = ["general", "dashboard", "appearance", "favorites"]
+        var widths = [460, 620, 810, 1100, 1380]
+        // The widest language available, because a label column is only as wide
+        // as the widest label - English hides what Russian shows.
+        var languageBefore = Loc.configuredLanguage
+        Loc.configuredLanguage = "ru"
+        wait(80)
+        for (var i = 0; i < widths.length; i++) {
+            dialogHost.width = widths[i]
+            for (var q = 0; q < names.length; q++) {
+                var page = dialogHost.pageStack.replace(
+                    Qt.resolvedUrl("../../contents/ui/settings/Config"
+                                   + names[q].substring(0, 1).toUpperCase()
+                                   + names[q].substring(1) + ".qml"),
+                    { cfg_dashboardGroups: JSON.stringify([{
+                        id: "g1", name: "G", color: "#0078d7",
+                        tiles: [{ entityId: "light.hall", size: "wide", content: "" },
+                                { entityId: "cover.gate", size: "medium", content: "" }]
+                    }]),
+                      cfg_entityAliases: JSON.stringify({ "light.hall": "Люстра" }),
+                      cfg_dashboardColumns: 3 })
+                wait(160)
+                verify(!!page, names[q] + " opens in the host")
+                if (!page) continue
+                pageFits(dialogHost, page, names[q], widths[i])
+            }
+        }
+        Loc.configuredLanguage = languageBefore
+        wait(60)
+    }
+
+    function test_8_a_page_puts_its_own_heading_back() {
+        wait(50)
+        Loc.configuredLanguage = "de"
+        wait(50)
+        generalPage.title = "Allgemein"
+        wait(50)
+        verify(generalPage.title === "Allgemein", "the assignment stuck, as it does in Plasma")
+        verify(generalPage.pageTitle === Loc.t("General"), "the page still knows its own heading")
+
+        Loc.configuredLanguage = "ru"
+        wait(50)
+        compare(generalPage.title, Loc.t("General"), "and a language change puts it back")
+
+        Loc.configuredLanguage = "en"
+        wait(50)
+        compare(generalPage.title, Loc.t("General"), "again in another language")
+    }
+
 }

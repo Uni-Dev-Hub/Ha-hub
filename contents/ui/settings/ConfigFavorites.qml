@@ -11,7 +11,15 @@ import "../../l10n"
 
 Kirigami.Page {
     id: favoritesSettings
-    title: Loc.t("Favorite Devices")
+    // The page's own heading. Plasma assigns a title of its own when it opens a
+    // page - the category name it read *before* this page's bridge had set the
+    // language, from a copy made while the dialog was still in the system
+    // language - and an assignment breaks the binding, so the heading of the
+    // first page opened kept that language. Re-asserting it here, and whenever
+    // the language moves, puts the right one back.
+    readonly property string pageTitle: Loc.t("Favorite Devices")
+    title: pageTitle
+    onPageTitleChanged: favoritesSettings.title = favoritesSettings.pageTitle
 
     // This dialog has its own Loc instance: without the bridge every page here
     // would stay in the system language no matter what is configured.
@@ -22,9 +30,6 @@ Kirigami.Page {
         configuration: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration)
             ? Plasmoid.configuration : null
     }
-
-    implicitWidth: Kirigami.Units.gridUnit * 34
-    implicitHeight: Kirigami.Units.gridUnit * 28
 
     property string cfg_host: ""
     property string cfg_port: "8123"
@@ -67,6 +72,7 @@ Kirigami.Page {
     Component.onCompleted: {
         if (visible) maybeStartManager();
         favoritesSettings.loadFavoriteSet();
+        favoritesSettings.title = favoritesSettings.pageTitle;
     }
     onVisibleChanged: if (visible) maybeStartManager()
 

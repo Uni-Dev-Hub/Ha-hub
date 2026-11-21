@@ -12,7 +12,15 @@ import "../../l10n"
 
 Kirigami.ScrollablePage {
     id: appearancePage
-    title: Loc.t("Appearance")
+    // The page's own heading. Plasma assigns a title of its own when it opens a
+    // page - the category name it read *before* this page's bridge had set the
+    // language, from a copy made while the dialog was still in the system
+    // language - and an assignment breaks the binding, so the heading of the
+    // first page opened kept that language. Re-asserting it here, and whenever
+    // the language moves, puts the right one back.
+    readonly property string pageTitle: Loc.t("Appearance")
+    title: pageTitle
+    onPageTitleChanged: appearancePage.title = appearancePage.pageTitle
     topPadding: Kirigami.Units.smallSpacing
 
     // This dialog has its own Loc instance: without the bridge every page here
@@ -64,7 +72,10 @@ Kirigami.ScrollablePage {
         headerManager.startAutoConnect();
     }
 
-    Component.onCompleted: if (visible) maybeStartManager()
+    Component.onCompleted: {
+        if (visible) maybeStartManager()
+        appearancePage.title = appearancePage.pageTitle
+    }
     onVisibleChanged: if (visible) maybeStartManager()
 
     readonly property var personChoice: [{ id: "", name: Loc.t("Auto (first person with a picture)") }]
@@ -84,6 +95,13 @@ Kirigami.ScrollablePage {
         }
         return 0;
     }
+
+
+    // Same bound as on the General page, for the same reason: what a form holds
+    // decides how wide it makes itself, and a hint line or a picker asks for
+    // more than the window has.
+    readonly property real formFieldWidth: Math.max(Kirigami.Units.gridUnit * 12,
+        availableWidth - Kirigami.Units.gridUnit * 22)
 
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
@@ -117,6 +135,7 @@ Kirigami.ScrollablePage {
                 color: Kirigami.Theme.disabledTextColor
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
+                Layout.preferredWidth: appearancePage.formFieldWidth
             }
         }
 
@@ -166,6 +185,7 @@ Kirigami.ScrollablePage {
             Components.EntityPickerField {
                 Kirigami.FormData.label: Loc.t("Value next to greeting:")
                 Layout.fillWidth: true
+                Layout.preferredWidth: appearancePage.formFieldWidth
                 haManager: headerManager
                 value: appearancePage.cfg_headerEntityId
                 onEntityPicked: function(entityId) {
@@ -186,6 +206,7 @@ Kirigami.ScrollablePage {
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: Kirigami.Theme.disabledTextColor
                 Layout.fillWidth: true
+                Layout.preferredWidth: appearancePage.formFieldWidth
             }
         }
 
