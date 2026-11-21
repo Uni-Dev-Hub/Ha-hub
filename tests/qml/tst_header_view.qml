@@ -3,7 +3,7 @@ import QtTest
 import "../../contents/l10n"
 import "../../contents/ui/views" as Views
 
-// The header shows the Home Assistant user picture, clipped to a circle, and
+// The header shows the Home Assistant user picture in a Kirigami avatar and
 // an optional entity value next to the greeting.
 TestCase {
     name: "HeaderView"
@@ -54,10 +54,13 @@ TestCase {
     function test_avatar_is_loaded_and_available() {
         wait(300)
         verify(header.pictureUrl.length > 0, "picture url reaches the header")
-        var image = findByProperty(header, "available")
-        verify(!!image, "the header contains an avatar image")
-        verify(image.available, "the picture loaded (status Ready)")
-        verify(image.layer.enabled, "the circular mask is active")
+        var avatar = findByProperty(header, "asynchronous")
+        verify(!!avatar, "the header contains a Kirigami avatar")
+        compare(avatar.source, header.pictureUrl, "the avatar shows the user picture")
+        compare(avatar.name, "Alice", "the avatar knows the user for its fallback")
+        var image = findByProperty(avatar, "fillMode")
+        verify(!!image, "the avatar hosts a picture image")
+        compare(image.status, Image.Ready, "the picture loaded (status Ready)")
     }
 
     function test_header_entity_value_and_label() {

@@ -1,4 +1,5 @@
 import * as T from "../l10n/translations.mjs";
+import * as MdiIcons from "./mdi_icons.mjs";
 
 function cleanEntityId(id) {
     if (!id) return "";
@@ -267,6 +268,23 @@ function getDomainIcon(domain) {
     return DOMAIN_ICONS[domain] || "preferences-system-symbolic";
 }
 
+// Where an entity's own icon should be drawn from. Home Assistant stores it as
+// a Material Design Icons name ("mdi:ceiling-light"), which the Plasma icon
+// theme cannot resolve, so those are drawn from the bundled MDI font by name;
+// a plain icon theme name is passed through, and anything else - no icon, an
+// icon set we do not ship (phu:, hass:), an MDI name the font lacks - falls
+// back to the domain icon. Returns { kind: "mdi" | "theme", name }.
+function resolveEntityIcon(rawIcon, domain) {
+    var icon = rawIcon ? rawIcon.toString().trim() : "";
+    if (icon.indexOf("mdi:") === 0) {
+        var name = icon.substring(4).trim().toLowerCase();
+        if (MdiIcons.mdiCodepoint(name)) return { kind: "mdi", name: name };
+    } else if (icon.length > 0 && icon.indexOf(":") === -1) {
+        return { kind: "theme", name: icon };
+    }
+    return { kind: "theme", name: getDomainIcon(domain) };
+}
+
 function getBinarySensorIcon(deviceClass, isOn) {
     var dc = (deviceClass || "").toLowerCase();
     if (dc === "door" || dc === "garage_door" || dc === "window" || dc === "opening") {
@@ -498,6 +516,7 @@ export {
     isInfoDomain,
     isSecondaryEntity,
     isSelectableEntity,
+    resolveEntityIcon,
     resolveIconChoice,
     TRAY_ICON_CHOICES,
     CONTROL_DOMAINS,

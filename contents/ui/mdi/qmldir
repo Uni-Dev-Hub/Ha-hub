@@ -1,0 +1,2 @@
+module org.kde.plasma.hahub.mdi
+singleton MdiFont 1.0 MdiFont.qml

@@ -200,3 +200,28 @@ test("the tray icon gallery is a non-empty list of unique names", () => {
     }
 });
 
+
+test("entity icons keep the choice Home Assistant made", () => {
+    const shape = (r) => ({ kind: r.kind, name: r.name });
+
+    // mdi: names are drawn from the bundled font, by their bare name.
+    assert.deepStrictEqual(shape(helpers.resolveEntityIcon("mdi:ceiling-light", "light")),
+        { kind: "mdi", name: "ceiling-light" });
+    assert.deepStrictEqual(shape(helpers.resolveEntityIcon("  mdi:Thermometer  ", "sensor")),
+        { kind: "mdi", name: "thermometer" });
+
+    // An mdi: name the font does not carry, and icon sets we do not ship,
+    // must fall back instead of drawing an empty box.
+    assert.deepStrictEqual(shape(helpers.resolveEntityIcon("mdi:not_a_real_icon", "light")),
+        { kind: "theme", name: "brightness-high-symbolic" });
+    assert.deepStrictEqual(shape(helpers.resolveEntityIcon("phu:plug-zigbee", "switch")),
+        { kind: "theme", name: helpers.getDomainIcon("switch") });
+
+    // A plain theme name passes through, no icon takes the domain's one.
+    assert.deepStrictEqual(shape(helpers.resolveEntityIcon("network-wireless", "switch")),
+        { kind: "theme", name: "network-wireless" });
+    assert.deepStrictEqual(shape(helpers.resolveEntityIcon("", "light")),
+        { kind: "theme", name: "brightness-high-symbolic" });
+    assert.deepStrictEqual(shape(helpers.resolveEntityIcon(null, undefined)),
+        { kind: "theme", name: "preferences-system-symbolic" });
+});

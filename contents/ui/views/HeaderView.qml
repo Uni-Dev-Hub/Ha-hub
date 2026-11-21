@@ -41,38 +41,22 @@ PlasmaComponents3.ToolBar {
         anchors.rightMargin: Kirigami.Units.smallSpacing * 1.5
         spacing: Kirigami.Units.smallSpacing * 1.2
 
-        // User picture from Home Assistant; falls back to the identity icon
-        // when the account has no avatar (or it cannot be loaded).
-        Item {
-            id: avatarHolder
+        // User picture from Home Assistant through Kirigami.Avatar: a true
+        // circular photo (a ShadowedRectangle "mask" painted a solid circle
+        // over the image), with the user's initials as the fallback when the
+        // account has no avatar and an icon when there is not even a name.
+        Kirigami.Avatar {
+            id: avatarImage
             readonly property real side: Math.round(Kirigami.Units.iconSizes.small * 1.7)
             implicitWidth: side
             implicitHeight: side
             Layout.alignment: Qt.AlignVCenter
-
-            Kirigami.Icon {
-                anchors.fill: parent
-                visible: !avatarImage.available
-                source: headerView.connected ? "user-identity-symbolic" : "network-offline"
-            }
-
-            Image {
-                id: avatarImage
-                anchors.fill: parent
-                readonly property bool available: status === Image.Ready && headerView.pictureUrl.length > 0
-                source: headerView.pictureUrl
-                sourceSize.width: avatarHolder.side * 2
-                sourceSize.height: avatarHolder.side * 2
-                fillMode: Image.PreserveAspectCrop
-                smooth: true
-                visible: available
-                // ShadowedRectangle used as a layer effect clips the square
-                // photo to a circle without needing a shader.
-                layer.enabled: available
-                layer.effect: Kirigami.ShadowedRectangle {
-                    radius: width / 2
-                }
-            }
+            name: headerView.haManager ? (headerView.haManager.primaryPersonName || "") : ""
+            source: headerView.pictureUrl
+            sourceSize.width: side * 2
+            sourceSize.height: side * 2
+            cache: true
+            icon.name: headerView.connected ? "user-identity-symbolic" : "network-offline"
         }
 
         ColumnLayout {
