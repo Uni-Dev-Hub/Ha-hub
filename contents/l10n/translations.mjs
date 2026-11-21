@@ -38,6 +38,8 @@ import pt_BRCatalog from "./catalogs/pt_BR.js";
 import fiCatalog from "./catalogs/fi.js";
 import etCatalog from "./catalogs/et.js";
 import ltCatalog from "./catalogs/lt.js";
+import lvCatalog from "./catalogs/lv.js";
+import roCatalog from "./catalogs/ro.js";
 
 
 export var LANGUAGES = [
@@ -70,7 +72,9 @@ export var LANGUAGES = [
     { code: "pt_BR", label: "Português (Brasil)" },
     { code: "fi", label: "Suomi" },
     { code: "et", label: "Eesti" },
-    { code: "lt", label: "Lietuvių" }
+    { code: "lt", label: "Lietuvių" },
+    { code: "lv", label: "Latviešu" },
+    { code: "ro", label: "Română" }
 
 ];
 
@@ -105,7 +109,9 @@ export var CATALOGS = {
     "pt_BR": pt_BRCatalog,
     fi: fiCatalog,
     et: etCatalog,
-    lt: ltCatalog
+    lt: ltCatalog,
+    lv: lvCatalog,
+    ro: roCatalog
 
 };
 
