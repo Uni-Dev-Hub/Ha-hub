@@ -81,6 +81,9 @@ PlasmoidItem {
         port: Plasmoid.configuration.port || 8123
         useSsl: Plasmoid.configuration.useSsl || false
         serverName: Plasmoid.configuration.serverName || "Home Assistant"
+        // The names the user gave entities. Every view asks the manager for a
+        // name, so one binding renames the tiles, the device list and the cards.
+        entityAliases: Plasmoid.configuration.entityAliases || "{}"
     }
 
     Component.onCompleted: {

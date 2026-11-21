@@ -52,6 +52,17 @@ Item {
     property var _entitiesLowerMap: ({})
 
     property int entitiesRevision: 0
+    // Names the user typed for entities, as a JSON map `entity id -> name`.
+    // Whoever creates the manager supplies it (the applet from its configuration,
+    // a settings page from its cfg_ value): a component in a file of its own
+    // cannot see `Plasmoid`, so it must not reach for it here.
+    property string entityAliases: "{}"
+    readonly property var aliasMap: HAHelpers.parseAliases(manager.entityAliases)
+    // A rename has to re-title the tiles at once. Their presentation is computed
+    // from entitiesRevision, so without a revision of its own an entity kept its
+    // old name until the next state update arrived.
+    property int aliasesRevision: 0
+    onEntityAliasesChanged: manager.aliasesRevision++
     property var discoveredServers: []
     property var userDevicesList: []
 
@@ -708,7 +719,15 @@ Item {
         return picture ? manager.resourceUrl(picture) : "";
     }
 
+    // The name the user typed for this entity, or "". One place, so a rename
+    // reaches the tiles, the device list and the pickers alike.
+    function entityAliasFor(entId) {
+        return HAHelpers.aliasFor(manager.aliasMap, entId);
+    }
+
     function getEntityTitle(entId) {
+        var alias = manager.entityAliasFor(entId);
+        if (alias) return alias;
         var entry = manager.getCatalogEntry(entId);
         if (entry) return entry.name;
         return HAHelpers.getEntityTitle(entId, manager.getEntity(entId), manager.getEntityRegistry(entId), manager);

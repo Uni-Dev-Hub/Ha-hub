@@ -110,7 +110,63 @@ function getEntityFriendlyName(entId, entObj, regInfo) {
     return entId || "";
 }
 
-function getEntityTitle(entId, entObj, regInfo, haManager) {
+// A name the user typed into the widget for one entity, kept as a JSON map
+// `entity id -> name` in the configuration. It outranks everything Home
+// Assistant offers, because it is the one name chosen on purpose: renaming in
+// the widget settings is what the user reads at a glance in the popup.
+function parseAliases(raw) {
+    if (raw && typeof raw === "object") return Array.isArray(raw) ? {} : raw;
+    if (typeof raw !== "string" || raw.trim().length === 0) return {};
+    try {
+        var map = JSON.parse(raw);
+        return (map && typeof map === "object" && !Array.isArray(map)) ? map : {};
+    } catch (error) {
+        // A half-written or hand-edited value must not cost the user every
+        // name they typed, and must not throw into a binding.
+        return {};
+    }
+}
+
+function aliasFor(aliases, entityId) {
+    if (!aliases || !entityId) return "";
+    var value = aliases[entityId];
+    return (typeof value === "string" && value.trim().length > 0) ? value.trim() : "";
+}
+
+// The new map, with this entity's name set, or the entry dropped when the name
+// is blank - which is how a rename is taken back. A blank name is never stored,
+// so an empty string can never be shown as an entity's name.
+function setAlias(aliases, entityId, name) {
+    var source = parseAliases(aliases);
+    var next = {};
+    Object.keys(source).forEach(function (id) {
+        var kept = aliasFor(source, id);
+        if (kept) next[id] = kept;
+    });
+    if (entityId) {
+        var value = (typeof name === "string") ? name.trim() : "";
+        if (value) next[entityId] = value;
+        else delete next[entityId];
+    }
+    return next;
+}
+
+// The alias of an entity as the manager sees it. Every caller that resolves a
+// name already passes the manager, which is what lets one check here rename an
+// entity everywhere: tiles, cards, the device list, the pickers.
+function managerAlias(entityId, haManager) {
+    if (!haManager || !entityId) return "";
+    if (typeof haManager.entityAliasFor === "function") {
+        var alias = haManager.entityAliasFor(entityId);
+        return (typeof alias === "string") ? alias : "";
+    }
+    return aliasFor(parseAliases(haManager.entityAliases), entityId);
+}
+
+// What Home Assistant itself calls the entity - friendly name, registry name,
+// device name - with no override in the way. The editor shows this under a
+// name the user typed, so an override reads as one.
+function entityTitleFromAssistant(entId, entObj, regInfo, haManager) {
     var name = getEntityFriendlyName(entId, entObj, regInfo);
     if (name && name !== entId) return name;
 
@@ -122,6 +178,12 @@ function getEntityTitle(entId, entObj, regInfo, haManager) {
         return (dev.name_by_user || dev.name || name || entId);
     }
     return name || entId || "";
+}
+
+function getEntityTitle(entId, entObj, regInfo, haManager) {
+    var alias = managerAlias(entId, haManager);
+    if (alias) return alias;
+    return entityTitleFromAssistant(entId, entObj, regInfo, haManager);
 }
 
 function getDeviceDisplayName(dev, fallback) {
@@ -492,6 +554,7 @@ function formatLastChangedDate(lastChanged, fallback, lang) {
 }
 
 export {
+    aliasFor,
     cleanEntityId,
     formatLastChangedDate,
     formatTimeInState,
@@ -505,6 +568,7 @@ export {
     getEntityFriendlyName,
     getEntityHeaderValue,
     getEntityRegistryInfo,
+    entityTitleFromAssistant,
     getEntityTitle,
     getLabelName,
     getLabelsText,
@@ -516,8 +580,11 @@ export {
     isInfoDomain,
     isSecondaryEntity,
     isSelectableEntity,
+    managerAlias,
+    parseAliases,
     resolveEntityIcon,
     resolveIconChoice,
+    setAlias,
     TRAY_ICON_CHOICES,
     CONTROL_DOMAINS,
     ACTION_DOMAINS,

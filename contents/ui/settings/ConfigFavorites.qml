@@ -46,6 +46,10 @@ Kirigami.Page {
         useSsl: favoritesSettings.cfg_useSsl
         includeHiddenEntities: favoritesSettings.cfg_showHiddenEntities
         includeDiagnosticEntities: favoritesSettings.cfg_showDiagnosticEntities
+        // Deliberately no `cfg_entityAliases` here. Apply writes the keys the
+        // *current* page holds, so a page that was opened before a rename on
+        // another page would write the names back as they were before it. Names
+        // are edited on the Dashboard page, so names live on the Dashboard page.
     }
 
     // Connect only once the page is actually shown for the first time (the

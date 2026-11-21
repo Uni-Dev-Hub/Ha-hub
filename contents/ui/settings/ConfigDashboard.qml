@@ -37,6 +37,11 @@ Kirigami.ScrollablePage {
     property string cfg_dashboardFontFamily: ""
     property real cfg_dashboardFontSize: 0
     property string cfg_dashboardTileContent: "both"
+    // Names the user gave entities, as a JSON map. Its own key, not a field on
+    // a tile: a name belongs to the entity, so it holds across groups, survives
+    // an entity leaving the dashboard, and renames the same entity in the
+    // device list and the pickers too.
+    property string cfg_entityAliases: "{}"
 
     // Group the entity picker adds to; falls back to the first group.
     property string activeGroupId: ""
@@ -77,6 +82,9 @@ Kirigami.ScrollablePage {
         host: dashboardSettings.cfg_host
         port: parseInt(dashboardSettings.cfg_port) || 8123
         useSsl: dashboardSettings.cfg_useSsl
+        // The saved names as this page holds them, so the preview below retitles
+        // while the user types, before Apply has run.
+        entityAliases: dashboardSettings.cfg_entityAliases
     }
 
     // The settings dialog builds its pages up front; connecting a full
@@ -161,13 +169,71 @@ Kirigami.ScrollablePage {
         return result;
     }
 
+    // The names the user typed live in this page's own value: while the dialog
+    // is open the manager still holds the saved map, and a rename has to be
+    // visible on this page before Apply.
+    readonly property var aliasMap: HAHelpers.parseAliases(dashboardSettings.cfg_entityAliases)
+    // The row whose name is being edited; "" while none is.
+    property string renamingEntity: ""
+
+    function entityAlias(entityId) {
+        return HAHelpers.aliasFor(dashboardSettings.aliasMap, entityId);
+    }
+
+    // An empty name removes the entry, which is how a rename is taken back.
+    function setEntityName(entityId, name) {
+        dashboardSettings.cfg_entityAliases = JSON.stringify(
+            HAHelpers.setAlias(dashboardSettings.cfg_entityAliases, entityId, name));
+    }
+
     function entityTitle(entityId) {
+        var alias = dashboardSettings.entityAlias(entityId);
+        if (alias) return alias;
+        return dashboardSettings.entityHaName(entityId);
+    }
+
+    // The rows the editor shows: the saved model with each tile's name already
+    // worked out. A row then reads its own data instead of calling back into the
+    // page - a row that asked the page for a name kept showing the old one after
+    // a rename, because its binding had no reason to look again.
+    readonly property var groupRows: {
+        var names = dashboardSettings.aliasMap;      // recomputes when a name changes
+        var rows = [];
+        for (var g = 0; g < dashboardSettings.groups.length; g++) {
+            var group = dashboardSettings.groups[g];
+            var tiles = [];
+            for (var t = 0; t < (group.tiles || []).length; t++) {
+                var tile = group.tiles[t];
+                var alias = HAHelpers.aliasFor(names, tile.entityId);
+                var haName = dashboardSettings.entityHaName(tile.entityId);
+                tiles.push({
+                    entityId: tile.entityId,
+                    size: tile.size,
+                    content: tile.content,
+                    alias: alias,
+                    haName: haName,
+                    name: alias || haName,
+                    // Worked out once here so the two places that show an
+                    // override - the line under the name and the reset button -
+                    // read a fact about the row instead of each computing one.
+                    hasAlias: alias.length > 0
+                });
+            }
+            rows.push({ id: group.id, name: group.name, color: group.color, tiles: tiles });
+        }
+        return rows;
+    }
+
+    // What Home Assistant calls this entity, with no override in the way: the
+    // placeholder in the editor and the tooltip, so an override reads as one.
+    function entityHaName(entityId) {
         if (!haManager) return entityId || "";
-        var entry = haManager.getCatalogEntry ? haManager.getCatalogEntry(entityId) : null;
-        if (entry && entry.name) return entry.name;
         var ent = haManager.getEntity(entityId);
         var reg = haManager.getEntityRegistry ? haManager.getEntityRegistry(entityId) : null;
-        return HAHelpers.getEntityTitle(entityId, ent, reg, haManager);
+        // Not getEntityTitle(): that one answers with the override, and this
+        // line exists to show what the override covers. The catalog entry is
+        // out too - its name was resolved through the same path.
+        return HAHelpers.entityTitleFromAssistant(entityId, ent, reg, haManager);
     }
 
     function entitySubtitle(entityId) {
@@ -366,6 +432,18 @@ Kirigami.ScrollablePage {
                 }
             }
 
+            // A page of the settings dialog cannot store anything by itself, so
+            // say where a rename is kept - the same reason the language hint
+            // exists under the picker.
+            PlasmaComponents3.Label {
+                objectName: "namesHint"
+                text: Loc.t("Click an entity name to rename it. Apply keeps the names.")
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
             PlasmaComponents3.Label {
                 visible: dashboardSettings.groups.length === 0
                 text: Loc.t("No groups yet. The first entity you add below creates one.")
@@ -376,7 +454,7 @@ Kirigami.ScrollablePage {
             }
 
             Repeater {
-                model: dashboardSettings.groups
+                model: dashboardSettings.groupRows
 
                 delegate: ColumnLayout {
                     id: groupSection
@@ -469,6 +547,7 @@ Kirigami.ScrollablePage {
                             required property var modelData
                             required property int index
 
+
                             Layout.fillWidth: true
                             implicitHeight: tileRow.implicitHeight + Kirigami.Units.smallSpacing * 1.2
                             radius: 8
@@ -487,9 +566,74 @@ Kirigami.ScrollablePage {
                                     spacing: 1
                                     Layout.fillWidth: true
 
+                                    // A click on the name edits it. The name is
+                                    // the entity's, not this tile's: it follows
+                                    // the entity into every group and into the
+                                    // device list, and Apply stores it.
+                                    Item {
+                                        objectName: "tileNameArea"
+                                        Layout.fillWidth: true
+                                        implicitHeight: Math.max(nameLabel.implicitHeight,
+                                                                 nameEditor.implicitHeight)
+
+                                        PlasmaComponents3.Label {
+                                            id: nameLabel
+                                            objectName: "tileNameLabel"
+                                            anchors.left: parent.left
+                                            anchors.right: parent.right
+                                            visible: dashboardSettings.renamingEntity
+                                                !== tileRowDelegate.modelData.entityId
+                                            text: tileRowDelegate.modelData.name
+                                            font.bold: true
+                                            elide: Text.ElideRight
+                                        }
+
+                                        MouseArea {
+                                            id: nameMouse
+                                            anchors.fill: parent
+                                            visible: nameLabel.visible
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: dashboardSettings.renamingEntity =
+                                                tileRowDelegate.modelData.entityId
+                                            PlasmaComponents3.ToolTip.visible: containsMouse && nameLabel.visible
+                                            PlasmaComponents3.ToolTip.text: Loc.t("Click to rename")
+                                        }
+
+                                        PlasmaComponents3.TextField {
+                                            id: nameEditor
+                                            objectName: "tileNameField"
+                                            anchors.fill: parent
+                                            visible: dashboardSettings.renamingEntity
+                                                === tileRowDelegate.modelData.entityId
+                                            text: tileRowDelegate.modelData.alias
+                                            placeholderText: tileRowDelegate.modelData.haName
+                                            focus: visible
+                                            selectByMouse: true
+                                            // Enter or a click away saves; the
+                                            // row is never left in a half-typed
+                                            // state.
+                                            onEditingFinished: {
+                                                dashboardSettings.setEntityName(
+                                                    tileRowDelegate.modelData.entityId, text);
+                                                dashboardSettings.renamingEntity = "";
+                                            }
+                                            Keys.onEscapePressed: {
+                                                // Hand the typed text back first, so a save
+                                                // that still follows the focus change writes
+                                                // what was already there.
+                                                text = tileRowDelegate.modelData.alias;
+                                                dashboardSettings.renamingEntity = "";
+                                            }
+                                            onVisibleChanged: if (visible) selectAll()
+                                        }
+                                    }
                                     PlasmaComponents3.Label {
-                                        text: dashboardSettings.entityTitle(tileRowDelegate.modelData.entityId)
-                                        font.bold: true
+                                        objectName: "tileNameHaLabel"
+                                        visible: tileRowDelegate.modelData.hasAlias === true
+                                        text: tileRowDelegate.modelData.haName
+                                        font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.78
+                                        color: Kirigami.Theme.disabledTextColor
                                         elide: Text.ElideRight
                                         Layout.fillWidth: true
                                     }
@@ -564,6 +708,16 @@ Kirigami.ScrollablePage {
                                     onActivated: dashboardSettings.moveTileTo(
                                         tileRowDelegate.modelData.entityId,
                                         dashboardSettings.groupOptions[currentIndex].id)
+                                }
+
+                                PlasmaComponents3.ToolButton {
+                                    objectName: "tileNameReset"
+                                    icon.name: "edit-undo-symbolic"
+                                    visible: tileRowDelegate.modelData.hasAlias === true
+                                    PlasmaComponents3.ToolTip.visible: hovered
+                                    PlasmaComponents3.ToolTip.text: Loc.t("Use the Home Assistant name")
+                                    onClicked: dashboardSettings.setEntityName(
+                                        tileRowDelegate.modelData.entityId, "")
                                 }
 
                                 PlasmaComponents3.ToolButton {

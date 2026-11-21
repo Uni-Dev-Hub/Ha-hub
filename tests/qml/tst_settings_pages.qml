@@ -8,6 +8,10 @@ import "../../contents/ui/settings" as S
 // let every delegate and binding evaluate.
 TestCase {
     name: "SettingsPages"
+    // A TestCase is invisible by default, and `visible` in QML reports the
+    // effective value - so every visibility assertion below would read false
+    // and pass for the wrong reason.
+    visible: true
 
     S.ConfigDashboard {
         id: dashboardPage
@@ -360,5 +364,68 @@ TestCase {
         // `visible` only drops once the fade-out finished; `opened` is the state
         // the control itself tracks and what `open()` above set.
         verify(!dialog.opened, "and closes again")
+    }
+
+    // A click on an entity's name in the editor renames that entity for the
+    // whole widget. The name is stored as a map of its own - keyed by entity,
+    // not by tile - so it holds across groups and outlives the tile it was
+    // typed in.
+    function test_6_an_entity_name_is_edited_by_click_and_saved() {
+        wait(50)
+        dashboardPage.cfg_entityAliases = JSON.stringify({ "light.hall": "Люстра над столом" })
+        wait(50)
+
+        var labels = findByObjectName(dashboardPage, "tileNameLabel")
+        verify(labels.length >= 3, "every tile row is named: " + labels.length)
+        var renamed = null
+        var untouched = null
+        for (var i = 0; i < labels.length; i++) {
+            if (labels[i].text === "Люстра над столом") renamed = labels[i]
+            if (labels[i].text === "cover.gate") untouched = labels[i]
+        }
+        verify(!!renamed, "the name the user typed is the one shown")
+        verify(!!untouched, "and an entity without one keeps what Home Assistant calls it")
+
+        var overridden = findByObjectName(dashboardPage, "tileNameHaLabel")
+        var shown = 0
+        for (var h = 0; h < overridden.length; h++) {
+            if (overridden[h].visible) shown++
+        }
+        compare(shown, 1, "what the rename overrides stays visible under it")
+
+        var resets = findByObjectName(dashboardPage, "tileNameReset")
+        var offered = 0
+        for (var r = 0; r < resets.length; r++) if (resets[r].visible) offered++
+        compare(offered, 1, "only the renamed row offers to take the name back")
+
+        // The click: the name becomes an editor, and the row is edited alone.
+        dashboardPage.renamingEntity = "light.hall"
+        wait(50)
+        var fields = findByObjectName(dashboardPage, "tileNameField")
+        var field = null
+        for (var f = 0; f < fields.length; f++) if (fields[f].visible) field = fields[f]
+        verify(!!field, "a click on the name opens an editor for it")
+        if (!field) return
+        compare(field.text, "Люстра над столом", "starting from the name in use")
+        compare(field.placeholderText, "light.hall", "showing what is being overridden")
+        var hiddenLabels = 0
+        for (var l = 0; l < labels.length; l++) if (!labels[l].visible) hiddenLabels++
+        compare(hiddenLabels, 1, "only that row turns into an editor")
+
+        // Enter, or a click away, saves.
+        field.text = "  Верхний свет  "
+        field.editingFinished()
+        wait(50)
+        compare(JSON.parse(dashboardPage.cfg_entityAliases)["light.hall"], "Верхний свет",
+                "typed spaces are trimmed on the way in")
+        verify(dashboardPage.renamingEntity === "", "and the row is a name again")
+
+        // An empty name is not a name: the entry is gone, not blank.
+        dashboardPage.setEntityName("light.hall", "")
+        wait(50)
+        verify(JSON.parse(dashboardPage.cfg_entityAliases)["light.hall"] === undefined,
+               "an empty name takes the override back")
+
+        dashboardPage.cfg_entityAliases = "{}"
     }
 }

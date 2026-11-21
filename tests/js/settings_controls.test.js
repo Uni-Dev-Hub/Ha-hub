@@ -112,3 +112,33 @@ test("the dashboard font is a setting, not a number baked into the tile", () => 
     assert.match(model, /TILE_POINT_SIZE_DEFAULT,/, "and the default size is exported");
     assert.match(model, /tileRowHeight,/, "with the row height it implies");
 });
+
+// A name the user gives an entity is one saved map, keyed by entity id, so it
+// holds across groups and outlives the tile. It is also the setting most
+//容易 to lose: Apply writes the keys of the page being shown, so a second page
+// holding this key would write the names back as they were when that page was
+// opened - which is exactly how the language used to disappear.
+test("entity names are one saved map, edited by exactly one page", () => {
+    const config = read("contents/config/main.xml");
+    assert.match(config, /<entry name="entityAliases" type="String">/, "names are a saved setting");
+
+    const page = read("contents/ui/settings/ConfigDashboard.qml");
+    assert.match(page, /property string cfg_entityAliases/, "the dashboard page holds them for Apply");
+    assert.match(page, /objectName:\s*"tileNameLabel"/, "a row shows the name");
+    assert.match(page, /objectName:\s*"tileNameField"/, "clicking that name edits it");
+    assert.match(page, /objectName:\s*"tileNameReset"/, "and an override can be taken back");
+    assert.match(page, /Keys\.onEscapePressed/, "Escape abandons the edit without saving it");
+    assert.match(page, /entityAliases:\s*dashboardSettings\.cfg_entityAliases/,
+        "the live preview is named with the names being typed");
+
+    for (const file of pages.filter(f => !/ConfigDashboard\.qml$/.test(f))) {
+        assert.doesNotMatch(read(file), /property string cfg_entityAliases/,
+            file + " must not hold the names: Apply would write them from a stale page");
+    }
+
+    // One place decides that a typed name outranks Home Assistant's.
+    const helpers = read("contents/code/ha_helpers.mjs");
+    assert.match(helpers, /function managerAlias/, "the alias is looked up in one function...");
+    assert.match(helpers, /function getEntityTitle[\s\S]{0,200}managerAlias\(entId, haManager\)/,
+        "...which getEntityTitle asks before anything else");
+});

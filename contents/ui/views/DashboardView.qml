@@ -53,10 +53,15 @@ Item {
     // to re-resolve every tile on every single message.
     readonly property int liveRevision: haManager ? haManager.entitiesRevision : 0
     readonly property bool managerConnected: haManager ? haManager.isConnected : false
+    // A rename has to re-title the tiles immediately, not on the next state
+    // event - the manager counts its own revisions for exactly this.
+    readonly property int aliasRevision: (haManager && haManager.aliasesRevision !== undefined)
+        ? haManager.aliasesRevision : 0
     property string lang: Loc.language
 
     onLiveRevisionChanged: tileDataDebounce.restart()
     onManagerConnectedChanged: dashboardRoot.rebuildTileData()
+    onAliasRevisionChanged: dashboardRoot.rebuildTileData()
     onGroupsJsonChanged: dashboardRoot.rebuildTileData()
     onLegacyCardsJsonChanged: dashboardRoot.rebuildTileData()
     onLangChanged: dashboardRoot.rebuildTileData()
@@ -155,9 +160,14 @@ Item {
                     ? ent.attributes.icon
                     : (reg && reg.icon ? reg.icon : "");
                 var resolvedIcon = HAHelpers.resolveEntityIcon(rawIcon, domain);
+                // The name the user typed for this entity outranks what Home
+                // Assistant calls it - and outranks the catalog entry, whose
+                // name was computed before the rename happened.
+                var alias = (mgr && mgr.entityAliasFor) ? mgr.entityAliasFor(id) : "";
                 out[id] = {
-                    title: (entry && entry.name) ? entry.name
-                        : HAHelpers.getEntityTitle(id, ent, reg, mgr),
+                    title: alias ? alias
+                        : ((entry && entry.name) ? entry.name
+                            : HAHelpers.getEntityTitle(id, ent, reg, mgr)),
                     status: status,
                     valueText: valueText,
                     trailing: trailing,

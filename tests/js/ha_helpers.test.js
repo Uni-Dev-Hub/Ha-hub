@@ -225,3 +225,86 @@ test("entity icons keep the choice Home Assistant made", () => {
     assert.deepStrictEqual(shape(helpers.resolveEntityIcon(null, undefined)),
         { kind: "theme", name: "preferences-system-symbolic" });
 });
+
+// Objects returned by the sandboxed library carry another realm's prototype, so
+// they are compared as plain data.
+const plain = value => JSON.parse(JSON.stringify(value));
+
+// A name the user typed into the widget outranks whatever Home Assistant calls
+// the entity - which is the whole point of being able to type one. It lives in
+// one saved map, so it holds across groups and outlives the dashboard tile.
+test("parseAliases survives whatever the configuration holds", () => {
+    assert.deepStrictEqual(plain(helpers.parseAliases('{"light.hall":"Люстра"}')), { "light.hall": "Люстра" });
+    assert.deepStrictEqual(plain(helpers.parseAliases("")), {});
+    assert.deepStrictEqual(plain(helpers.parseAliases(null)), {});
+    assert.deepStrictEqual(plain(helpers.parseAliases(undefined)), {});
+    // Half-written, hand-edited, or the wrong shape: no names and no throw.
+    assert.deepStrictEqual(plain(helpers.parseAliases('{"light.hall": ')), {});
+    assert.deepStrictEqual(plain(helpers.parseAliases("not json at all")), {});
+    assert.deepStrictEqual(plain(helpers.parseAliases('["light.hall"]')), {});
+    // Already parsed (a QML variant coming back from the manager).
+    assert.deepStrictEqual(plain(helpers.parseAliases({ "light.hall": "Люстра" })), { "light.hall": "Люстра" });
+});
+
+test("an entity name is stored, replaced and taken back", () => {
+    let names = {};
+    names = helpers.setAlias(names, "light.hall", "Люстра");
+    assert.equal(helpers.aliasFor(names, "light.hall"), "Люстра");
+
+    names = helpers.setAlias(names, "light.hall", "  Люстра над столом  ");
+    assert.equal(helpers.aliasFor(names, "light.hall"), "Люстра над столом", "typed spaces are trimmed");
+
+    const two = helpers.setAlias(names, "sensor.out", "За окном");
+    assert.equal(Object.keys(two).length, 2, "a second name does not touch the first");
+    assert.equal(Object.keys(names).length, 1, "and the map handed in is left alone");
+
+    // An empty name is not a name: it takes the override back.
+    const cleared = helpers.setAlias(names, "light.hall", "   ");
+    assert.equal(helpers.aliasFor(cleared, "light.hall"), "");
+
+    // The configuration keeps this as a string; junk values are dropped on the
+    // way through rather than shown as a name.
+    assert.deepStrictEqual(plain(helpers.setAlias('{"a":"A"}', "b", "B")), { a: "A", b: "B" });
+    assert.deepStrictEqual(plain(helpers.setAlias({ a: 42, b: "", c: { "x": 1 } }, "d", "D")), { d: "D" });
+    assert.equal(helpers.aliasFor({ a: 42 }, "a"), "", "a number is not a name");
+    assert.equal(helpers.aliasFor({}, undefined), "");
+});
+
+test("the typed name wins over what Home Assistant says", () => {
+    const ent = { attributes: { friendly_name: "Hall light" } };
+
+    assert.equal(helpers.getEntityTitle("light.hall", ent, null, { entityAliases: '{"light.hall":"Люстра"}' }),
+        "Люстра");
+    // With no override, nothing about name resolution changes.
+    assert.equal(helpers.getEntityTitle("light.hall", ent, null, { entityAliases: "{}" }), "Hall light");
+    assert.equal(helpers.getEntityTitle("light.hall", ent, null, null), "Hall light");
+    assert.equal(helpers.getEntityTitle("light.hall", ent, null, { entityAliases: "{ broken" }), "Hall light");
+
+    // The manager owns the parsed map and may answer directly; an answer that
+    // is not a string must not become the entity's name.
+    assert.equal(helpers.getEntityTitle("light.hall", ent, null, { entityAliasFor: () => "Свет" }), "Свет");
+    assert.equal(helpers.getEntityTitle("light.hall", ent, null, { entityAliasFor: () => undefined }),
+        "Hall light");
+    assert.equal(helpers.managerAlias("light.hall", { entityAliases: "{ broken" }), "");
+});
+
+// The editor shows what Home Assistant calls an entity underneath the name the
+// user typed, so an override reads as one. That line must not answer with the
+// override itself, which is what getEntityTitle() does.
+test("what Home Assistant calls it, and what the user renamed it to, are different answers", () => {
+    const names = helpers.setAlias("{}", "light.hall", "Люстра");
+    const manager = {
+        entityAliases: JSON.stringify(names),
+        entityToDeviceMap: { "light.hall": "dev1", "switch.pump": "dev1" },
+        getDeviceRaw: () => ({ name: "Hall lamp" })
+    };
+    const ent = { attributes: { friendly_name: "Hall light" } };
+
+    assert.equal(helpers.getEntityTitle("light.hall", ent, null, manager), "Люстра");
+    assert.equal(helpers.entityTitleFromAssistant("light.hall", ent, null, manager), "Hall light");
+
+    // Without a friendly name the device's name is the assistant's answer.
+    assert.equal(helpers.entityTitleFromAssistant("switch.pump", {}, null, manager), "Hall lamp");
+    // And with neither, the id is.
+    assert.equal(helpers.entityTitleFromAssistant("sensor.x", {}, null, {}), "sensor.x");
+});
