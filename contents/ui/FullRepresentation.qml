@@ -23,6 +23,8 @@ PlasmaComponents3.Page {
     readonly property string dashboardGroups: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardGroups || "") : ""
     readonly property int dashboardColumns: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardColumns || 4) : 4
     readonly property string dashboardTileContent: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardTileContent || "both") : "both"
+    readonly property string dashboardFontFamily: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardFontFamily || "") : ""
+    readonly property real dashboardFontSize: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.dashboardFontSize || 0) : 0
 
     signal configureRequested()
 
@@ -117,6 +119,8 @@ PlasmaComponents3.Page {
             dashboardGroups: fullRoot.dashboardGroups
             dashboardColumns: fullRoot.dashboardColumns
             dashboardTileContent: fullRoot.dashboardTileContent
+            dashboardFontFamily: fullRoot.dashboardFontFamily
+            dashboardFontSize: fullRoot.dashboardFontSize
             onConfigureRequested: fullRoot.configureRequested()
             onOpenDetailsRequested: function(entId) {
                 fullRoot.activeDetailEntityId = entId;

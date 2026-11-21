@@ -27,6 +27,10 @@ Item {
     property int columns: 4
     // Global tile content default: "both" | "title" | "icon".
     property string tileContent: "both"
+    // Type for the tile text (Settings -> Dashboard). An empty family means the
+    // theme's font and a size of 0 the size a tile is designed at.
+    property string fontFamily: ""
+    property real fontSize: 0
 
     signal configureRequested()
     signal openDetailsRequested(string entId)
@@ -81,20 +85,86 @@ Item {
                 var reg = mgr && mgr.getEntityRegistry ? mgr.getEntityRegistry(id) : null;
                 var domain = HAHelpers.getDomain(id);
                 var state = ent ? String(ent.state) : "";
+                var status = ent ? HAHelpers.getStatusDetailsText(id, ent,
+                    mgr && mgr.entityToDeviceMap ? (mgr.entityToDeviceMap[id] || "") : "",
+                    mgr, dashboardRoot.lang) : "";
                 // Same action classes the device cards use for their switches.
                 var kind = "view";
                 if (["light", "switch", "input_boolean", "fan", "outlet"].indexOf(domain) !== -1) kind = "toggle";
                 else if (["script", "scene", "button", "automation", "input_button"].indexOf(domain) !== -1) kind = "action";
                 else if (domain === "lock") kind = "lock";
+                // Tiles live and die by their state line, so a dimmable light
+                // that is on also reports how bright it is (tooltip text).
+                var attrs = (ent && ent.attributes) ? ent.attributes : {};
+                if (domain === "light" && state === "on"
+                    && attrs.brightness !== undefined && attrs.brightness !== null) {
+                    status += " • " + Math.round(Number(attrs.brightness) / 2.55) + "%";
+                }
+                // The row-end answer: switches get a switch, measurables a
+                // value, everything else one honest state pictogram.
+                var trailing = "icon";
+                var valueText = "";
+                var stateIcon = "";
+                if (kind === "toggle") {
+                    trailing = "switch";
+                } else if (domain === "climate" || domain === "water_heater") {
+                    if (attrs.current_temperature !== undefined && attrs.current_temperature !== null) {
+                        trailing = "value";
+                        var tUnit = attrs.temperature_unit || attrs.unit_of_measurement || "";
+                        valueText = String(attrs.current_temperature) + (tUnit ? " " + tUnit : "");
+                    }
+                } else if (domain === "weather") {
+                    if (attrs.temperature !== undefined && attrs.temperature !== null) {
+                        trailing = "value";
+                        valueText = String(attrs.temperature)
+                            + (attrs.temperature_unit ? " " + attrs.temperature_unit : "");
+                    }
+                } else if (domain === "humidifier") {
+                    if (attrs.current_humidity !== undefined && attrs.current_humidity !== null) {
+                        trailing = "value";
+                        valueText = String(attrs.current_humidity) + " %";
+                    }
+                } else if (domain === "cover") {
+                    if (attrs.current_position !== undefined && attrs.current_position !== null) {
+                        trailing = "value";
+                        valueText = attrs.current_position + "%";
+                    }
+                    stateIcon = state === "open" ? "go-up-symbolic" : "go-down-symbolic";
+                } else if (["sensor", "number", "input_number"].indexOf(domain) !== -1) {
+                    trailing = "value";
+                    valueText = status;
+                } else if (domain === "lock") {
+                    stateIcon = state === "locked" ? "object-locked-symbolic" : "object-unlocked-symbolic";
+                } else if (domain === "binary_sensor") {
+                    stateIcon = HAHelpers.getBinarySensorIcon(attrs.device_class, state === "on");
+                } else if (domain === "media_player") {
+                    stateIcon = state === "playing" ? "media-playback-start-symbolic"
+                                                            : "media-playback-pause-symbolic";
+                } else if (["scene", "script", "automation", "button", "input_button"].indexOf(domain) !== -1) {
+                    stateIcon = "media-playback-start-symbolic";
+                } else if (domain === "person") {
+                    stateIcon = "user-identity-symbolic";
+                } else {
+                    stateIcon = HAHelpers.getDomainIcon(domain);
+                }
+                // The entity's own icon, as Home Assistant spells it. mdi:
+                // names are drawn from the bundled font so the tile shows the
+                // very glyph the user picked; anything else takes the domain
+                // icon, which is also what an unloaded font falls back to.
+                var rawIcon = (ent && ent.attributes && ent.attributes.icon)
+                    ? ent.attributes.icon
+                    : (reg && reg.icon ? reg.icon : "");
+                var resolvedIcon = HAHelpers.resolveEntityIcon(rawIcon, domain);
                 out[id] = {
                     title: (entry && entry.name) ? entry.name
                         : HAHelpers.getEntityTitle(id, ent, reg, mgr),
-                    status: ent ? HAHelpers.getStatusDetailsText(id, ent,
-                        mgr && mgr.entityToDeviceMap ? (mgr.entityToDeviceMap[id] || "") : "",
-                        mgr, dashboardRoot.lang) : "",
-                    icon: (ent && ent.attributes && ent.attributes.icon)
-                        ? ent.attributes.icon
-                        : ((reg && reg.icon) ? reg.icon : HAHelpers.getDomainIcon(domain)),
+                    status: status,
+                    valueText: valueText,
+                    trailing: trailing,
+                    stateIcon: stateIcon,
+                    icon: resolvedIcon.name,
+                    iconKind: resolvedIcon.kind,
+                    fallbackIcon: HAHelpers.getDomainIcon(domain),
                     domain: domain,
                     kind: kind,
                     isOn: state === "on" || state === "home" || state === "open"
@@ -170,7 +240,7 @@ Item {
         ColumnLayout {
             id: groupsColumn
             width: dashboardFlick.width
-            spacing: Kirigami.Units.largeSpacing
+            spacing: Kirigami.Units.mediumSpacing
 
             Repeater {
                 model: dashboardRoot.groups
@@ -185,6 +255,8 @@ Item {
                     dataMap: dashboardRoot.tileById
                     columns: dashboardRoot.columns
                     defaultContent: dashboardRoot.tileContent
+                    tileFontFamily: dashboardRoot.fontFamily
+                    tilePointSize: dashboardRoot.fontSize
                     onOpenDetailsRequested: function(entId) {
                         dashboardRoot.openDetailsRequested(entId);
                     }

@@ -29,8 +29,25 @@ var METRO_COLORS = [
     "#2d7d9a" // steel
 ];
 
-var TILE_SIZES = ["small", "medium", "wide", "large"];
+var TILE_SIZES = ["small", "medium", "wide"];
 var TILE_CONTENTS = ["", "both", "title", "icon"];
+
+// A tile row is one line of glyph and state answer plus the name in two lines,
+// set deliberately small. Settings -> Dashboard may override the point size,
+// and the row then grows: this is the single number the tile types itself with
+// and the grid measures its rows by.
+var TILE_POINT_SIZE_DEFAULT = 7.5;
+
+// Height of one tile row for a point size: the glyph line, two lines of the
+// chosen type and the gaps between them. Pixels come from 96 dpi (what Qt
+// reports by default) with the font's own leading on top.
+function tileRowHeight(pointSize, glyphHeight, spacing) {
+    var size = pointSize > 0 ? pointSize : TILE_POINT_SIZE_DEFAULT;
+    var lineHeight = Math.ceil(size * 96 / 72 * 1.35);
+    var glyph = glyphHeight > 0 ? glyphHeight : 16;
+    var gap = spacing > 0 ? spacing : 4;
+    return Math.round(glyph + 2 * lineHeight + 2 * gap);
+}
 
 function isValidHex(value) {
     return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value.trim());
@@ -62,13 +79,14 @@ function readableTextColor(hex) {
     return luminance > 0.45 ? "#1a1a1a" : "#ffffff";
 }
 
-// Grid footprint of a tile in columns/rows of the small 1x1 unit.
+// Grid footprint of a tile in columns/rows. Every tile is exactly one compact
+// row tall - size only decides how many columns it spans. (rows is still part
+// of the shape so callers and tests can reason about the grid.)
 function tileSpan(size, columns) {
     var cols = Math.max(1, columns || 4);
     if (size === "small") return { cols: 1, rows: 1 };
-    if (size === "medium") return { cols: Math.min(2, cols), rows: 2 };
-    if (size === "wide") return { cols: cols, rows: 2 };
-    return { cols: Math.min(4, cols), rows: 4 }; // large
+    if (size === "medium") return { cols: Math.min(2, cols), rows: 1 };
+    return { cols: cols, rows: 1 }; // wide (and legacy "large")
 }
 
 // Metro-style first-fit packing as plain rectangles, so the UI can place the
@@ -77,11 +95,16 @@ function tileSpan(size, columns) {
 // back into the unit width (the feedback loop that made the grid explode).
 // Here the unit comes from the popup width alone and never travels back up.
 // `tiles` entries need a `size`; returns { rects, rows, height } with rects
-// aligned to the input order (one rect per tile).
-function layoutTiles(tiles, columns, unit, spacing) {
+// aligned to the input order (one rect per tile). Widths come from `unit`
+// (the column width), heights from `rowHeight` - rows are short, so tiles
+// use the popup space efficiently instead of being squares. `rowHeight`
+// omitted or 0 keeps the old square geometry.
+function layoutTiles(tiles, columns, unit, spacing, rowHeight) {
     var cols = Math.max(1, Math.floor(columns) || 1);
     var step = unit + spacing;
     var list = tiles || [];
+    var row = rowHeight > 0 ? rowHeight : unit;
+    var vstep = row + spacing;
     var occupied = []; // [rowStart, rowEnd, colStart, colEnd] per placed tile
     var maxRow = 0;
 
@@ -107,9 +130,9 @@ function layoutTiles(tiles, columns, unit, spacing) {
                     if (r + h > maxRow) maxRow = r + h;
                     rects.push({
                         x: c * step,
-                        y: r * step,
+                        y: r * vstep,
                         w: w * unit + (w - 1) * spacing,
-                        h: h * unit + (h - 1) * spacing
+                        h: h * row + (h - 1) * spacing
                     });
                     placed = true;
                     break;
@@ -117,12 +140,12 @@ function layoutTiles(tiles, columns, unit, spacing) {
             }
         }
         // Pathological input guard: never drop a tile from the output.
-        if (!placed) rects.push({ x: 0, y: 0, w: unit, h: unit });
+        if (!placed) rects.push({ x: 0, y: 0, w: unit, h: row });
     }
     return {
         rects: rects,
         rows: maxRow,
-        height: maxRow > 0 ? maxRow * unit + (maxRow - 1) * spacing : 0
+        height: maxRow > 0 ? maxRow * row + (maxRow - 1) * spacing : 0
     };
 }
 
@@ -148,12 +171,19 @@ function generateId(prefix, taken) {
     return prefix + n;
 }
 
+// One size vocabulary for sanitize and setTileSize: "large" was folded into
+// the full-width single row in 1.2, everything unknown falls back to medium.
+function normalizeSize(value) {
+    if (value === "large") return "wide";
+    return TILE_SIZES.indexOf(value) !== -1 ? value : "medium";
+}
+
 function sanitizeTile(tile, takenEntities) {
     if (!tile || !tile.entityId) return null;
     var entityId = tile.entityId.toString();
     if (takenEntities[entityId]) return null;
     takenEntities[entityId] = true;
-    var size = TILE_SIZES.indexOf(tile.size) !== -1 ? tile.size : "medium";
+    var size = normalizeSize(tile.size);
     var content = TILE_CONTENTS.indexOf(tile.content) !== -1 ? tile.content : "";
     return { entityId: entityId, size: size, content: content };
 }
@@ -204,7 +234,7 @@ function migrateLegacyCards(cardsJson) {
         if (card.size === "1x1") size = "small";
         else if (card.size === "2x1") size = "wide";
         else if (card.size === "1x2") size = "medium";
-        else if (card.size === "2x2") size = "large";
+        else if (card.size === "2x2") size = "wide";
         var tile = sanitizeTile({ entityId: card.entityId, size: size }, takenEntities);
         if (tile) tiles.push(tile);
     }
@@ -323,7 +353,7 @@ function addTile(groups, groupId, entityId, size) {
     if (!group) return cloneGroups(groups);
     group.tiles.push({
         entityId: entityId,
-        size: TILE_SIZES.indexOf(size) !== -1 ? size : "medium",
+        size: normalizeSize(size),
         content: ""
     });
     return next;
@@ -395,7 +425,7 @@ function setTileSize(groups, groupId, entityId, size) {
     if (!group) return cloneGroups(groups);
     for (var i = 0; i < group.tiles.length; i++) {
         if (group.tiles[i].entityId === entityId) {
-            group.tiles[i].size = TILE_SIZES.indexOf(size) !== -1 ? size : "medium";
+            group.tiles[i].size = normalizeSize(size);
             return next;
         }
     }
@@ -419,11 +449,13 @@ export {
     METRO_COLORS,
     TILE_SIZES,
     TILE_CONTENTS,
+    TILE_POINT_SIZE_DEFAULT,
     isValidHex,
     normalizeHex,
     normalizeColor,
     readableTextColor,
     tileSpan,
+    tileRowHeight,
     layoutTiles,
     parseGroups,
     dumpGroups,

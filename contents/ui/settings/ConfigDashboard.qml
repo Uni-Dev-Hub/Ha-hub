@@ -17,6 +17,16 @@ Kirigami.ScrollablePage {
     title: Loc.t("Dashboard")
     topPadding: Kirigami.Units.smallSpacing
 
+    // This dialog has its own Loc instance: without the bridge every page here
+    // would stay in the system language no matter what is configured.
+    Components.LanguageBridge {
+        // Handed over where Plasma lets a settings page see the configuration
+        // at all; a page normally cannot, and then the language is saved the
+        // Plasma way - through the cfg_ property and Apply.
+        configuration: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration)
+            ? Plasmoid.configuration : null
+    }
+
     property string cfg_host: ""
     property string cfg_port: "8123"
     property bool cfg_useSsl: false
@@ -24,6 +34,8 @@ Kirigami.ScrollablePage {
     property string cfg_dashboardGroups: ""
     property string cfg_dashboardCards: "[]"
     property int cfg_dashboardColumns: 4
+    property string cfg_dashboardFontFamily: ""
+    property real cfg_dashboardFontSize: 0
     property string cfg_dashboardTileContent: "both"
 
     // Group the entity picker adds to; falls back to the first group.
@@ -242,11 +254,22 @@ Kirigami.ScrollablePage {
 
             Controls.ComboBox {
                 id: columnsCombo
+                objectName: "columnsCombo"
                 Kirigami.FormData.label: Loc.t("Grid columns:")
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 7
-                model: [2, 3, 4, 6]
+                // Every count the grid can pack. The layout itself takes any
+                // number, so a value missing here would leave a saved setting
+                // unselectable - and currentIndex below would quietly show the
+                // first entry while the configuration kept the real one.
+                readonly property var counts: [2, 3, 4, 5, 6]
+                model: counts.indexOf(dashboardSettings.cfg_dashboardColumns) !== -1
+                    ? counts
+                    : counts.concat([dashboardSettings.cfg_dashboardColumns]).sort(function (a, b) { return a - b; })
                 currentIndex: Math.max(0, model.indexOf(dashboardSettings.cfg_dashboardColumns))
-                onActivated: dashboardSettings.cfg_dashboardColumns = currentText
+                // The index the signal carries, not currentText: the control
+                // only moves currentIndex on its own picks, and the number the
+                // user chose is what has to end up in the configuration.
+                onActivated: (index) => dashboardSettings.cfg_dashboardColumns = Number(model[index])
             }
 
             Controls.ComboBox {
@@ -267,6 +290,54 @@ Kirigami.ScrollablePage {
                     return 0;
                 }
                 onActivated: dashboardSettings.cfg_dashboardTileContent = contentOptions[currentIndex].value
+            }
+
+            Controls.ComboBox {
+                id: fontCombo
+                objectName: "fontFamilyCombo"
+                Kirigami.FormData.label: Loc.t("Font:")
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 16
+
+                // An empty family means the font the theme picked, and it goes
+                // first so the override can be picked back off.
+                readonly property var families: [""].concat(
+                    Qt.fontFamilies().sort(function (a, b) { return a.localeCompare(b); }))
+                model: families
+                currentIndex: Math.max(0, families.indexOf(dashboardSettings.cfg_dashboardFontFamily))
+                displayText: currentIndex > 0 ? families[currentIndex] : Loc.t("System (default)")
+
+                delegate: Controls.ItemDelegate {
+                    required property int index
+                    width: fontCombo.width
+                    text: index > 0 ? fontCombo.families[index] : Loc.t("System (default)")
+                    highlighted: fontCombo.highlightedIndex === index
+                    onClicked: {
+                        fontCombo.currentIndex = index
+                        fontCombo.popup.dismiss()
+                        dashboardSettings.cfg_dashboardFontFamily = fontCombo.families[index]
+                    }
+                }
+                onActivated: (index) => dashboardSettings.cfg_dashboardFontFamily = families[index]
+            }
+
+            Controls.SpinBox {
+                id: fontSizeSpin
+                objectName: "fontSizeSpin"
+                Kirigami.FormData.label: Loc.t("Font size:")
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                // 0 is not a size: it is "the size a tile is designed at".
+                from: 0
+                to: 24
+                stepSize: 1
+                value: dashboardSettings.cfg_dashboardFontSize
+                textFromValue: function (size) {
+                    return size > 0 ? size.toFixed(1) + " pt" : Loc.t("Default");
+                }
+                valueFromText: function (text) {
+                    var parsed = parseFloat(text.replace(",", "."));
+                    return isNaN(parsed) ? 0 : parsed;
+                }
+                onValueModified: dashboardSettings.cfg_dashboardFontSize = value
             }
         }
 
@@ -352,7 +423,7 @@ Kirigami.ScrollablePage {
                                     }
                                 }
                                 PlasmaComponents3.ToolTip.visible: chipMouse.containsMouse
-                                PlasmaComponents3.ToolTip.text: Loc.t("Group color:")
+                                PlasmaComponents3.ToolTip.text: Loc.t("Accent color:")
                             }
 
                             PlasmaComponents3.TextField {
@@ -434,10 +505,9 @@ Kirigami.ScrollablePage {
                                 Controls.ComboBox {
                                     Layout.preferredWidth: Kirigami.Units.gridUnit * 8
                                     readonly property var sizeOptions: [
-                                        { value: "small", label: Loc.t("Small") },
-                                        { value: "medium", label: Loc.t("Medium") },
-                                        { value: "wide", label: Loc.t("Wide") },
-                                        { value: "large", label: Loc.t("Large") }
+                                        { value: "small", label: Loc.t("1 column") },
+                                        { value: "medium", label: Loc.t("2 columns") },
+                                        { value: "wide", label: Loc.t("Full width") }
                                     ]
                                     model: sizeOptions
                                     textRole: "label"
@@ -567,6 +637,8 @@ Kirigami.ScrollablePage {
                             legacyCardsJson: dashboardSettings.cfg_dashboardCards
                             columns: dashboardSettings.cfg_dashboardColumns
                             tileContent: dashboardSettings.cfg_dashboardTileContent
+                            fontFamily: dashboardSettings.cfg_dashboardFontFamily
+                            fontSize: dashboardSettings.cfg_dashboardFontSize
                             // Preview clicks should not try to navigate.
                             onConfigureRequested: {}
                             onOpenDetailsRequested: function(entId) {}
@@ -706,7 +778,7 @@ Kirigami.ScrollablePage {
             spacing: Kirigami.Units.smallSpacing
 
             PlasmaComponents3.Label {
-                text: Loc.t("Group color:")
+                text: Loc.t("Accent color:")
                 font.bold: true
             }
 

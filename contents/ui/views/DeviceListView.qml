@@ -19,6 +19,8 @@ ColumnLayout {
     property string dashboardGroups: ""
     property int dashboardColumns: 4
     property string dashboardTileContent: "both"
+    property string dashboardFontFamily: ""
+    property real dashboardFontSize: 0
 
     signal configureRequested()
     signal openDetailsRequested(string entId)
@@ -184,6 +186,8 @@ ColumnLayout {
         legacyCardsJson: listViewRoot.dashboardCards
         columns: listViewRoot.dashboardColumns
         tileContent: listViewRoot.dashboardTileContent
+        fontFamily: listViewRoot.dashboardFontFamily
+        fontSize: listViewRoot.dashboardFontSize
         onConfigureRequested: listViewRoot.configureRequested()
         onOpenDetailsRequested: function(entId) {
             listViewRoot.openDetailsRequested(entId);

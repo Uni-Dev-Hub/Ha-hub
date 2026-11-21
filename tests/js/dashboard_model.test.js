@@ -81,7 +81,7 @@ test("legacy cards migrate into one untitled colourless group", () => {
     assert.equal(groups.length, 1);
     assert.equal(groups[0].name, "");
     assert.equal(groups[0].color, null, "keeps following the system accent");
-    eq(groups[0].tiles.map((t) => t.size), ["small", "wide", "large", "medium"]);
+    eq(groups[0].tiles.map((t) => t.size), ["small", "wide", "wide", "medium"]);
 
     // A configured dashboard wins over the legacy cards...
     assert.equal(model.normalizeDashboardModel(sampleJson(), cards).length, 2);
@@ -114,28 +114,32 @@ test("readableTextColor picks a legible text colour", () => {
 
 test("tile spans stay inside the grid", () => {
     eq(model.tileSpan("small", 4), { cols: 1, rows: 1 });
-    eq(model.tileSpan("medium", 4), { cols: 2, rows: 2 });
-    eq(model.tileSpan("wide", 2), { cols: 2, rows: 2 }, "wide never exceeds columns");
-    eq(model.tileSpan("large", 2), { cols: 2, rows: 4 });
-    eq(model.tileSpan("nonsense", 4), { cols: 4, rows: 4 }, "unknown sizes read as large");
+    eq(model.tileSpan("medium", 4), { cols: 2, rows: 1 }, "rows are always one tile tall");
+    eq(model.tileSpan("wide", 2), { cols: 2, rows: 1 }, "wide never exceeds columns");
+    eq(model.tileSpan("large", 2), { cols: 2, rows: 1 }, "legacy large reads as wide");
+    eq(model.tileSpan("nonsense", 4), { cols: 4, rows: 1 }, "unknown sizes read as wide");
 });
 
 test("layoutTiles packs tiles without any layout manager", () => {
-    // 4 columns, unit 70 px, 6 px gaps.
+    // 4 columns, 70 px units, 6 px gaps, 36 px rows.
     const tiles = [
         { size: "small" },  // 1x1 at (0,0)
         { size: "small" },  // 1x1 at (76,0)
-        { size: "medium" }, // 2x2 still fits in row 0: columns 2..4
-        { size: "wide" }    // 4x2 needs the rows below the medium
+        { size: "medium" }, // 2x1 still fits in row 0: columns 2..4
+        { size: "wide" }    // 4x1 needs the row below
     ];
-    const out = model.layoutTiles(tiles, 4, 70, 6);
-    eq(out.rects[0], { x: 0, y: 0, w: 70, h: 70 });
-    eq(out.rects[1], { x: 76, y: 0, w: 70, h: 70 });
-    eq(out.rects[2], { x: 152, y: 0, w: 146, h: 146 });
-    eq(out.rects[3], { x: 0, y: 152, w: 298, h: 146 });
-    assert.equal(out.rows, 4);
-    assert.equal(out.height, 4 * 70 + 3 * 6);
+    const out = model.layoutTiles(tiles, 4, 70, 6, 36);
+    eq(out.rects[0], { x: 0, y: 0, w: 70, h: 36 });
+    eq(out.rects[1], { x: 76, y: 0, w: 70, h: 36 });
+    eq(out.rects[2], { x: 152, y: 0, w: 146, h: 36 });
+    eq(out.rects[3], { x: 0, y: 42, w: 298, h: 36 });
+    assert.equal(out.rows, 2);
+    assert.equal(out.height, 2 * 36 + 6);
     assert.equal(out.rects.length, tiles.length, "one rect per tile, in order");
+
+    // Without a row height the old square geometry is kept.
+    eq(model.layoutTiles([{ size: "small" }], 4, 70, 6).rects[0],
+       { x: 0, y: 0, w: 70, h: 70 });
 });
 
 test("layoutTiles never overlaps and never exceeds the columns", () => {
@@ -206,7 +210,7 @@ test("tile CRUD keeps entities unique and edits in place", () => {
                  JSON.stringify(groups), "unknown group is a no-op");
 
     const resized = model.setTileSize(withTile, "g2", "fan.bedroom", "large");
-    assert.equal(resized[1].tiles[0].size, "large");
+    assert.equal(resized[1].tiles[0].size, "wide", "legacy large maps onto the full-width row");
     assert.equal(model.setTileSize(resized, "g2", "fan.bedroom", "huge")[1].tiles[0].size, "medium");
 
     const retitled = model.setTileContent(resized, "g2", "fan.bedroom", "title");

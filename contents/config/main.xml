@@ -59,6 +59,12 @@
     <entry name="dashboardTileContent" type="String">
       <default>both</default>
     </entry>
+    <entry name="dashboardFontFamily" type="String">
+      <default></default>
+    </entry>
+    <entry name="dashboardFontSize" type="Double">
+      <default>0</default>
+    </entry>
     <entry name="headerPersonEntityId" type="String">
       <default></default>
     </entry>
