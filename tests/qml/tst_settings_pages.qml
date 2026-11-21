@@ -413,6 +413,23 @@ TestCase {
         for (var r = 0; r < resets.length; r++) if (resets[r].visible) offered++
         compare(offered, 1, "only the renamed row offers to take the name back")
 
+        // And the list reads as a table: the three dropdowns of every row stand
+        // over one column, whatever the row's name happens to be - a row that
+        // measured its name block to its own text, or that showed the reset
+        // button only where there was something to reset, moved them.
+        var columns = ["tileSizeCombo", "tileContentCombo", "tileGroupCombo"]
+        for (var c = 0; c < columns.length; c++) {
+            var starts = {}
+            for (var d = 0; d < cards.length; d++) {
+                var cell = findByObjectName(cards[d], columns[c])
+                verify(cell.length === 1, columns[c] + " once in every row: " + cell.length)
+                if (cell.length !== 1) return
+                starts[Math.round(cell[0].mapToItem(dashboardPage, 0, 0, 0, 0).x)] = true
+            }
+            compare(Object.keys(starts).length, 1,
+                    columns[c] + " starts at one place in all " + cards.length + " rows")
+        }
+
         // The click: the name becomes an editor, and the row is edited alone.
         dashboardPage.renamingEntity = "light.hall"
         wait(50)
@@ -474,7 +491,10 @@ TestCase {
 
     function pageFits(host, page, label, width) {
         var items = textBearing(page)
+        // What each page shows at all: the favorites picker without a connection
+        // has little to measure, so it is held to less.
         var atLeast = { general: 6, dashboard: 5, appearance: 4, favorites: 1 }
+        var pageName = label.split(" ")[0]
         var problems = []
         for (var i = 0; i < items.length; i++) {
             var edge = items[i].mapToItem(page, items[i].width, 0, 0, 0).x
@@ -485,37 +505,89 @@ TestCase {
         }
         verify(page.width >= width - 2 * Kirigami.Units.gridUnit,
                 label + " at " + width + "px really got that width: " + Math.round(page.width))
-        verify(items.length >= atLeast[label], label + " at " + width
+        verify(items.length >= atLeast[pageName], label + " at " + width
                + "px shows enough to measure: " + items.length)
         verify(problems.length === 0, label + " at " + width + "px: " + problems.join(" ; "))
+    }
+
+    function openHosted(name) {
+        return dialogHost.pageStack.replace(
+            Qt.resolvedUrl("../../contents/ui/settings/Config"
+                           + name.substring(0, 1).toUpperCase()
+                           + name.substring(1) + ".qml"),
+            { cfg_dashboardGroups: JSON.stringify([{
+                id: "g1", name: "G", color: "#0078d7",
+                tiles: [{ entityId: "light.hall", size: "wide", content: "" },
+                        { entityId: "cover.gate", size: "medium", content: "" }]
+            }]),
+              cfg_entityAliases: JSON.stringify({ "light.hall": "Люстра" }),
+              cfg_dashboardColumns: 3 })
     }
 
     function test_7_every_page_fits_the_width_it_is_given() {
         var names = ["general", "dashboard", "appearance", "favorites"]
         var widths = [460, 620, 810, 1100, 1380]
-        // The widest language available, because a label column is only as wide
-        // as the widest label - English hides what Russian shows.
+        // The two widest languages: a label column is only as wide as the widest
+        // label, and German labels are longer than Russian ones - English, the
+        // language of the source, hides both.
         var languageBefore = Loc.configuredLanguage
-        Loc.configuredLanguage = "ru"
+        var languages = ["ru", "de"]
+        for (var l = 0; l < languages.length; l++) {
+            Loc.configuredLanguage = languages[l]
+            wait(80)
+            for (var i = 0; i < widths.length; i++) {
+                dialogHost.width = widths[i]
+                for (var q = 0; q < names.length; q++) {
+                    var page = openHosted(names[q])
+                    wait(160)
+                    verify(!!page, names[q] + " opens in the host")
+                    if (!page) continue
+                    pageFits(dialogHost, page, names[q] + " " + languages[l], widths[i])
+                }
+            }
+        }
+        Loc.configuredLanguage = languageBefore
+        wait(60)
+    }
+
+    // Kirigami gives a form the whole width of the space it is in and centres the
+    // label and field columns of its content inside that width. Untreated, a form
+    // as wide as the page therefore put its fields somewhere near the middle of
+    // the window, with the leftovers of that width around them.
+    function findByClass(item, part, out) {
+        out = out || []
+        if (!item) return out
+        if (String(item).indexOf(part) >= 0) out.push(item)
+        var kids = item.children || []
+        for (var i = 0; i < kids.length; i++) findByClass(kids[i], part, out)
+        return out
+    }
+
+    function test_9_a_form_keeps_to_the_left_of_its_page() {
+        var languageBefore = Loc.configuredLanguage
+        Loc.configuredLanguage = "de"
         wait(80)
-        for (var i = 0; i < widths.length; i++) {
-            dialogHost.width = widths[i]
-            for (var q = 0; q < names.length; q++) {
-                var page = dialogHost.pageStack.replace(
-                    Qt.resolvedUrl("../../contents/ui/settings/Config"
-                                   + names[q].substring(0, 1).toUpperCase()
-                                   + names[q].substring(1) + ".qml"),
-                    { cfg_dashboardGroups: JSON.stringify([{
-                        id: "g1", name: "G", color: "#0078d7",
-                        tiles: [{ entityId: "light.hall", size: "wide", content: "" },
-                                { entityId: "cover.gate", size: "medium", content: "" }]
-                    }]),
-                      cfg_entityAliases: JSON.stringify({ "light.hall": "Люстра" }),
-                      cfg_dashboardColumns: 3 })
-                wait(160)
-                verify(!!page, names[q] + " opens in the host")
-                if (!page) continue
-                pageFits(dialogHost, page, names[q], widths[i])
+        dialogHost.width = 1100
+        var names = ["general", "appearance", "dashboard"]
+        for (var q = 0; q < names.length; q++) {
+            var page = openHosted(names[q])
+            wait(200)
+            verify(!!page, names[q] + " opens in the host")
+            if (!page) continue
+            var forms = findByClass(page, "FormLayout")
+            verify(forms.length >= 1, names[q] + " lays its fields out in a form: " + forms.length)
+            for (var f = 0; f < forms.length; f++) {
+                var left = forms[f].mapToItem(page, 0, 0, 0, 0).x
+                verify(left <= page.leftPadding + 1,
+                       names[q] + " form " + f + " starts at the left edge: "
+                       + Math.round(left) + " of padding " + Math.round(page.leftPadding))
+                verify(forms[f].width <= Math.ceil(forms[f].implicitWidth) + 1,
+                       names[q] + " form " + f + " is no wider than its own content: "
+                       + Math.round(forms[f].width) + " against "
+                       + Math.round(forms[f].implicitWidth))
+                verify(forms[f].width < page.width - Kirigami.Units.gridUnit * 2,
+                       names[q] + " form " + f + " does not spread over the page: "
+                       + Math.round(forms[f].width) + " of " + Math.round(page.width))
             }
         }
         Loc.configuredLanguage = languageBefore

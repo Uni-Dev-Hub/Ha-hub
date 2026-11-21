@@ -86,161 +86,180 @@ Kirigami.ScrollablePage {
     readonly property real formFieldWidth: Math.max(Kirigami.Units.gridUnit * 12,
         availableWidth - Kirigami.Units.gridUnit * 22)
 
-    Kirigami.FormLayout {
-        id: formLayout
-        Layout.fillWidth: true
+    // A column of the page: a child put directly in a Kirigami page is
+    // anchored to its full width, and the box below would be stretched
+    // over it again.
+    ColumnLayout {
+        spacing: 0
+        // Kirigami gives a form the whole width of the space it is put in and
+        // centres the two columns of its content inside that width, so a form as wide
+        // as the page shows its labels and fields somewhere in the middle of the
+        // window. The box is only as wide as the form asks itself to be and stands on
+        // the left, so there is nothing left to centre; in a window narrower than that
+        // the form reflows into one column and the box follows it down.
+        Item {
+            Layout.preferredWidth: Math.min(generalSettings.availableWidth, formLayout.implicitWidth)
+            Layout.preferredHeight: formLayout.implicitHeight
+            Layout.alignment: Qt.AlignLeft
 
-        Controls.TextField {
-            id: hostField
-            Kirigami.FormData.label: Loc.t("HA Host / IP:")
-            placeholderText: "homeassistant.local or 192.168.1.100"
-            text: generalSettings.cfg_host
-            Layout.fillWidth: true
-            Layout.preferredWidth: generalSettings.formFieldWidth
-            onTextEdited: generalSettings.cfg_host = text
-        }
+            Kirigami.FormLayout {
+                id: formLayout
+                anchors.fill: parent
 
-        Controls.TextField {
-            id: portField
-            Kirigami.FormData.label: Loc.t("Port:")
-            placeholderText: "8123"
-            text: String(generalSettings.cfg_port)
-            inputMethodHints: Qt.ImhDigitsOnly
-            onTextEdited: {
-                var parsed = parseInt(text);
-                if (!isNaN(parsed) && parsed > 0 && parsed <= 65535) {
-                    generalSettings.cfg_port = parsed;
-                }
-            }
-        }
-
-        Controls.CheckBox {
-            id: sslCheckBox
-            Kirigami.FormData.label: Loc.t("SSL Connection:")
-            text: Loc.t("Use wss://")
-            checked: generalSettings.cfg_useSsl
-            onToggled: generalSettings.cfg_useSsl = checked
-        }
-
-        Controls.TextField {
-            id: tokenField
-            Kirigami.FormData.label: Loc.t("Access Token:")
-            placeholderText: "Long-Lived Access Token"
-            text: generalSettings.cfg_accessToken
-            echoMode: TextInput.Password
-            Layout.fillWidth: true
-            Layout.preferredWidth: generalSettings.formFieldWidth
-            onTextEdited: generalSettings.cfg_accessToken = text
-        }
-
-        Controls.Label {
-            visible: generalSettings.cfg_accessToken.length === 0
-            text: Loc.t("A previously saved token is kept in the widget's private storage and used automatically. Enter a new token here only to replace it.")
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-            Layout.preferredWidth: generalSettings.formFieldWidth
-            font.italic: true
-            opacity: 0.65
-        }
-
-        Controls.CheckBox {
-            id: autoConnectCheckBox
-            Kirigami.FormData.label: Loc.t("Auto Connect:")
-            text: Loc.t("Connect on startup")
-            checked: generalSettings.cfg_autoConnect
-            onToggled: generalSettings.cfg_autoConnect = checked
-        }
-
-        Controls.ComboBox {
-            id: languageCombo
-            objectName: "languageCombo"
-            Kirigami.FormData.label: Loc.t("Language:")
-            Layout.fillWidth: true
-            Layout.preferredWidth: generalSettings.formFieldWidth
-
-            // The model carries only what never changes: the codes and the
-            // names each language writes about itself. A translated string
-            // inside the model would rebuild the model at the very moment the
-            // language changes (the picker retranslates as it picks), and the
-            // control resets its currentIndex when the model is swapped.
-            readonly property var entries: [{ code: "system" }].concat(Loc.languages)
-            readonly property string systemLabel: Loc.t("System language")
-            model: entries
-            textRole: "code"
-
-            function labelFor(code) {
-                if (code === "system") return languageCombo.systemLabel
-                var langs = Loc.languages
-                for (var i = 0; i < langs.length; ++i) {
-                    if (langs[i].code === code) return langs[i].label
-                }
-                return code
-            }
-            function indexForCode(code) {
-                for (var i = 0; i < entries.length; ++i) {
-                    if (entries[i].code === code) return i
-                }
-                return 0
+            Controls.TextField {
+                id: hostField
+                Kirigami.FormData.label: Loc.t("HA Host / IP:")
+                placeholderText: "homeassistant.local or 192.168.1.100"
+                text: generalSettings.cfg_host
+                Layout.fillWidth: true
+                Layout.preferredWidth: generalSettings.formFieldWidth
+                onTextEdited: generalSettings.cfg_host = text
             }
 
-            currentIndex: indexForCode(generalSettings.cfg_language)
-            // Translated on its own, so switching language retranslates the
-            // button and the list without touching the model.
-            displayText: currentIndex >= 0 && currentIndex < entries.length
-                ? languageCombo.labelFor(entries[currentIndex].code) : ""
-
-            delegate: Controls.ItemDelegate {
-                required property var modelData
-                required property int index
-                width: languageCombo.width
-                text: languageCombo.labelFor(modelData.code)
-                highlighted: languageCombo.highlightedIndex === index
-                onClicked: {
-                    // A pick is a pick, wherever it came from. Writing popup.closed
-                    // used to live here, and since that property is read-only the
-                    // assignment threw a TypeError that stopped the handler before
-                    // the language was ever handed over: the list looked dead.
-                    languageCombo.currentIndex = index
-                    languageCombo.popup.dismiss()
-                    generalSettings.selectLanguage(modelData.code)
+            Controls.TextField {
+                id: portField
+                Kirigami.FormData.label: Loc.t("Port:")
+                placeholderText: "8123"
+                text: String(generalSettings.cfg_port)
+                inputMethodHints: Qt.ImhDigitsOnly
+                onTextEdited: {
+                    var parsed = parseInt(text);
+                    if (!isNaN(parsed) && parsed > 0 && parsed <= 65535) {
+                        generalSettings.cfg_port = parsed;
+                    }
                 }
             }
 
-            // Keyboard navigation in the popup ends here instead of in a delegate
-            // click. selectLanguage ignores a pick of the language already set.
-            onActivated: (index) => generalSettings.selectLanguage(entries[index].code)
-        }
+            Controls.CheckBox {
+                id: sslCheckBox
+                Kirigami.FormData.label: Loc.t("SSL Connection:")
+                text: Loc.t("Use wss://")
+                checked: generalSettings.cfg_useSsl
+                onToggled: generalSettings.cfg_useSsl = checked
+            }
 
-        // The language is applied the moment it is picked, but like every other
-        // setting it is only stored on Apply - and a page cannot store it
-        // itself: the configuration lives in the applet's context, not in one a
-        // settings page can reach. Say so, rather than let the user find out
-        // when the dialog is closed.
-        PlasmaComponents3.Label {
-            text: Loc.t("Apply to keep this language after closing the settings.")
-            font.pointSize: Kirigami.Theme.smallFont.pointSize
-            color: Kirigami.Theme.disabledTextColor
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-            Layout.preferredWidth: generalSettings.formFieldWidth
-        }
+            Controls.TextField {
+                id: tokenField
+                Kirigami.FormData.label: Loc.t("Access Token:")
+                placeholderText: "Long-Lived Access Token"
+                text: generalSettings.cfg_accessToken
+                echoMode: TextInput.Password
+                Layout.fillWidth: true
+                Layout.preferredWidth: generalSettings.formFieldWidth
+                onTextEdited: generalSettings.cfg_accessToken = text
+            }
 
-        Controls.CheckBox {
-            id: showHiddenCheckBox
-            Kirigami.FormData.label: Loc.t("Device List:")
-            text: Loc.t("Show hidden entities")
-            checked: generalSettings.cfg_showHiddenEntities
-            onToggled: generalSettings.cfg_showHiddenEntities = checked
-        }
+            Controls.Label {
+                visible: generalSettings.cfg_accessToken.length === 0
+                text: Loc.t("A previously saved token is kept in the widget's private storage and used automatically. Enter a new token here only to replace it.")
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+                Layout.preferredWidth: generalSettings.formFieldWidth
+                font.italic: true
+                opacity: 0.65
+            }
 
-        // The two belong together, so only the first of them is labelled and
-        // the second sits under it in the column of fields. Labelled twice, the
-        // page read the same heading out twice for two different settings.
-        Controls.CheckBox {
-            id: showDiagnosticCheckBox
-            text: Loc.t("Show diagnostic / config entities")
-            checked: generalSettings.cfg_showDiagnosticEntities
-            onToggled: generalSettings.cfg_showDiagnosticEntities = checked
+            Controls.CheckBox {
+                id: autoConnectCheckBox
+                Kirigami.FormData.label: Loc.t("Auto Connect:")
+                text: Loc.t("Connect on startup")
+                checked: generalSettings.cfg_autoConnect
+                onToggled: generalSettings.cfg_autoConnect = checked
+            }
+
+            Controls.ComboBox {
+                id: languageCombo
+                objectName: "languageCombo"
+                Kirigami.FormData.label: Loc.t("Language:")
+                Layout.fillWidth: true
+                Layout.preferredWidth: generalSettings.formFieldWidth
+
+                // The model carries only what never changes: the codes and the
+                // names each language writes about itself. A translated string
+                // inside the model would rebuild the model at the very moment the
+                // language changes (the picker retranslates as it picks), and the
+                // control resets its currentIndex when the model is swapped.
+                readonly property var entries: [{ code: "system" }].concat(Loc.languages)
+                readonly property string systemLabel: Loc.t("System language")
+                model: entries
+                textRole: "code"
+
+                function labelFor(code) {
+                    if (code === "system") return languageCombo.systemLabel
+                    var langs = Loc.languages
+                    for (var i = 0; i < langs.length; ++i) {
+                        if (langs[i].code === code) return langs[i].label
+                    }
+                    return code
+                }
+                function indexForCode(code) {
+                    for (var i = 0; i < entries.length; ++i) {
+                        if (entries[i].code === code) return i
+                    }
+                    return 0
+                }
+
+                currentIndex: indexForCode(generalSettings.cfg_language)
+                // Translated on its own, so switching language retranslates the
+                // button and the list without touching the model.
+                displayText: currentIndex >= 0 && currentIndex < entries.length
+                    ? languageCombo.labelFor(entries[currentIndex].code) : ""
+
+                delegate: Controls.ItemDelegate {
+                    required property var modelData
+                    required property int index
+                    width: languageCombo.width
+                    text: languageCombo.labelFor(modelData.code)
+                    highlighted: languageCombo.highlightedIndex === index
+                    onClicked: {
+                        // A pick is a pick, wherever it came from. Writing popup.closed
+                        // used to live here, and since that property is read-only the
+                        // assignment threw a TypeError that stopped the handler before
+                        // the language was ever handed over: the list looked dead.
+                        languageCombo.currentIndex = index
+                        languageCombo.popup.dismiss()
+                        generalSettings.selectLanguage(modelData.code)
+                    }
+                }
+
+                // Keyboard navigation in the popup ends here instead of in a delegate
+                // click. selectLanguage ignores a pick of the language already set.
+                onActivated: (index) => generalSettings.selectLanguage(entries[index].code)
+            }
+
+            // The language is applied the moment it is picked, but like every other
+            // setting it is only stored on Apply - and a page cannot store it
+            // itself: the configuration lives in the applet's context, not in one a
+            // settings page can reach. Say so, rather than let the user find out
+            // when the dialog is closed.
+            PlasmaComponents3.Label {
+                text: Loc.t("Apply to keep this language after closing the settings.")
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+                Layout.preferredWidth: generalSettings.formFieldWidth
+            }
+
+            Controls.CheckBox {
+                id: showHiddenCheckBox
+                Kirigami.FormData.label: Loc.t("Device List:")
+                text: Loc.t("Show hidden entities")
+                checked: generalSettings.cfg_showHiddenEntities
+                onToggled: generalSettings.cfg_showHiddenEntities = checked
+            }
+
+            // The two belong together, so only the first of them is labelled and
+            // the second sits under it in the column of fields. Labelled twice, the
+            // page read the same heading out twice for two different settings.
+            Controls.CheckBox {
+                id: showDiagnosticCheckBox
+                text: Loc.t("Show diagnostic / config entities")
+                checked: generalSettings.cfg_showDiagnosticEntities
+                onToggled: generalSettings.cfg_showDiagnosticEntities = checked
+            }
+
         }
+    }
     }
 }

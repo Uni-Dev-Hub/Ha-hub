@@ -46,7 +46,9 @@ test("signal handlers take their parameters formally", () => {
 // configuration quietly kept the real one.
 test("the grid columns picker offers every count the grid can pack", () => {
     const dashboard = read("contents/ui/settings/ConfigDashboard.qml");
-    const combo = dashboard.match(/Controls\.ComboBox \{\s*\n\s*id: columnsCombo[\s\S]*?\n {12}\}/);
+    // The closing brace of the combo, whatever column the form it sits in
+    // happens to be indented to.
+    const combo = dashboard.match(/Controls\.ComboBox \{\s*\n\s*id: columnsCombo[\s\S]*?\n {12,20}\}/);
     assert.ok(combo, "the columns combo is there");
     const counts = combo[0].match(/readonly property var counts:\s*\[([\d,\s]+)\]/);
     assert.ok(counts, "the offered counts are listed in one place");

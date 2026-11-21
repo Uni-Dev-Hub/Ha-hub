@@ -96,7 +96,6 @@ Kirigami.ScrollablePage {
         return 0;
     }
 
-
     // Same bound as on the General page, for the same reason: what a form holds
     // decides how wide it makes itself, and a hint line or a picker asks for
     // more than the window has.
@@ -107,35 +106,49 @@ Kirigami.ScrollablePage {
         spacing: Kirigami.Units.largeSpacing
         width: parent.width
 
-        Kirigami.FormLayout {
-            Layout.fillWidth: true
+        // Kirigami gives a form the whole width of the space it is put in and
+        // centres the two columns of its content inside that width, so a form as wide
+        // as the page shows its labels and fields somewhere in the middle of the
+        // window. The box is only as wide as the form asks itself to be and stands on
+        // the left, so there is nothing left to centre; in a window narrower than that
+        // the form reflows into one column and the box follows it down.
+        Item {
+            Layout.preferredWidth: Math.min(appearancePage.availableWidth, viewsForm.implicitWidth)
+            Layout.preferredHeight: viewsForm.implicitHeight
+            Layout.alignment: Qt.AlignLeft
 
-            Controls.CheckBox {
-                id: dashboardViewCheck
-                Kirigami.FormData.label: Loc.t("Views in popup:")
-                text: Loc.t("Show 'Dashboard' tab")
-                checked: appearancePage.cfg_showDashboard
-                // Turning the only remaining view off would leave an empty popup.
-                enabled: !checked || appearancePage.cfg_showDevices
-                onToggled: appearancePage.cfg_showDashboard = checked
-            }
+            Kirigami.FormLayout {
+                id: viewsForm
+                anchors.fill: parent
 
-            Controls.CheckBox {
-                id: devicesViewCheck
-                text: Loc.t("Show 'Devices' tab")
-                checked: appearancePage.cfg_showDevices
-                enabled: !checked || appearancePage.cfg_showDashboard
-                onToggled: appearancePage.cfg_showDevices = checked
-            }
+                Controls.CheckBox {
+                    id: dashboardViewCheck
+                    Kirigami.FormData.label: Loc.t("Views in popup:")
+                    text: Loc.t("Show 'Dashboard' tab")
+                    checked: appearancePage.cfg_showDashboard
+                    // Turning the only remaining view off would leave an empty popup.
+                    enabled: !checked || appearancePage.cfg_showDevices
+                    onToggled: appearancePage.cfg_showDashboard = checked
+                }
 
-            PlasmaComponents3.Label {
-                visible: appearancePage.enabledViewCount < 2
-                text: Loc.t("Only one view is shown, so the switch button between Dashboard and Devices is hidden.")
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                color: Kirigami.Theme.disabledTextColor
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                Layout.preferredWidth: appearancePage.formFieldWidth
+                Controls.CheckBox {
+                    id: devicesViewCheck
+                    text: Loc.t("Show 'Devices' tab")
+                    checked: appearancePage.cfg_showDevices
+                    enabled: !checked || appearancePage.cfg_showDashboard
+                    onToggled: appearancePage.cfg_showDevices = checked
+                }
+
+                PlasmaComponents3.Label {
+                    visible: appearancePage.enabledViewCount < 2
+                    text: Loc.t("Only one view is shown, so the switch button between Dashboard and Devices is hidden.")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    color: Kirigami.Theme.disabledTextColor
+                    wrapMode: Text.WordWrap
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: appearancePage.formFieldWidth
+                }
+
             }
         }
 
@@ -150,63 +163,77 @@ Kirigami.ScrollablePage {
             font.pointSize: Qt.application.font.pointSize * 1.05
         }
 
-        Kirigami.FormLayout {
-            Layout.fillWidth: true
+        // Kirigami gives a form the whole width of the space it is put in and
+        // centres the two columns of its content inside that width, so a form as wide
+        // as the page shows its labels and fields somewhere in the middle of the
+        // window. The box is only as wide as the form asks itself to be and stands on
+        // the left, so there is nothing left to centre; in a window narrower than that
+        // the form reflows into one column and the box follows it down.
+        Item {
+            Layout.preferredWidth: Math.min(appearancePage.availableWidth, headerForm.implicitWidth)
+            Layout.preferredHeight: headerForm.implicitHeight
+            Layout.alignment: Qt.AlignLeft
 
-            // Combo plus its hint as one real Layout cell: the FormLayout can
-            // measure it, so the label on the left lines up with its centre.
-            ColumnLayout {
-                Kirigami.FormData.label: Loc.t("User picture:")
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 24
-                spacing: Kirigami.Units.smallSpacing * 0.6
+            Kirigami.FormLayout {
+                id: headerForm
+                anchors.fill: parent
 
-                Controls.ComboBox {
-                    id: personCombo
-                    Layout.fillWidth: true
-                    enabled: headerManager.isConnected
-                    model: appearancePage.personChoice
-                    textRole: "name"
-                    currentIndex: appearancePage.personIndex
-                    onActivated: {
-                        var item = model[currentIndex];
-                        appearancePage.cfg_headerPersonEntityId = item ? item.id : "";
+                // Combo plus its hint as one real Layout cell: the FormLayout can
+                // measure it, so the label on the left lines up with its centre.
+                ColumnLayout {
+                    Kirigami.FormData.label: Loc.t("User picture:")
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 24
+                    spacing: Kirigami.Units.smallSpacing * 0.6
+
+                    Controls.ComboBox {
+                        id: personCombo
+                        Layout.fillWidth: true
+                        enabled: headerManager.isConnected
+                        model: appearancePage.personChoice
+                        textRole: "name"
+                        currentIndex: appearancePage.personIndex
+                        onActivated: {
+                            var item = model[currentIndex];
+                            appearancePage.cfg_headerPersonEntityId = item ? item.id : "";
+                        }
+                    }
+
+                    PlasmaComponents3.Label {
+                        text: Loc.t("The picture comes from the selected person in Home Assistant. Nothing is shown when that person has no picture.")
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        color: Kirigami.Theme.disabledTextColor
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
                     }
                 }
 
+                Components.EntityPickerField {
+                    Kirigami.FormData.label: Loc.t("Value next to greeting:")
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: appearancePage.formFieldWidth
+                    haManager: headerManager
+                    value: appearancePage.cfg_headerEntityId
+                    onEntityPicked: function(entityId) {
+                        appearancePage.cfg_headerEntityId = entityId;
+                    }
+                }
+
+                Controls.CheckBox {
+                    text: Loc.t("Show the entity name in front of the value")
+                    enabled: appearancePage.cfg_headerEntityId.length > 0
+                    checked: appearancePage.cfg_headerEntityLabel
+                    onToggled: appearancePage.cfg_headerEntityLabel = checked
+                }
+
                 PlasmaComponents3.Label {
-                    text: Loc.t("The picture comes from the selected person in Home Assistant. Nothing is shown when that person has no picture.")
+                    visible: headerManager.isConnected && appearancePage.cfg_headerEntityId.length > 0
+                    text: Loc.t("Preview") + ": " + appearancePage.headerPreviewText
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     color: Kirigami.Theme.disabledTextColor
-                    wrapMode: Text.WordWrap
                     Layout.fillWidth: true
+                    Layout.preferredWidth: appearancePage.formFieldWidth
                 }
-            }
 
-            Components.EntityPickerField {
-                Kirigami.FormData.label: Loc.t("Value next to greeting:")
-                Layout.fillWidth: true
-                Layout.preferredWidth: appearancePage.formFieldWidth
-                haManager: headerManager
-                value: appearancePage.cfg_headerEntityId
-                onEntityPicked: function(entityId) {
-                    appearancePage.cfg_headerEntityId = entityId;
-                }
-            }
-
-            Controls.CheckBox {
-                text: Loc.t("Show the entity name in front of the value")
-                enabled: appearancePage.cfg_headerEntityId.length > 0
-                checked: appearancePage.cfg_headerEntityLabel
-                onToggled: appearancePage.cfg_headerEntityLabel = checked
-            }
-
-            PlasmaComponents3.Label {
-                visible: headerManager.isConnected && appearancePage.cfg_headerEntityId.length > 0
-                text: Loc.t("Preview") + ": " + appearancePage.headerPreviewText
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                color: Kirigami.Theme.disabledTextColor
-                Layout.fillWidth: true
-                Layout.preferredWidth: appearancePage.formFieldWidth
             }
         }
 
@@ -218,34 +245,48 @@ Kirigami.ScrollablePage {
             font.pointSize: Qt.application.font.pointSize * 1.05
         }
 
-        Kirigami.FormLayout {
-            Layout.fillWidth: true
+        // Kirigami gives a form the whole width of the space it is put in and
+        // centres the two columns of its content inside that width, so a form as wide
+        // as the page shows its labels and fields somewhere in the middle of the
+        // window. The box is only as wide as the form asks itself to be and stands on
+        // the left, so there is nothing left to centre; in a window narrower than that
+        // the form reflows into one column and the box follows it down.
+        Item {
+            Layout.preferredWidth: Math.min(appearancePage.availableWidth, trayForm.implicitWidth)
+            Layout.preferredHeight: trayForm.implicitHeight
+            Layout.alignment: Qt.AlignLeft
 
-            ColumnLayout {
-                Kirigami.FormData.label: Loc.t("Panel and tray:")
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 24
-                spacing: Kirigami.Units.smallSpacing * 0.6
+            Kirigami.FormLayout {
+                id: trayForm
+                anchors.fill: parent
 
-                Components.IconPickerField {
-                    Layout.fillWidth: true
-                    mode: appearancePage.cfg_trayIconMode
-                    iconName: appearancePage.cfg_trayIconName
-                    iconPath: appearancePage.cfg_trayIconPath
-                    connected: headerManager.isConnected
-                    onIconChanged: {
-                        appearancePage.cfg_trayIconMode = mode;
-                        appearancePage.cfg_trayIconName = iconName;
-                        appearancePage.cfg_trayIconPath = iconPath;
+                ColumnLayout {
+                    Kirigami.FormData.label: Loc.t("Panel and tray:")
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 24
+                    spacing: Kirigami.Units.smallSpacing * 0.6
+
+                    Components.IconPickerField {
+                        Layout.fillWidth: true
+                        mode: appearancePage.cfg_trayIconMode
+                        iconName: appearancePage.cfg_trayIconName
+                        iconPath: appearancePage.cfg_trayIconPath
+                        connected: headerManager.isConnected
+                        onIconChanged: {
+                            appearancePage.cfg_trayIconMode = mode;
+                            appearancePage.cfg_trayIconName = iconName;
+                            appearancePage.cfg_trayIconPath = iconPath;
+                        }
+                    }
+
+                    PlasmaComponents3.Label {
+                        text: Loc.t("The custom picture is loaded from its file, so keep it where it will not be deleted.")
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        color: Kirigami.Theme.disabledTextColor
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
                     }
                 }
 
-                PlasmaComponents3.Label {
-                    text: Loc.t("The custom picture is loaded from its file, so keep it where it will not be deleted.")
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    color: Kirigami.Theme.disabledTextColor
-                    wrapMode: Text.WordWrap
-                    Layout.fillWidth: true
-                }
             }
         }
     }

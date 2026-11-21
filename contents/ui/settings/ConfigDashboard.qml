@@ -332,95 +332,109 @@ Kirigami.ScrollablePage {
         spacing: Kirigami.Units.largeSpacing
         width: parent.width
 
-        Kirigami.FormLayout {
-            Layout.fillWidth: true
+        // Kirigami gives a form the whole width of the space it is put in and
+        // centres the two columns of its content inside that width, so a form as wide
+        // as the page shows its labels and fields somewhere in the middle of the
+        // window. The box is only as wide as the form asks itself to be and stands on
+        // the left, so there is nothing left to centre; in a window narrower than that
+        // the form reflows into one column and the box follows it down.
+        Item {
+            Layout.preferredWidth: Math.min(dashboardSettings.availableWidth, tilesForm.implicitWidth)
+            Layout.preferredHeight: tilesForm.implicitHeight
+            Layout.alignment: Qt.AlignLeft
 
-            Controls.ComboBox {
-                id: columnsCombo
-                objectName: "columnsCombo"
-                Kirigami.FormData.label: Loc.t("Grid columns:")
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 7
-                // Every count the grid can pack. The layout itself takes any
-                // number, so a value missing here would leave a saved setting
-                // unselectable - and currentIndex below would quietly show the
-                // first entry while the configuration kept the real one.
-                readonly property var counts: [2, 3, 4, 5, 6]
-                model: counts.indexOf(dashboardSettings.cfg_dashboardColumns) !== -1
-                    ? counts
-                    : counts.concat([dashboardSettings.cfg_dashboardColumns]).sort(function (a, b) { return a - b; })
-                currentIndex: Math.max(0, model.indexOf(dashboardSettings.cfg_dashboardColumns))
-                // The index the signal carries, not currentText: the control
-                // only moves currentIndex on its own picks, and the number the
-                // user chose is what has to end up in the configuration.
-                onActivated: (index) => dashboardSettings.cfg_dashboardColumns = Number(model[index])
-            }
+            Kirigami.FormLayout {
+                id: tilesForm
+                anchors.fill: parent
 
-            Controls.ComboBox {
-                id: contentCombo
-                Kirigami.FormData.label: Loc.t("Tile content:")
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 12
-                readonly property var contentOptions: [
-                    { value: "both", label: Loc.t("Name and icon") },
-                    { value: "title", label: Loc.t("Name only") },
-                    { value: "icon", label: Loc.t("Icon only") }
-                ]
-                model: contentOptions
-                textRole: "label"
-                currentIndex: {
-                    for (var i = 0; i < contentOptions.length; i++) {
-                        if (contentOptions[i].value === dashboardSettings.cfg_dashboardTileContent) return i;
+                Controls.ComboBox {
+                    id: columnsCombo
+                    objectName: "columnsCombo"
+                    Kirigami.FormData.label: Loc.t("Grid columns:")
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 7
+                    // Every count the grid can pack. The layout itself takes any
+                    // number, so a value missing here would leave a saved setting
+                    // unselectable - and currentIndex below would quietly show the
+                    // first entry while the configuration kept the real one.
+                    readonly property var counts: [2, 3, 4, 5, 6]
+                    model: counts.indexOf(dashboardSettings.cfg_dashboardColumns) !== -1
+                        ? counts
+                        : counts.concat([dashboardSettings.cfg_dashboardColumns]).sort(function (a, b) { return a - b; })
+                    currentIndex: Math.max(0, model.indexOf(dashboardSettings.cfg_dashboardColumns))
+                    // The index the signal carries, not currentText: the control
+                    // only moves currentIndex on its own picks, and the number the
+                    // user chose is what has to end up in the configuration.
+                    onActivated: (index) => dashboardSettings.cfg_dashboardColumns = Number(model[index])
+                }
+
+                Controls.ComboBox {
+                    id: contentCombo
+                    Kirigami.FormData.label: Loc.t("Tile content:")
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 12
+                    readonly property var contentOptions: [
+                        { value: "both", label: Loc.t("Name and icon") },
+                        { value: "title", label: Loc.t("Name only") },
+                        { value: "icon", label: Loc.t("Icon only") }
+                    ]
+                    model: contentOptions
+                    textRole: "label"
+                    currentIndex: {
+                        for (var i = 0; i < contentOptions.length; i++) {
+                            if (contentOptions[i].value === dashboardSettings.cfg_dashboardTileContent) return i;
+                        }
+                        return 0;
                     }
-                    return 0;
+                    onActivated: dashboardSettings.cfg_dashboardTileContent = contentOptions[currentIndex].value
                 }
-                onActivated: dashboardSettings.cfg_dashboardTileContent = contentOptions[currentIndex].value
-            }
 
-            Controls.ComboBox {
-                id: fontCombo
-                objectName: "fontFamilyCombo"
-                Kirigami.FormData.label: Loc.t("Font:")
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 16
+                Controls.ComboBox {
+                    id: fontCombo
+                    objectName: "fontFamilyCombo"
+                    Kirigami.FormData.label: Loc.t("Font:")
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 16
 
-                // An empty family means the font the theme picked, and it goes
-                // first so the override can be picked back off.
-                readonly property var families: [""].concat(
-                    Qt.fontFamilies().sort(function (a, b) { return a.localeCompare(b); }))
-                model: families
-                currentIndex: Math.max(0, families.indexOf(dashboardSettings.cfg_dashboardFontFamily))
-                displayText: currentIndex > 0 ? families[currentIndex] : Loc.t("System (default)")
+                    // An empty family means the font the theme picked, and it goes
+                    // first so the override can be picked back off.
+                    readonly property var families: [""].concat(
+                        Qt.fontFamilies().sort(function (a, b) { return a.localeCompare(b); }))
+                    model: families
+                    currentIndex: Math.max(0, families.indexOf(dashboardSettings.cfg_dashboardFontFamily))
+                    displayText: currentIndex > 0 ? families[currentIndex] : Loc.t("System (default)")
 
-                delegate: Controls.ItemDelegate {
-                    required property int index
-                    width: fontCombo.width
-                    text: index > 0 ? fontCombo.families[index] : Loc.t("System (default)")
-                    highlighted: fontCombo.highlightedIndex === index
-                    onClicked: {
-                        fontCombo.currentIndex = index
-                        fontCombo.popup.dismiss()
-                        dashboardSettings.cfg_dashboardFontFamily = fontCombo.families[index]
+                    delegate: Controls.ItemDelegate {
+                        required property int index
+                        width: fontCombo.width
+                        text: index > 0 ? fontCombo.families[index] : Loc.t("System (default)")
+                        highlighted: fontCombo.highlightedIndex === index
+                        onClicked: {
+                            fontCombo.currentIndex = index
+                            fontCombo.popup.dismiss()
+                            dashboardSettings.cfg_dashboardFontFamily = fontCombo.families[index]
+                        }
                     }
+                    onActivated: (index) => dashboardSettings.cfg_dashboardFontFamily = families[index]
                 }
-                onActivated: (index) => dashboardSettings.cfg_dashboardFontFamily = families[index]
-            }
 
-            Controls.SpinBox {
-                id: fontSizeSpin
-                objectName: "fontSizeSpin"
-                Kirigami.FormData.label: Loc.t("Font size:")
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                // 0 is not a size: it is "the size a tile is designed at".
-                from: 0
-                to: 24
-                stepSize: 1
-                value: dashboardSettings.cfg_dashboardFontSize
-                textFromValue: function (size) {
-                    return size > 0 ? size.toFixed(1) + " pt" : Loc.t("Default");
+                Controls.SpinBox {
+                    id: fontSizeSpin
+                    objectName: "fontSizeSpin"
+                    Kirigami.FormData.label: Loc.t("Font size:")
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    // 0 is not a size: it is "the size a tile is designed at".
+                    from: 0
+                    to: 24
+                    stepSize: 1
+                    value: dashboardSettings.cfg_dashboardFontSize
+                    textFromValue: function (size) {
+                        return size > 0 ? size.toFixed(1) + " pt" : Loc.t("Default");
+                    }
+                    valueFromText: function (text) {
+                        var parsed = parseFloat(text.replace(",", "."));
+                        return isNaN(parsed) ? 0 : parsed;
+                    }
+                    onValueModified: dashboardSettings.cfg_dashboardFontSize = value
                 }
-                valueFromText: function (text) {
-                    var parsed = parseFloat(text.replace(",", "."));
-                    return isNaN(parsed) ? 0 : parsed;
-                }
-                onValueModified: dashboardSettings.cfg_dashboardFontSize = value
+
             }
         }
 
@@ -582,10 +596,18 @@ Kirigami.ScrollablePage {
                                 ColumnLayout {
                                     spacing: 1
                                     Layout.fillWidth: true
-                                    // Shrinkable, and to a small width: the name
-                                    // gives way first, with an ellipsis, before
-                                    // the controls of the row are pushed past the
-                                    // edge of a narrow window.
+                                    // Asked for by number, not by the text it
+                                    // holds: the list of tiles is read as a table,
+                                    // and a block that measured itself to its own
+                                    // name - short «Кухня», long «Свет в ванной» -
+                                    // moved the three dropdowns beside it to a new
+                                    // place in every row. The elided labels below
+                                    // take whatever width it is given.
+                                    Layout.preferredWidth: Kirigami.Units.gridUnit * 14
+                                    // And it gives way first, and to a small width:
+                                    // the name is cut with an ellipsis before the
+                                    // controls of the row are pushed past the edge
+                                    // of a window dragged narrow.
                                     Layout.minimumWidth: Kirigami.Units.gridUnit * 4
 
                                     // A click on the name edits it. The name is
@@ -661,7 +683,9 @@ Kirigami.ScrollablePage {
                                 }
 
                                 Controls.ComboBox {
+                                    objectName: "tileSizeCombo"
                                     Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+
                                     Layout.fillWidth: true
                                     Layout.minimumWidth: Kirigami.Units.gridUnit * 3
                                     readonly property var sizeOptions: [
@@ -685,7 +709,9 @@ Kirigami.ScrollablePage {
                                 }
 
                                 Controls.ComboBox {
+                                    objectName: "tileContentCombo"
                                     Layout.preferredWidth: Kirigami.Units.gridUnit * 9
+
                                     Layout.fillWidth: true
                                     Layout.minimumWidth: Kirigami.Units.gridUnit * 3
                                     readonly property var contentOptions: [
@@ -710,7 +736,9 @@ Kirigami.ScrollablePage {
                                 }
 
                                 Controls.ComboBox {
+                                    objectName: "tileGroupCombo"
                                     Layout.preferredWidth: Kirigami.Units.gridUnit * 9
+
                                     Layout.fillWidth: true
                                     Layout.minimumWidth: Kirigami.Units.gridUnit * 3
                                     model: dashboardSettings.groupOptions
@@ -730,14 +758,27 @@ Kirigami.ScrollablePage {
                                         dashboardSettings.groupOptions[currentIndex].id)
                                 }
 
-                                PlasmaComponents3.ToolButton {
-                                    objectName: "tileNameReset"
-                                    icon.name: "edit-undo-symbolic"
-                                    visible: tileRowDelegate.modelData.hasAlias === true
-                                    PlasmaComponents3.ToolTip.visible: hovered
-                                    PlasmaComponents3.ToolTip.text: Loc.t("Use the Home Assistant name")
-                                    onClicked: dashboardSettings.setEntityName(
-                                        tileRowDelegate.modelData.entityId, "")
+                                // The place of the reset button is kept on every
+                                // row, renamed or not. A row that carries one
+                                // control more takes that width from the fields
+                                // which fill the row, and the columns of the list
+                                // stop lining up under each other.
+                                Item {
+                                    Layout.preferredWidth: tileNameReset.implicitWidth
+                                    Layout.preferredHeight: tileNameReset.implicitHeight
+
+                                    PlasmaComponents3.ToolButton {
+                                        id: tileNameReset
+                                        objectName: "tileNameReset"
+                                        anchors.left: parent.left
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        icon.name: "edit-undo-symbolic"
+                                        visible: tileRowDelegate.modelData.hasAlias === true
+                                        PlasmaComponents3.ToolTip.visible: hovered
+                                        PlasmaComponents3.ToolTip.text: Loc.t("Use the Home Assistant name")
+                                        onClicked: dashboardSettings.setEntityName(
+                                            tileRowDelegate.modelData.entityId, "")
+                                    }
                                 }
 
                                 PlasmaComponents3.ToolButton {
