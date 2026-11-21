@@ -5,26 +5,25 @@ import "translations.mjs" as T
 // Singleton translation facade. Read Loc.t("Text") inside bindings: they
 // depend on Loc.language and re-evaluate instantly when the user switches
 // the language in settings (or the system locale changes on next start).
+//
+// The configured language is pushed in from outside and never read here. A
+// QML singleton is instantiated in the engine's root context, while Plasma
+// hands `Plasmoid` to the applet in a child context, so `Plasmoid` is always
+// undefined inside this file: reading the configuration here silently fell
+// back to the system language and the picker in Settings did nothing. The
+// components/LanguageBridge.qml object lives in the applet context and keeps
+// `configuredLanguage` up to date instead.
 QtObject {
     id: loc
 
-    // Re-evaluation trigger: a change of any configuration key bumps this
-    // counter, and `configured` reads it. Plasma notifies kcfg property
-    // changes too, but the popup and the settings dialog can live in
-    // different QML engines, so the explicit configChanged signal is what
-    // guarantees the language switches everywhere the moment it is saved.
-    // (Connected programmatically below: a QtObject has no default property,
-    // so a Connections element would not compile here.)
-    property int configRevision: 0
+    // "system" or a code from translations.LANGUAGES, as saved in
+    // Settings -> General. Every engine that paints translated text (the
+    // popup, the panel, the settings dialog) has its own Loc instance, so
+    // each of them gets the value pushed by its own LanguageBridge.
+    property string configuredLanguage: "system"
 
-    // "system" or a code from translations.LANGUAGES.
-    readonly property string configured: {
-        loc.configRevision
-        if (typeof Plasmoid === "undefined" || !Plasmoid || !Plasmoid.configuration) {
-            return "system"
-        }
-        return Plasmoid.configuration.language || "system"
-    }
+    readonly property string configured:
+        configuredLanguage.length > 0 ? configuredLanguage : "system"
 
     readonly property string systemLanguage: T.normalizeLanguage(
         Qt.locale().uiLanguages.length > 0 ? Qt.locale().uiLanguages[0] : "en")
@@ -41,13 +40,7 @@ QtObject {
 
     // Keep the shared module state in sync so plain JS helpers can translate.
     onLanguageChanged: T.setLanguage(language)
-    Component.onCompleted: {
-        var cfg = (typeof Plasmoid !== "undefined" && Plasmoid) ? Plasmoid.configuration : null
-        if (cfg && cfg.configChanged) {
-            cfg.configChanged.connect(function () { loc.configRevision++ })
-        }
-        T.setLanguage(language)
-    }
+    Component.onCompleted: T.setLanguage(language)
 
     function t(text, a1, a2, a3) {
         var args = [];

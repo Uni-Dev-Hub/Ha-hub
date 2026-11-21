@@ -26,6 +26,26 @@ TestCase {
         wait(50)
     }
 
+    // The real path from Settings -> General: components/LanguageBridge.qml
+    // pushes the saved value into Loc, because a singleton cannot see Plasmoid.
+    function test_configured_language_is_applied() {
+        var de = T.translate("de", "Settings")
+        var ru = T.translate("ru", "Settings")
+        Loc.configuredLanguage = "de"
+        compare(Loc.configured, "de", "the bridge value is what the facade reports")
+        compare(liveLabel.text, de, "the configured language retranslates live bindings")
+        Loc.configuredLanguage = "ru"
+        compare(liveLabel.text, ru)
+        // A code nobody supports must never leak out of the supported set.
+        Loc.configuredLanguage = "xx"
+        var codes = Loc.languages.map(function (l) { return l.code })
+        verify(codes.indexOf(Loc.language) !== -1, "an unknown code is normalized")
+        // "system" hands the decision back to the locale.
+        Loc.configuredLanguage = "system"
+        compare(Loc.language, Loc.systemLanguage)
+        compare(liveLabel.text, T.translate(Loc.systemLanguage, "Settings"))
+    }
+
     function test_catalogs_loaded_in_qml() {
         // The catalogs live in one big module; if Qt failed to parse it the
         // languages would still be listed but every catalog empty.

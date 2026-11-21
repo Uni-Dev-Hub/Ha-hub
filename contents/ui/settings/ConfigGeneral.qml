@@ -2,7 +2,9 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as Controls
+import org.kde.plasma.components 3.0 as PlasmaComponents3
 import org.kde.kirigami as Kirigami
+import "../components" as Components
 import "../../l10n"
 
 Kirigami.ScrollablePage {
@@ -10,17 +12,63 @@ Kirigami.ScrollablePage {
     title: Loc.t("General")
     topPadding: 0
 
-    // cfg_* properties are bound to the kcfg entries by the Plasma 6
-    // configuration backend. Declared values only act as fallback defaults.
+    // This dialog has its own Loc instance: without a language pushed into it
+    // every page here stays in the system language. A settings page is a file
+    // of its own, and Plasma's `Plasmoid` lives in the applet's context, not in
+    // one a page can reach - so the bridge is given the configuration when it
+    // happens to be reachable, and the language this page was opened with
+    // (cfg_language, which the dialog always hands over) seeds the dialog below.
+    Components.LanguageBridge {
+        id: settingsLanguageBridge
+        configuration: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration)
+            ? Plasmoid.configuration : null
+    }
+
+    // cfg_* properties are values the Plasma 6 configuration backend hands a
+    // page when it opens it; declared values only act as fallback defaults.
+    // The fallback for the language is the language this dialog is showing,
+    // never a hard-coded "system": whatever this page holds is what Apply writes
+    // out, and a wrong "system" here silently erases a chosen language.
     property string cfg_host: "homeassistant.local"
     property int cfg_port: 8123
     property bool cfg_useSsl: false
     property string cfg_accessToken: ""
     property bool cfg_autoConnect: true
-    property string cfg_language: "system"
+    property string cfg_language: Loc.configuredLanguage
     property string cfg_serverName: "Home Assistant"
     property bool cfg_showHiddenEntities: false
     property bool cfg_showDiagnosticEntities: false
+
+    // TEMP while chasing the disappearing language: the dialog calls this on the
+    // current page right before copying every cfg_ value it finds there into the
+    // configuration, so it says which value was about to be written out.
+    function saveConfig() {
+        console.log("HA-hub: general page hands over language =", cfg_language,
+                    "(shown:", Loc.language, ")")
+    }
+
+    // A pick assigns the picker's currentIndex, as the control's own delegate
+    // does, and that drops the currentIndex binding - so keep the control
+    // pointing at whatever the page holds instead. The dialog follows the same
+    // property: the first change is not a pick at all, it is the saved language
+    // arriving with the page, and that is what the dialog should be showing.
+    onCfg_languageChanged: {
+        Loc.configuredLanguage = cfg_language
+        if (!languageCombo) return
+        languageCombo.currentIndex = languageCombo.indexForCode(cfg_language)
+    }
+
+    // One way to change the language, used by the picker (and by the tests):
+    // straight into the configuration through the bridge, so the choice is
+    // saved and reaches the widget at once, and into cfg_language, so the
+    // dialog still knows there is something to apply. The language is the one
+    // setting that applies on pick rather than on Apply - Apply cannot undo a
+    // language the user is already reading.
+    function selectLanguage(code) {
+        if (code === generalSettings.cfg_language && Loc.configuredLanguage === code) return
+        generalSettings.cfg_language = code
+        settingsLanguageBridge.setLanguage(code)
+    }
 
     Kirigami.FormLayout {
         id: formLayout
@@ -86,18 +134,74 @@ Kirigami.ScrollablePage {
 
         Controls.ComboBox {
             id: languageCombo
+            objectName: "languageCombo"
             Kirigami.FormData.label: Loc.t("Language:")
             Layout.fillWidth: true
-            readonly property var modelItems: [{ code: "system", label: Loc.t("System language") }].concat(Loc.languages)
-            model: modelItems
-            textRole: "label"
-            currentIndex: {
-                for (var i = 0; i < modelItems.length; i++) {
-                    if (modelItems[i].code === generalSettings.cfg_language) return i;
+
+            // The model carries only what never changes: the codes and the
+            // names each language writes about itself. A translated string
+            // inside the model would rebuild the model at the very moment the
+            // language changes (the picker retranslates as it picks), and the
+            // control resets its currentIndex when the model is swapped.
+            readonly property var entries: [{ code: "system" }].concat(Loc.languages)
+            readonly property string systemLabel: Loc.t("System language")
+            model: entries
+            textRole: "code"
+
+            function labelFor(code) {
+                if (code === "system") return languageCombo.systemLabel
+                var langs = Loc.languages
+                for (var i = 0; i < langs.length; ++i) {
+                    if (langs[i].code === code) return langs[i].label
                 }
-                return 0;
+                return code
             }
-            onActivated: generalSettings.cfg_language = modelItems[currentIndex].code
+            function indexForCode(code) {
+                for (var i = 0; i < entries.length; ++i) {
+                    if (entries[i].code === code) return i
+                }
+                return 0
+            }
+
+            currentIndex: indexForCode(generalSettings.cfg_language)
+            // Translated on its own, so switching language retranslates the
+            // button and the list without touching the model.
+            displayText: currentIndex >= 0 && currentIndex < entries.length
+                ? languageCombo.labelFor(entries[currentIndex].code) : ""
+
+            delegate: Controls.ItemDelegate {
+                required property var modelData
+                required property int index
+                width: languageCombo.width
+                text: languageCombo.labelFor(modelData.code)
+                highlighted: languageCombo.highlightedIndex === index
+                onClicked: {
+                    // A pick is a pick, wherever it came from. Writing popup.closed
+                    // used to live here, and since that property is read-only the
+                    // assignment threw a TypeError that stopped the handler before
+                    // the language was ever handed over: the list looked dead.
+                    languageCombo.currentIndex = index
+                    languageCombo.popup.dismiss()
+                    generalSettings.selectLanguage(modelData.code)
+                }
+            }
+
+            // Keyboard navigation in the popup ends here instead of in a delegate
+            // click. selectLanguage ignores a pick of the language already set.
+            onActivated: (index) => generalSettings.selectLanguage(entries[index].code)
+        }
+
+        // The language is applied the moment it is picked, but like every other
+        // setting it is only stored on Apply - and a page cannot store it
+        // itself: the configuration lives in the applet's context, not in one a
+        // settings page can reach. Say so, rather than let the user find out
+        // when the dialog is closed.
+        PlasmaComponents3.Label {
+            text: Loc.t("Apply to keep this language after closing the settings.")
+            font.pointSize: Kirigami.Theme.smallFont.pointSize
+            color: Kirigami.Theme.disabledTextColor
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
         }
 
         Controls.CheckBox {
