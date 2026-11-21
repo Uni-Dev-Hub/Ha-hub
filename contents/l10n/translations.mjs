@@ -32,6 +32,9 @@ import nlCatalog from "./catalogs/nl.js";
 import svCatalog from "./catalogs/sv.js";
 import isCatalog from "./catalogs/is.js";
 import nnCatalog from "./catalogs/nn.js";
+import itCatalog from "./catalogs/it.js";
+import ptCatalog from "./catalogs/pt.js";
+import pt_BRCatalog from "./catalogs/pt_BR.js";
 
 
 export var LANGUAGES = [
@@ -58,7 +61,10 @@ export var LANGUAGES = [
     { code: "nl", label: "Nederlands" },
     { code: "sv", label: "Svenska" },
     { code: "is", label: "Íslenska" },
-    { code: "nn", label: "Norsk nynorsk" }
+    { code: "nn", label: "Norsk nynorsk" },
+    { code: "it", label: "Italiano" },
+    { code: "pt", label: "Português" },
+    { code: "pt_BR", label: "Português (Brasil)" }
 
 ];
 
@@ -87,7 +93,10 @@ export var CATALOGS = {
     nl: nlCatalog,
     sv: svCatalog,
     is: isCatalog,
-    nn: nnCatalog
+    nn: nnCatalog,
+    it: itCatalog,
+    pt: ptCatalog,
+    "pt_BR": pt_BRCatalog
 
 };
 
