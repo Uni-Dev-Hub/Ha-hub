@@ -3,6 +3,186 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.6] - 2026-11-21
+
+### Added
+- The dashboard font is a setting. **Settings → Dashboard** now has a **Font**
+  picker, listing every font that is installed, and a **Font size** picker.
+  Both apply to the tile text — the name and the value — and the preview on
+  that page shows the result before Apply. The row height follows the chosen
+  size, so bigger type is printed whole instead of being cut to an ellipsis.
+- The grid columns picker offers 5 alongside 2, 3, 4 and 6, and a count saved
+  outside the list is shown instead of the picker quietly displaying another.
+
+### Fixed
+- The tray icon picker landed over the settings dialog's header, half outside
+  it, and dimmed a dialog that was already modal. It was a `Popup` anchored to
+  `Overlay.overlay` from its own scope. It is a `Kirigami.Dialog` now, the same
+  thing Plasma's own configuration dialog uses, so it places itself correctly
+  and closes on Escape or a click outside.
+- A chosen language could be erased shortly after Apply. The settings page
+  declared its fallback for the language as `"system"`, and Apply writes out
+  what the current page holds — so a page that had not been handed the saved
+  value wrote the default back and KConfig dropped the entry. The fallback is
+  now the language the dialog is showing.
+
+## [1.2.5] - 2026-11-21
+
+### Fixed
+- Picking a language in Settings did nothing when clicked. The list's delegate
+  wrote to `popup.closed`, which is read-only, so every click died on a
+  TypeError before the language was handed over - the only thing that still
+  worked was the language flipping under the mouse as the list was hovered,
+  which is what made the setting look like it changed and then refused to stay.
+  A click now applies the language, closes the list and updates the button.
+- The widget never saw the saved language at all, whatever was written to the
+  file. `LanguageBridge` lives in a file of its own, and a component is created
+  in the context of the file that defines it, while Plasma keeps `Plasmoid` in a
+  context of its own for the applet: the bridge was reading a configuration it
+  could not see. The applet now hands the configuration to it, and the bridge
+  re-reads it every time the popup opens. Startup says what it found in the
+  journal: `journalctl --user | grep HA-hub`.
+- The dialog opens in the configured language instead of the system one, and the
+  picker no longer rebuilds its list under a pick.
+
+### Notes
+- The language applies the moment it is picked and is stored on Apply, like
+  every other setting - a settings page cannot store it by itself, for the same
+  context reason as above. A hint under the picker says so, and Plasma keeps
+  warning about unsaved changes if the dialog is closed first.
+
+### Added
+- 5 columns in Settings → Dashboard → Grid columns. The grid has always packed
+  any column count - the preview on that page uses five - only the picker never
+  offered it. A saved count outside the offered list is now added to it, so the
+  control cannot show one number while the configuration holds another.
+
+### Tests
+- The language picker is now driven through the real controls: a click on a
+  row, then the keyboard path. The version that shipped broken passed its test,
+  because that test called the page's function and skipped the broken delegate.
+- Guards for controls that write to read-only properties, for signal handlers
+  that rely on injected parameters, and for the list of column counts.
+
+## [1.2.4] - 2026-11-21
+
+### Fixed
+- The language chosen in Settings no longer jumps back to the system language
+  when the dialog is closed. It used to be stored only in the page's `cfg_`
+  property and handed to the configuration when Apply was pressed - and Plasma
+  copies those page by page, so a re-created or inactive page handed back its
+  declared `system` default. KConfig treats a default value as "not set" and
+  drops the entry from the file, which wiped the saved language. The picker now
+  writes the language through the configuration itself, so the choice is stored
+  the moment it is made - the same moment it becomes visible.
+- The language list no longer rebuilds itself while the picker is used: the
+  model holds only codes and the names each language writes about itself, and
+  the "System language" row is translated where it is displayed. A translated
+  string in the model made the control reset its selection exactly when the
+  interface switched language.
+
+## [1.2.3] - 2026-11-21
+
+### Changed
+- A tile row is now two zones, and the device name finally has room: the glyph
+  and the state answer (mini switch, value, pictogram) share the top, the name
+  runs across the whole width of the tile along the bottom. In one line the name
+  of a one-column tile used to get ~35 px after the glyph and the switch, which
+  is why "Большая люстра" printed as "Бол шо…".
+- The glyph shrank with it (20 px to the small icon size, 16 px), since the name
+  is what a row is read by. Icon-only tiles keep the big glyph, centred.
+- The row grew slightly to hold both zones (2.6 to 3.1 grid units), so two lines
+  of the name fit under the glyph.
+
+## [1.2.2] - 2026-11-21
+
+### Fixed
+- The language chosen in Settings → General finally changes the interface. The
+  translation singleton used to read the language out of the widget
+  configuration itself, but a QML singleton is created outside the context
+  where Plasma exposes that configuration, so the read silently returned
+  nothing and every screen - popup, panel tooltip, settings dialog - stayed on
+  the system language however the picker was set. An object that does see the
+  configuration now hands the value over, so a saved choice is applied
+  everywhere, and the settings dialog retranslates the moment a language is
+  picked, without waiting for Apply.
+
+### Changed
+- Tile type is lighter and lower: the name is 7.5 pt without bold weight and
+  sits at the bottom edge of the row, under the glyph, so a long name labels
+  the row instead of floating in the middle of it. The value at the right edge
+  matches the same size and weight.
+
+## [1.2.1] - 2026-11-21
+
+### Changed
+- Tile names are smaller (8 pt) and may break over two lines, so a long device
+  name stays readable without making the row any taller.
+- Tiles now show the icon the entity has in Home Assistant. HA stores icons as
+  Material Design Icons names ("mdi:ceiling-light"), which no icon theme can
+  resolve, so the widget ships that font and draws the very glyph HA shows -
+  a ceiling light, a floor lamp and a motion sensor finally look different.
+  Entities without an icon, and icon sets we do not ship, keep the Plasma
+  domain icon.
+- The mini switch is drawn smaller: at full size it took a third of a
+  one-column row away from the name.
+
+### Added
+- `scripts/update-mdi-icons.mjs` regenerates the MDI name table
+  (`contents/code/mdi_icons.mjs`) when the bundled font is updated.
+
+## [1.2.0] - 2026-11-21
+
+### Changed
+- Dashboard tiles abandoned the square: every tile is one compact row now
+  (height fixed, width one/two/all columns), so the dashboard shows many more
+  devices at the same height. The removed "large" size migrates to "full
+  width" automatically - no configuration touches needed.
+- The row says everything in one line: entity icon and name on the left, and
+  on the right the shortest honest answer - a mini switch for lights and
+  switches, a value for sensors and climate ("-3.5 °C", "54 %", "45%"), a
+  pictogram for locks, covers, motion sensors and media. No more status
+  sentences; the full name and state text moved into the tooltip.
+- Available tile sizes in the settings are now "1 column / 2 columns / Full
+  width", matching the new row grid.
+
+## [1.1.2] - 2026-11-21
+
+### Changed
+- Dashboard tiles adopted the device-card concept: an icon plus the entity
+  name on top, a state line with an on/off dot at the bottom - on every tile,
+  including the small 1x1 ones, which used to hide all text and turned the
+  dashboard into a wall of identical icons. A tooltip hands back the full
+  name when it has to be elided.
+- Tiles got more informative and more alive: lights that are on report their
+  brightness ("On • 80%"), hover brightens a tile like in the device list.
+  In icon-only mode the big glyph stays, now with the state line below it.
+
+### Fixed
+- Header avatar: the circular "mask" was a solid rectangle painted over the
+  loaded picture, so the user photo was never visible. The header now uses
+  Kirigami.Avatar, which shows the photo properly - or the user's initials
+  when the Home Assistant account has no avatar set.
+
+## [1.1.1] - 2026-11-20
+
+Focus of this release: the dashboard tiles grew up. The feature set is exactly
+as before - the look was rebuilt to be calm, compact and informative.
+
+### Changed
+- Dashboard tiles are now quiet themed cards in the same visual family as the
+  device cards (themed surface, hairline border, soft radius) instead of full
+  colour blocks. On light Plasma themes the dashboard no longer screams.
+- Colour means state: an active entity tints its icon, state line and title
+  with the group accent; inactive entities stay neutral grey, unavailable
+  ones dim back. The group colour setting (now labelled "Accent color")
+  tunes this accent and is auto-adjusted to stay readable in light and dark
+  themes without losing its hue.
+- Tile content restructured for a glance: the entity name leads at the top,
+  the current state ("22.5 °C • Heating", "45% • Open", "Home", "-3.5 °C")
+  is the central, boldest line, the icon supports it. Tighter margins and a
+  smaller icon fit more information per tile, groups sit closer together.
+
 ## [1.1.0] - 2026-11-19
 
 Focus of this release: dashboard tile groups in the Metro style, entity names
