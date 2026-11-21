@@ -1,34 +1,10 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const vm = require("node:vm");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const ROOT = path.join(__dirname, "..", "..");
-
-function loadLibrary(relativePath) {
-    let source = fs.readFileSync(path.join(ROOT, relativePath), "utf8");
-    source = source.replace(/^\.pragma library\s*/m, "");
-    const context = { console };
-    vm.createContext(context);
-    const star = [...source.matchAll(/^import\s+\*\s+as\s+(\w+)\s+from\s+"([^"]+)";?\s*$/gm)];
-    const named = [...source.matchAll(/^import\s+\{([^}]+)\}\s+from\s+"([^"]+)";?\s*$/gm)];
-    source = source.replace(/^import\s+(?:\*\s+as\s+\w+|\{[^}]+\})\s+from\s+"[^"]+";?\s*$/gm, "");
-    for (const [, alias, spec] of star) {
-        context[alias] = loadLibrary(path.join(path.dirname(relativePath), spec));
-    }
-    for (const [, names, spec] of named) {
-        const dep = loadLibrary(path.join(path.dirname(relativePath), spec));
-        for (const name of names.split(",").map((s) => s.trim()).filter(Boolean)) {
-            context[name] = dep[name];
-        }
-    }
-    source = source.replace(/^export\s+(?=(?:async\s+)?(?:function|var|let|const)\b)/gm, "");
-    source = source.replace(/^export\s*\{[^}]*\};?\s*$/gm, "");
-    vm.runInContext(source, context, { filename: relativePath });
-    return context;
-}
-
+const { loadLibrary } = require("./load-library.js");
 const L10N = loadLibrary("contents/l10n/translations.mjs");
 const TARGET_LANGUAGES = L10N.LANGUAGES.map((l) => l.code).filter((c) => c !== "en");
 

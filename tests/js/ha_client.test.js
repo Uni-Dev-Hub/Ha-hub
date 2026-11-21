@@ -1,18 +1,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const vm = require("node:vm");
 const test = require("node:test");
 const assert = require("node:assert/strict");
-
-function loadLibrary(relativePath) {
-    let source = fs.readFileSync(path.join(__dirname, "..", "..", relativePath), "utf8");
-    source = source.replace(/^\.pragma library\s*/m, "");
-    const context = { console };
-    vm.createContext(context);
-    vm.runInContext(source, context, { filename: relativePath });
-    return context;
-}
-
+const { loadLibrary } = require("./load-library.js");
 const client = loadLibrary("contents/code/ha_client.js");
 
 test("call_service supports entity target", () => {

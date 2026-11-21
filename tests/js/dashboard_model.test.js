@@ -1,23 +1,11 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const vm = require("node:vm");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
 // Same vm-based loader as ha_helpers.test.js: the module is plain ES modules
 // for QML, so tests run it in a bare context with the export block removed.
-function loadLibrary(relativePath) {
-    let source = fs.readFileSync(path.join(__dirname, "..", "..", relativePath), "utf8");
-    source = source.replace(/^\.pragma library\s*/m, "");
-    const context = { console, JSON, Math, Object, Array, parseInt };
-    vm.createContext(context);
-    source = source.replace(/^import\s+(?:\*\s+as\s+\w+|\{[^}]+\})\s+from\s+"[^"]+";?\s*$/gm, "");
-    source = source.replace(/^export\s+(?=(?:async\s+)?(?:function|var|let|const)\b)/gm, "");
-    source = source.replace(/^export\s*\{[^}]*\};?\s*$/gm, "");
-    vm.runInContext(source, context, { filename: relativePath });
-    return context;
-}
-
+const { loadLibrary } = require("./load-library.js");
 const model = loadLibrary("contents/code/dashboard_model.mjs");
 
 // The module runs in its own vm realm, so returned objects/arrays have foreign
