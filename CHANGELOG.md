@@ -3,10 +3,18 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.1] - 2026-11-21
+
+### Added
+- Latvian and Romanian, complete like the rest. The count in the README is the
+  one thing about a translation list that is easy to get wrong and impossible to
+  notice, so it is a test now: it reads the number out of the README and out of
+  the release notes and compares both with the catalogs that load.
+
 ## [1.3.0] - 2026-11-21
 
 ### Added
-- 21 more languages, all of them complete: Belarusian, Polish, Czech, Slovak,
+- 23 more languages, all of them complete: Belarusian, Polish, Czech, Slovak,
   Bulgarian, Slovenian, Serbian in both scripts, Bosnian, Danish, Norwegian in
   both written standards, Dutch, Swedish, Icelandic, Italian, Portuguese,
   Brazilian Portuguese, Finnish, Estonian and Lithuanian — 30 in all. Completeness

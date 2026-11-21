@@ -220,3 +220,13 @@ test("the README counts the languages that ship", () => {
     assert.equal(claimed[0], L10N.LANGUAGES.length,
         `the README advertises ${claimed[0]}, the module offers ${L10N.LANGUAGES.length}`);
 });
+
+// The same number in the release notes for the release that is being shipped.
+test("the changelog counts the languages of its own release", () => {
+    const changelog = fs.readFileSync(path.join(ROOT, "CHANGELOG.md"), "utf8");
+    const latest = changelog.split(/^## \[/m)[1] || "";
+    for (const m of latest.matchAll(/(\d+) in all/g)) {
+        assert.equal(Number(m[1]), L10N.LANGUAGES.length,
+            `the changelog entry says ${m[1]} languages, the module offers ${L10N.LANGUAGES.length}`);
+    }
+});
