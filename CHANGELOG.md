@@ -3,6 +3,48 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.0] - 2026-11-21
+
+### Added
+- 21 more languages, all of them complete: Belarusian, Polish, Czech, Slovak,
+  Bulgarian, Slovenian, Serbian in both scripts, Bosnian, Danish, Norwegian in
+  both written standards, Dutch, Swedish, Icelandic, Italian, Portuguese,
+  Brazilian Portuguese, Finnish, Estonian and Lithuanian — 30 in all. Completeness
+  is not a promise but a test: every catalog is read against every string the
+  widget can ask for, in both directions, so a language cannot ship half-done and
+  a string cannot exist in one language only.
+- A language is a file of its own, `contents/l10n/catalogs/<code>.js`, and
+  `scripts/new-catalog.mjs` registers a new one — code, name, strings — refusing
+  to add one that is incomplete or that a test cannot load.
+- Serbian and Bosnian are separate catalogs, not one file with two flags: Bosnian
+  writes ijekavian forms where Serbian does not, and the pairs that say so are
+  written down rather than guessed at. The same for Norwegian bokmål and nynorsk,
+  and for Portuguese and Brazilian Portuguese, which differ in words — umidade and
+  humidade, arquivo and ficheiro, "Conectando…" and "A ligar…" — not only spelling.
+
+### Fixed
+- The widget followed the saved language again. The settings dialog was
+  translated while the popup beside it stayed in the system language: the bridge
+  that hands the language to an engine called into the catalog module through a
+  *folder* import, which brings in the singleton and not the module, so every call
+  threw a ReferenceError — logged once, then swallowed, because a property binding
+  that fails simply stops existing. Every configured language resolved to "no
+  catalog", which is the system language. `import "../../l10n"` and
+  `import "../../l10n/translations.mjs" as L10N` differ by the part of the line
+  above the code that breaks, so a test now reads every file that mentions `L10N`
+  and demands the import that defines it, and the QML test asks the bridge itself
+  what language it settled on.
+- A language saved as a full tag finds its catalog. `zh-Hans-CN` and `pt-BR`
+  answer zh and pt_BR, `sr-Latn` answers the Latin Serbian catalog, and a saved
+  `zh` stays zh instead of being dropped for not naming a region — which had been
+  silently turning a chosen language back into English.
+- The names of the sections down the side of the settings dialog are in the
+  configured language. That list is built by the dialog's engine before any page
+  of it exists, so it had nothing to read the language from; it has its own bridge
+  now.
+- `Labels:` in German was still English. A scan for catalog values identical to
+  their English key leaves only words that are the same in both languages.
+
 ## [1.2.9] - 2026-11-21
 
 ### Fixed

@@ -42,7 +42,7 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 - **Appearance Settings:** Choose the views the popup shows, the Home Assistant user picture and one entity value (e.g. a temperature) in the header, and the panel/tray icon from a gallery or your own image.
 - **Multi-Channel Devices:** Every gang of a multi-gang switch or relay is its own controllable object instead of one hidden entity. Each is shown by its Home Assistant friendly name, exactly as HA displays it.
 - **Native Look & Feel:** Seamless integration with your KDE color scheme and font settings using Kirigami and PlasmaComponents 3.0.
-- **Internationalization:** 9 built-in languages — English, Russian, Kazakh, Ukrainian, German, Spanish, French, Turkish and Chinese. Follows the system language by default and can be switched instantly in the widget settings.
+- **Internationalization:** 30 built-in languages — English, Russian, Kazakh, Ukrainian, Belarusian, Polish, Czech, Slovak, Bulgarian, Slovenian, Serbian (Cyrillic and Latin), Bosnian, Danish, Norwegian (bokmål and nynorsk), Dutch, Swedish, Icelandic, Italian, Portuguese (Portugal and Brazil), Finnish, Estonian, Lithuanian, German, Spanish, French, Turkish and Chinese. Follows the system language by default and can be switched instantly in the widget settings.
 
 ---
 

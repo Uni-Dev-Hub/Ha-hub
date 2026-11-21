@@ -208,3 +208,15 @@ test("the catalog files on disk are exactly the languages offered", () => {
     const offered = [...L10N.LANGUAGES].map((l) => l.code).filter((c) => c !== "en").sort();
     assert.deepEqual(onDisk, offered);
 });
+
+// The README promises a number of languages. It is the one sentence about this
+// feature that anyone reads before installing, so it is checked against the
+// catalogs rather than against memory.
+test("the README counts the languages that ship", () => {
+    const readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
+    const claimed = [...readme.matchAll(/^- \*\*Internationalization:\*\* (\d+) built-in languages/gm)]
+        .map((m) => Number(m[1]));
+    assert.equal(claimed.length, 1, "the README says once how many languages ship");
+    assert.equal(claimed[0], L10N.LANGUAGES.length,
+        `the README advertises ${claimed[0]}, the module offers ${L10N.LANGUAGES.length}`);
+});

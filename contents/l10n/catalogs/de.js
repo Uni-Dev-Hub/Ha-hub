@@ -139,7 +139,7 @@ export default {
     "Jan": "Jan",
     "Jul": "Jul",
     "Jun": "Jun",
-    "Labels:": "Labels:",
+    "Labels:": "Etiketten:",
     "Language:": "Sprache:",
     "Last state change:": "Letzte Zustandsänderung:",
     "Lasted %1": "Dauer: %1",
