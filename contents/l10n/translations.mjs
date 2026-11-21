@@ -18,6 +18,10 @@ import frCatalog from "./catalogs/fr.js";
 import trCatalog from "./catalogs/tr.js";
 import zhCatalog from "./catalogs/zh.js";
 import beCatalog from "./catalogs/be.js";
+import plCatalog from "./catalogs/pl.js";
+import csCatalog from "./catalogs/cs.js";
+import skCatalog from "./catalogs/sk.js";
+
 
 export var LANGUAGES = [
     { code: "en", label: "English" },
@@ -29,7 +33,11 @@ export var LANGUAGES = [
     { code: "fr", label: "Français" },
     { code: "tr", label: "Türkçe" },
     { code: "zh", label: "中文" },
-    { code: "be", label: "Беларуская" }
+    { code: "be", label: "Беларуская" },
+    { code: "pl", label: "Polski" },
+    { code: "cs", label: "Čeština" },
+    { code: "sk", label: "Slovenčina" }
+
 ];
 
 export var CATALOGS = {
@@ -43,7 +51,11 @@ export var CATALOGS = {
     fr: frCatalog,
     tr: trCatalog,
     zh: zhCatalog,
-    be: beCatalog
+    be: beCatalog,
+    pl: plCatalog,
+    cs: csCatalog,
+    sk: skCatalog
+
 };
 
 

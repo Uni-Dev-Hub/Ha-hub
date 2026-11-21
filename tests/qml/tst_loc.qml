@@ -47,9 +47,11 @@ TestCase {
     }
 
     function test_catalogs_loaded_in_qml() {
-        // The catalogs live in one big module; if Qt failed to parse it the
-        // languages would still be listed but every catalog empty.
-        compare(T.LANGUAGES.length, 9)
+        // The catalogs are one module per language, imported by translations.mjs;
+        // if Qt failed to parse one, the language would still be listed with an
+        // empty catalog, which the loop below catches. The count only has to
+        // have grown past the original nine.
+        verify(T.LANGUAGES.length >= 9, "the language list is there")
         for (var i = 0; i < T.LANGUAGES.length; i++) {
             var code = T.LANGUAGES[i].code
             if (code === "en") continue

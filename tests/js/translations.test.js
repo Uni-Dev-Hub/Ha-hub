@@ -192,4 +192,19 @@ test("every advertised language has a catalog and an autonym", () => {
         assert.ok(L10N.CATALOGS[entry.code], `no catalog for ${entry.code}`);
         assert.ok(entry.label && entry.label.length > 1, `no label for ${entry.code}`);
     }
+    // Spread first: L10N was loaded in another realm, and deepEqual compares
+    // prototypes, so a vm array never equals a local one.
+    const labels = [...L10N.LANGUAGES].map((l) => l.label);
+    assert.deepEqual(labels, [...new Set(labels)], "two languages share a name");
+});
+
+// Languages are added in batches, so both halves of a mistake are worth naming:
+// a catalog written but never registered (the language is missing from the
+// picker), and a language offered without a file (it would show as English).
+test("the catalog files on disk are exactly the languages offered", () => {
+    const onDisk = fs.readdirSync(path.join(ROOT, "contents/l10n/catalogs"))
+        .map((f) => f.replace(/\.js$/, ""))
+        .sort();
+    const offered = [...L10N.LANGUAGES].map((l) => l.code).filter((c) => c !== "en").sort();
+    assert.deepEqual(onDisk, offered);
 });
