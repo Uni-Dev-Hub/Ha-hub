@@ -17,6 +17,8 @@ import esCatalog from "./catalogs/es.js";
 import frCatalog from "./catalogs/fr.js";
 import trCatalog from "./catalogs/tr.js";
 import zhCatalog from "./catalogs/zh.js";
+import beCatalog from "./catalogs/be.js";
+
 export var LANGUAGES = [
     { code: "en", label: "English" },
     { code: "ru", label: "Русский" },
@@ -26,7 +28,8 @@ export var LANGUAGES = [
     { code: "es", label: "Español" },
     { code: "fr", label: "Français" },
     { code: "tr", label: "Türkçe" },
-    { code: "zh", label: "中文" }
+    { code: "zh", label: "中文" },
+    { code: "be", label: "Беларуская" }
 ];
 
 export var CATALOGS = {
@@ -39,7 +42,8 @@ export var CATALOGS = {
     es: esCatalog,
     fr: frCatalog,
     tr: trCatalog,
-    zh: zhCatalog
+    zh: zhCatalog,
+    be: beCatalog
 };
 
 
