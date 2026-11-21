@@ -44,12 +44,14 @@ TestCase {
     // widget paints, without a restart and without anyone calling refresh().
     function test_configured_language_reaches_the_widget() {
         stored.language = "kk"
+        compare(bridge.language, "kk", "the bridge resolved it")
         compare(Loc.configuredLanguage, "kk", "the bridge handed the value over")
         compare(Loc.language, "kk", "resolved to a catalog")
         compare(liveLabel.text, T.translate("kk", "Settings"), "and the widget is in it")
 
         stored.language = "de"
-        compare(liveLabel.text, T.translate("de", "Settings"), "a later change follows at once")
+        compare(bridge.language, "de", "a later change follows at once")
+        compare(liveLabel.text, T.translate("de", "Settings"))
     }
 
     // A saved language the widget cannot have written itself: a code with a

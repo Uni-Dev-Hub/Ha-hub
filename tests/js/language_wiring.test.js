@@ -85,6 +85,22 @@ test("the language picker keeps a stable model", () => {
     assert.match(combo[0], /displayText:/, "and only where it is displayed");
 });
 
+// The picker offers every language the module offers.
+test("the bridge resolves a language, not just a string", () => {
+    // Reading the language is the one thing the bridge is for, and it goes
+    // through the catalog module: a file that imports the l10n *folder* (which
+    // only carries the Loc singleton) rather than translations.mjs throws here,
+    // silently, and answers with the system language forever.
+    const files = ["contents/ui/components/LanguageBridge.qml", ...PAGES, "contents/config/config.qml", "contents/l10n/Loc.qml"];
+    for (const file of files) {
+        const src = read(file);
+        if (!/\bL10N\./.test(src))
+            continue;
+        assert.match(src, /import\s+"[^"]*translations\.mjs"\s+as\s+L10N/,
+            file + " uses L10N, so it must import the module that defines it");
+    }
+});
+
 // The language is one setting with one meaning: what the configuration holds.
 // The applet reads its own configuration; the page of a settings dialog reads
 // the copy the dialog was opened with, which is the language that dialog shows.

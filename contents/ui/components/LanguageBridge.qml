@@ -1,5 +1,6 @@
 import QtQuick
 import "../../l10n"
+import "../../l10n/translations.mjs" as L10N
 
 // Invisible helper that owns the language of one QML engine: it reads what the
 // configuration says and hands it to the Loc singleton of that same engine.
