@@ -20,11 +20,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `Overlay.overlay` from its own scope. It is a `Kirigami.Dialog` now, the same
   thing Plasma's own configuration dialog uses, so it places itself correctly
   and closes on Escape or a click outside.
-- A chosen language could be erased shortly after Apply. The settings page
-  declared its fallback for the language as `"system"`, and Apply writes out
-  what the current page holds — so a page that had not been handed the saved
-  value wrote the default back and KConfig dropped the entry. The fallback is
-  now the language the dialog is showing.
+- A chosen language could be erased a few seconds after Apply. Two things
+  conspired. The picker wrote the language into the applet's own configuration,
+  behind the settings dialog's back - the dialog holds a copy of the
+  configuration of its own, still holding the old language, and wrote that back
+  over the choice when it closed. And the page declared its fallback for the
+  language as `"system"`, which is exactly what Apply writes out for the page it
+  is showing. A pick now changes `cfg_language` and nothing else, the fallback is
+  the language the dialog is showing, and Apply is the single writer. The widget
+  still switches language at once: the bridge watches the configuration Apply
+  writes to, and the journal says `HA-hub: language -> xx`.
 
 ## [1.2.5] - 2026-11-21
 

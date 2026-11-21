@@ -37,18 +37,21 @@ test("the bridge re-reads the file instead of trusting a cached key", () => {
     assert.match(bridge, /console\.log\(/, "and says in the journal what it settled on");
 });
 
-// The old path kept the language in a cfg_ property and let Plasma's Apply
-// copy it over - a page that was re-created or not current handed back its
-// declared "system" default, and the saved language was wiped from the file.
-test("the language is written to the configuration, not left for Apply", () => {
+// The settings dialog keeps a copy of the configuration. A pick that wrote the
+// language straight into the applet's configuration - around that copy - was
+// undone a few seconds later, when the dialog closed and its copy, still holding
+// the old language, was written back. One writer, the Plasma way: cfg_ and Apply.
+test("a page hands the language over the way Apply copies it, and never past it", () => {
     const bridge = read("contents/ui/components/LanguageBridge.qml");
-    assert.match(bridge, /function setLanguage/, "the bridge can set the language...");
-    assert.match(bridge, /cfg\.language\s*=\s*code/, "...into the configuration itself");
-    assert.match(bridge, /writeConfig/, "...and straight to disk");
+    assert.doesNotMatch(bridge, /cfg\.language\s*=/, "the bridge never writes the configuration...");
+    assert.doesNotMatch(bridge, /writeConfig\s*\(/, "...let alone pushes it to disk");
+    assert.match(bridge, /valueChanged/, "...it watches what arrives instead");
 
     const general = read("contents/ui/settings/ConfigGeneral.qml");
     assert.match(general, /function selectLanguage\(code\)/, "one entry point for a pick");
-    assert.match(general, /settingsLanguageBridge\.setLanguage\(code\)/, "the page routes through the bridge");
+    assert.match(general, /function selectLanguage\(code\)\s*\{[^}]*cfg_language\s*=\s*code/s,
+        "the pick lands in cfg_language, which Apply copies");
+    assert.doesNotMatch(general, /Bridge\.setLanguage\(/, "and nowhere else");
 });
 
 // A translated string inside the ComboBox model rebuilds the model exactly when
@@ -82,7 +85,14 @@ test("the general page seeds the dialog's language", () => {
     const general = read("contents/ui/settings/ConfigGeneral.qml");
     assert.match(general, /onCfg_languageChanged:\s*\{[^}]*Loc\.configuredLanguage\s*=\s*cfg_language/s,
         "the language arriving with the page is pushed into Loc");
-    assert.match(general, /property string cfg_language/, "and the page holds it");
+    // The declared value is what Apply writes when nothing was handed over, so
+    // a hard-coded "system" here erased a chosen language a few seconds later:
+    // KConfig drops an entry that equals its default, and the widget went back
+    // to the system language on its own.
+    assert.match(general, /property string cfg_language:\s*Loc\.configuredLanguage/,
+        "the page holds the language it is showing, not a hard-coded default");
+    assert.doesNotMatch(general, /property string cfg_language:\s*"/,
+        "and never a literal language of its own");
 });
 
 // Every engine that paints translated text mounts the bridge.

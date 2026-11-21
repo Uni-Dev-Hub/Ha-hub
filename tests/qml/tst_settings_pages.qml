@@ -222,10 +222,10 @@ TestCase {
         return false
     }
 
-    // The picker hands the language to the configuration straight away. It used
-    // to wait for Apply, and that round trip could hand back the page's
-    // declared "system" default - which KConfig then dropped from the file, so
-    // leaving the settings undid the choice.
+    // A pick lands in cfg_language, which Apply copies into the configuration -
+    // and nowhere past it. The version before that wrote the language into the
+    // applet's configuration behind the dialog's back, and the dialog, whose own
+    // copy still held the old language, wrote it back when it closed.
     //
     // Driven through the controls, not through the page's function: the version
     // that shipped broken assigned to the read-only popup.closed inside the

@@ -39,14 +39,6 @@ Kirigami.ScrollablePage {
     property bool cfg_showHiddenEntities: false
     property bool cfg_showDiagnosticEntities: false
 
-    // TEMP while chasing the disappearing language: the dialog calls this on the
-    // current page right before copying every cfg_ value it finds there into the
-    // configuration, so it says which value was about to be written out.
-    function saveConfig() {
-        console.log("HA-hub: general page hands over language =", cfg_language,
-                    "(shown:", Loc.language, ")")
-    }
-
     // A pick assigns the picker's currentIndex, as the control's own delegate
     // does, and that drops the currentIndex binding - so keep the control
     // pointing at whatever the page holds instead. The dialog follows the same
@@ -64,10 +56,16 @@ Kirigami.ScrollablePage {
     // dialog still knows there is something to apply. The language is the one
     // setting that applies on pick rather than on Apply - Apply cannot undo a
     // language the user is already reading.
+    // One writer for the language: the page. The settings dialog keeps a copy of
+    // the configuration of its own, and a write that goes around it - straight
+    // into the applet's configuration, however tempting - leaves that copy
+    // holding the old value, which the dialog then writes back over the choice
+    // when it closes. So the language travels the way every other setting does:
+    // in cfg_language, which Apply copies. The running widget still picks it up
+    // at once, because the bridge watches the configuration Apply writes to.
     function selectLanguage(code) {
         if (code === generalSettings.cfg_language && Loc.configuredLanguage === code) return
         generalSettings.cfg_language = code
-        settingsLanguageBridge.setLanguage(code)
     }
 
     Kirigami.FormLayout {

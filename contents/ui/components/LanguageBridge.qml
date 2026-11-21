@@ -76,24 +76,12 @@ QtObject {
         console.log("HA-hub: language ->", code)
     }
 
-    // The one way to change the language. Writing it into the configuration
-    // (instead of only into a cfg_ property waiting for Apply) is what makes
-    // the choice survive closing the dialog: the Plasma configuration backend
-    // copies cfg_ entries one page at a time, and a page that was re-created or
-    // is not the current one hands back its declared "system" default, which
-    // KConfig then drops from the file as if it had never been set.
-    function setLanguage(code) {
-        Loc.configuredLanguage = code
-        var cfg = bridge.settings()
-        if (!cfg) {
-            console.log("HA-hub: language", code, "applies now and is saved on Apply")
-            return
-        }
-        cfg.language = code
-        if (typeof cfg.writeConfig === "function")
-            cfg.writeConfig()
-        console.log("HA-hub: language saved ->", code)
-    }
+    // The bridge only ever reads. Writing the language from here was the last
+    // bug: the settings dialog holds its own copy of the configuration, so a
+    // write that bypassed it left that copy on the old language, and the dialog
+    // wrote the old language back over the choice a few seconds later, when it
+    // closed. A page changes cfg_language and Apply copies it - one writer, and
+    // the change still arrives here through valueChanged, in the same moment.
 
     // What the configuration exposes, in one line. Every accessor above is
     // guarded, and Plasma has shipped this object with different ones over the
@@ -117,12 +105,11 @@ QtObject {
         var cfg = bridge.settings()
         if (cfg && typeof cfg.valueChanged === "function") {
             cfg.valueChanged.connect(function (key) {
-                if (key !== "language")
-                    return
-                // Every write of the language, from whatever engine shares this
-                // map: this is the line that shows who changed it and to what.
-                console.log("HA-hub: configuration says language =", String(cfg.language))
-                bridge.refresh()
+                // Every engine that shares this configuration map writes here,
+                // including the settings dialog on Apply: this is what makes a
+                // chosen language reach a running widget without a restart.
+                if (key === "language")
+                    bridge.refresh()
             })
         }
         refresh()
