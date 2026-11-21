@@ -103,6 +103,9 @@ test("every engine that paints translated text mounts the bridge", () => {
         "contents/ui/settings/ConfigDashboard.qml",
         "contents/ui/settings/ConfigAppearance.qml",
         "contents/ui/settings/ConfigFavorites.qml",
+        // The list of sections in the dialog is translated too, and it is built
+        // by the dialog's engine before any page of it has been shown.
+        "contents/config/config.qml",
     ];
     for (const file of files) {
         assert.match(read(file), /Components\.LanguageBridge\s*\{/, file + " must mount LanguageBridge");

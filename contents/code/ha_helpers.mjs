@@ -407,6 +407,8 @@ function getStatusDetailsText(cleanId, entObj, devId, haManager, lang) {
     if (dom === "climate") {
         var curT = attrs.current_temperature;
         var hvac = attrs.hvac_action || state;
+        // Asked for by Home Assistant's value, not by this file - the words it
+        // can produce are listed as EXTERNAL_KEYS in ../l10n/translations.mjs.
         return (curT !== undefined ? curT + "°C • " : "") + w(hvac);
     }
     if (dom === "binary_sensor") {

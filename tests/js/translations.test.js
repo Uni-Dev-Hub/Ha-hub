@@ -30,17 +30,41 @@ function uiKeys() {
 
 // Words the plain helper functions translate (they are not Loc.t call sites):
 // binary sensor pairs, HVAC actions, status labels and month abbreviations.
-const HELPER_WORDS = [
-    "Unavailable", "On", "Off", "Open", "Closed", "Locked", "Unlocked", "Wet", "Dry",
-    "Detected", "Clear", "Problem", "OK", "Connected", "Disconnected", "Low", "Normal",
-    "Running", "Stopped", "Update available", "Up to date", "Cleaning", "Docked",
-    "Returning", "Paused", "Error", "Playing", "Idle", "Home", "Away", "Disarmed",
-    "Armed Home", "Armed Away", "Armed Night", "Triggered", "Mowing",
-    "off", "auto", "heating", "cooling", "drying", "fan_only", "preheating",
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-];
+// Strings the code asks for without naming them at the call site: the helper
+// translates a sensor's state by handing two words to `w(off, on)`, and dates
+// look a month up by name. Both are keyed by their English text, so the
+// catalogs have to hold them, and a test cannot find them by looking for
+// Loc.t(). They are read out of the helper instead of being copied here.
+function dynamicKeys() {
+    const keys = new Set();
+    const helper = fs.readFileSync(path.join(ROOT, "contents/code/ha_helpers.mjs"), "utf8");
+    // w("off", "on") for a boolean, w("Paused") for a state read off the entity.
+    for (const m of helper.matchAll(/\bw\(\s*((?:"(?:[^"\\]|\\.)*"\s*,?\s*)+)\)/g)) {
+        for (const arg of m[1].matchAll(/"((?:[^"\\]|\\.)*)"/g)) keys.add(arg[1]);
+    }
+    const months = helper.match(/monthNames\s*=\s*\[([^\]]*)\]/);
+    if (months) {
+        for (const m of months[1].matchAll(/"([^"]+)"/g)) keys.add(m[1]);
+    }
+    return keys;
+}
 
-test("every Loc.t string is translated in every language", () => {
+const DYNAMIC_KEYS = dynamicKeys();
+
+// What the helper module declares for itself, checked here in both directions:
+// present in every catalog, and not counted as leftover by the next test.
+test("the Home Assistant vocabulary is translated in every language", () => {
+    assert.ok(L10N.EXTERNAL_KEYS.length > 0);
+    for (const lang of TARGET_LANGUAGES) {
+        const catalog = L10N.CATALOGS[lang];
+        // Spread, not filter: the array comes from another realm, and
+        // assert.deepEqual compares prototypes.
+        const missing = [...L10N.EXTERNAL_KEYS].filter((k) => !catalog[k]).sort();
+        assert.deepEqual(missing, [], `${lang} is missing HA vocabulary`);
+    }
+});
+
+test("every string the code asks for is translated in every language", () => {
     const keys = uiKeys();
     assert.ok(keys.size > 150, "expected the UI to contain many translatable strings");
     for (const lang of TARGET_LANGUAGES) {
@@ -50,11 +74,23 @@ test("every Loc.t string is translated in every language", () => {
     }
 });
 
-test("helper status words are translated in every language", () => {
+test("the words the helpers look up by name are translated too", () => {
+    assert.ok(DYNAMIC_KEYS.size > 30, "expected the helpers to look many states up");
     for (const lang of TARGET_LANGUAGES) {
         const catalog = L10N.CATALOGS[lang];
-        const missing = HELPER_WORDS.filter((k) => !catalog[k]).sort();
-        assert.deepEqual(missing, [], `${lang} is missing helper words`);
+        const missing = [...DYNAMIC_KEYS].filter((k) => !catalog[k]).sort();
+        assert.deepEqual(missing, [], `${lang} is missing ${missing.length} helper words`);
+    }
+});
+
+// The other direction: a key nothing asks for is a translation that nobody
+// will ever read, and it keeps quietly "translated" while the string it used to
+// render is gone from the UI.
+test("no catalog holds a key the code stopped asking for", () => {
+    const reachable = new Set([...uiKeys(), ...DYNAMIC_KEYS, ...[...L10N.EXTERNAL_KEYS]]);
+    for (const lang of TARGET_LANGUAGES) {
+        const unreachable = Object.keys(L10N.CATALOGS[lang]).filter((k) => !reachable.has(k)).sort();
+        assert.deepEqual(unreachable, [], `${lang} translates ${unreachable.length} unused key(s)`);
     }
 });
 
@@ -109,13 +145,33 @@ test("tr uses the language set with setLanguage", () => {
 });
 
 test("normalizeLanguage maps system tags onto supported codes", () => {
-    assert.equal(L10N.normalizeLanguage("ru-Cyrl-RU"), "ru");
-    assert.equal(L10N.normalizeLanguage("kk-KZ"), "kk");
-    assert.equal(L10N.normalizeLanguage("zh-Hans-CN"), "zh");
-    assert.equal(L10N.normalizeLanguage("EN"), "en");
-    assert.equal(L10N.normalizeLanguage("nl"), "en");
+    const supported = new Set(L10N.LANGUAGES.map((l) => l.code));
+    // The language alone, and with any region or script behind it.
+    const cases = [
+        ["ru", "ru"], ["ru-RU", "ru"], ["ru-Cyrl-RU", "ru"],
+        ["de-AT", "de"], ["de-DE", "de"], ["kk-KZ", "kk"], ["uk-UA", "uk"],
+        ["tr-TR", "tr"], ["es-MX", "es"], ["fr-CA", "fr"], ["zh-Hans-CN", "zh"],
+        ["en-GB", "en"], ["EN-us", "en"], ["zh-CN", "zh"],
+    ];
+    for (const [tag, want] of cases) {
+        if (!supported.has(want)) continue;
+        assert.equal(L10N.normalizeLanguage(tag), want, tag);
+    }
+    // The region is kept when there is a catalog for it, dropped when there is
+    // not - so pt_BR and zh_TW become reachable without breaking anyone else.
+    assert.equal(L10N.normalizeLanguage("pt-BR"), supported.has("pt_BR") ? "pt_BR" : (supported.has("pt") ? "pt" : "en"));
+    assert.equal(L10N.normalizeLanguage("pt-PT"), supported.has("pt") ? "pt" : "en");
+    const serbian = supported.has("sr") ? "sr" : "en";
+    assert.equal(L10N.normalizeLanguage("zh-TW"), supported.has("zh_TW") ? "zh_TW" : "zh");
+    assert.equal(L10N.normalizeLanguage("sr-Latn-RS"),
+        supported.has("sr_Latn") ? "sr_Latn" : serbian);
+    const catalan = supported.has("ca_VA") ? "ca_VA" : (supported.has("ca") ? "ca" : "en");
+    assert.equal(L10N.normalizeLanguage("ca-ES-valencia"), catalan);
+    assert.equal(L10N.normalizeLanguage("sr-Cyrl-RS"), serbian);
+
     assert.equal(L10N.normalizeLanguage(""), "en");
-    assert.equal(L10N.normalizeLanguage(null), "en");
+    assert.equal(L10N.normalizeLanguage(undefined), "en");
+    assert.equal(L10N.normalizeLanguage("sw-TZ"), "en");
 });
 
 test("helper functions route their labels through the active language", () => {

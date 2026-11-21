@@ -43,6 +43,15 @@ export var CATALOGS = {
 };
 
 
+// Strings asked for by Home Assistant's own value rather than by this code:
+// the climate card hands whatever `hvac_action` the integration reports
+// straight to the catalog. An action missing here is shown as Home Assistant
+// spells it, which is the intended fallback; the list exists so the tests can
+// tell this vocabulary from a key that was simply left behind.
+export var EXTERNAL_KEYS = [
+    "off", "auto", "fan", "heating", "cooling", "drying", "preheating", "fan_only"
+];
+
 // Kept in sync by Loc.qml so that plain helper functions (which have no QML
 // property access) can translate without threading lang through everywhere.
 var currentLang = "en";
@@ -55,12 +64,51 @@ export function language() {
     return currentLang;
 }
 
-// "ru-Cyrl-RU" -> "ru" (when supported), unknown -> "en".
+// A system locale arrives as a language tag - "ru-RU", "zh-TW", "sr-Latn-RS",
+// "ca-ES-valencia" - and the most specific catalog available wins. The tag is
+// tried whole, then with one subtag less at a time, so "pt-BR" finds pt_BR and
+// "pt-PT" is left with plain pt; the last candidate is the bare language.
+// Subtags that do not spell a catalog code the way we write it (Chinese
+// "Hant", Valencian "valencia") are named in SUBTAG_ALIASES.
+var SUBTAG_ALIASES = {
+    "zh-hant": "zh_TW", "zh-tw": "zh_TW", "zh-hk": "zh_TW", "zh-mo": "zh_TW",
+    "zh-hans": "zh", "zh-cn": "zh", "zh-sg": "zh", "zh-my": "zh",
+    "pt-br": "pt_BR",
+    "sr-latn": "sr_Latn", "sr-me-latn": "sr_Latn", "sr-rs-latn": "sr_Latn",
+    "sr-cyrl": "sr", "sr-rs": "sr",
+    "ca-valencia": "ca_VA", "ca-es-valencia": "ca_VA",
+    "en-gb": "en", "en-us": "en", "en-au": "en", "en-ca": "en"
+};
+
+var supportedTags = null;
+function matchTable() {
+    if (supportedTags) return supportedTags;
+    supportedTags = {};
+    for (var i = 0; i < LANGUAGES.length; i++) {
+        var code = LANGUAGES[i].code;
+        supportedTags[code.toLowerCase().replace(/_/g, "-")] = code;
+    }
+    for (var tag in SUBTAG_ALIASES) {
+        // An alias only means something while the language it aims at is offered.
+        if (supportedTags[SUBTAG_ALIASES[tag].toLowerCase().replace(/_/g, "-")]) {
+            supportedTags[tag] = SUBTAG_ALIASES[tag];
+        }
+    }
+    return supportedTags;
+}
+
+// Rebuilt when the language list changes, so a catalog added later is matched.
+export function resetLanguageMatching() {
+    supportedTags = null;
+}
+
 export function normalizeLanguage(tag) {
     if (!tag) return "en";
-    var base = tag.split("-")[0].toLowerCase();
-    for (var i = 0; i < LANGUAGES.length; i++) {
-        if (LANGUAGES[i].code === base) return base;
+    var parts = String(tag).toLowerCase().replace(/_/g, "-").split("-");
+    var table = matchTable();
+    for (var cut = parts.length; cut > 0; cut--) {
+        var found = table[parts.slice(0, cut).join("-")];
+        if (found) return found;
     }
     return "en";
 }
