@@ -21,6 +21,11 @@ import beCatalog from "./catalogs/be.js";
 import plCatalog from "./catalogs/pl.js";
 import csCatalog from "./catalogs/cs.js";
 import skCatalog from "./catalogs/sk.js";
+import bgCatalog from "./catalogs/bg.js";
+import slCatalog from "./catalogs/sl.js";
+import srCatalog from "./catalogs/sr.js";
+import sr_LatnCatalog from "./catalogs/sr_Latn.js";
+import bsCatalog from "./catalogs/bs.js";
 
 
 export var LANGUAGES = [
@@ -36,7 +41,12 @@ export var LANGUAGES = [
     { code: "be", label: "Беларуская" },
     { code: "pl", label: "Polski" },
     { code: "cs", label: "Čeština" },
-    { code: "sk", label: "Slovenčina" }
+    { code: "sk", label: "Slovenčina" },
+    { code: "bg", label: "Български" },
+    { code: "sl", label: "Slovenščina" },
+    { code: "sr", label: "Српски (ћирилица)" },
+    { code: "sr_Latn", label: "Srpski (latinica)" },
+    { code: "bs", label: "Bosanski" }
 
 ];
 
@@ -54,7 +64,12 @@ export var CATALOGS = {
     be: beCatalog,
     pl: plCatalog,
     cs: csCatalog,
-    sk: skCatalog
+    sk: skCatalog,
+    bg: bgCatalog,
+    sl: slCatalog,
+    sr: srCatalog,
+    "sr_Latn": sr_LatnCatalog,
+    bs: bsCatalog
 
 };
 
