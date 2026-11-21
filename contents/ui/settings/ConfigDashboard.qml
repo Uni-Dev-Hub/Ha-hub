@@ -26,11 +26,12 @@ Kirigami.ScrollablePage {
     topPadding: Kirigami.Units.smallSpacing
 
     // This dialog has its own Loc instance: without the bridge every page here
-    // would stay in the system language no matter what is configured.
+    // would stay in the system language no matter what is configured. The page
+    // cannot see the applet's configuration, so the bridge is given it only
+    // where Plasma happens to expose it; a bridge with nothing to read stays
+    // quiet rather than answering "system" and undoing the language the dialog
+    // is already showing.
     Components.LanguageBridge {
-        // Handed over where Plasma lets a settings page see the configuration
-        // at all; a page normally cannot, and then the language is saved the
-        // Plasma way - through the cfg_ property and Apply.
         configuration: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration)
             ? Plasmoid.configuration : null
     }

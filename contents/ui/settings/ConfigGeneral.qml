@@ -20,16 +20,16 @@ Kirigami.ScrollablePage {
     onPageTitleChanged: generalSettings.title = generalSettings.pageTitle
     topPadding: 0
 
-    // This dialog has its own Loc instance: without a language pushed into it
-    // every page here stays in the system language. A settings page is a file
-    // of its own, and Plasma's `Plasmoid` lives in the applet's context, not in
-    // one a page can reach - so the bridge is given the configuration when it
-    // happens to be reachable, and the language this page was opened with
-    // (cfg_language, which the dialog always hands over) seeds the dialog below.
+    // This dialog has its own Loc instance: without a language pushed into it,
+    // every page here stays in the system language. The dialog hands each page
+    // its own copy of the configuration (`config`), and that is what the bridge
+    // reads - the same source the applet reads, which is why the widget and the
+    // dialog cannot disagree about the language.
     Components.LanguageBridge {
         id: settingsLanguageBridge
-        configuration: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration)
-            ? Plasmoid.configuration : null
+        // The dialog's copy of the configuration arrives as cfg_language, the
+        // same way every other setting arrives on a page.
+        pendingLanguage: generalSettings.cfg_language
     }
 
     // cfg_* properties are values the Plasma 6 configuration backend hands a
@@ -53,7 +53,6 @@ Kirigami.ScrollablePage {
     // property: the first change is not a pick at all, it is the saved language
     // arriving with the page, and that is what the dialog should be showing.
     onCfg_languageChanged: {
-        Loc.configuredLanguage = cfg_language
         if (!languageCombo) return
         languageCombo.currentIndex = languageCombo.indexForCode(cfg_language)
     }

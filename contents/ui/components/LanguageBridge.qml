@@ -1,117 +1,119 @@
 import QtQuick
 import "../../l10n"
 
-// Invisible helper that owns the widget's language: it reads the configured
-// language for the Loc singleton and writes a newly chosen one.
+// Invisible helper that owns the language of one QML engine: it reads what the
+// configuration says and hands it to the Loc singleton of that same engine.
 //
-// `Loc` is a singleton, so it lives in the engine's root context, and a
-// component defined in its own file is instantiated in that file's context too
-// - while Plasma hands `Plasmoid` to the applet in a separate, per-applet
-// context. So neither this file nor any settings page can see `Plasmoid`, and
-// reading the configuration here silently yielded nothing: the picker in
-// Settings looked like it did nothing at all. The configuration therefore has
-// to be handed over by whoever mounts this object and can see it - which the
-// applet's main.qml can, and the settings pages cannot.
+// `Loc` is a singleton, so it lives in the engine's root context, while Plasma
+// hands `Plasmoid` to the applet in a separate, per-applet context - so a file
+// of its own, whether a component or a settings page, cannot always see the
+// configuration. Reading it where it is not visible silently yielded nothing,
+// which is what made the picker in Settings look like it did nothing at all. The
+// configuration is therefore handed over by whoever mounts this object and can
+// see it (`configuration: Plasmoid.configuration` in the applet), and a page of
+// the settings dialog hands over the language it was opened with instead.
 //
-// Every engine (the applet, the settings dialog) has its own Loc, so each of
-// them mounts its own bridge.
+// Every engine that paints translated text (the popup and the panel, the
+// settings dialog) has its own Loc, so each of them mounts its own bridge.
 QtObject {
     id: bridge
 
-    // Handed over by the mount point: `configuration: Plasmoid.configuration`.
+    // Handed over by the mount point where the configuration is visible.
     property var configuration: null
 
-    // Where the configuration came from, for the one line logged at startup.
-    readonly property string source: bridge.configuration ? "passed in"
-        : ((typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? "Plasmoid" : "none")
+    // Or handed over by a page of the settings dialog: the language that page
+    // was opened with and will write out on Apply. A dialog is painted in the
+    // language it is showing, which is not necessarily the one in the file yet.
+    property string pendingLanguage: ""
 
-    // Reads the language the way the configuration actually offers it. The map
-    // Plasma hands out is a property map with dynamic keys: a value written by
-    // the settings dialog can sit in the file while this engine still answers
-    // with what it read at load time, so ask the object itself before falling
-    // back to the cached key.
-    function readValue() {
-        var cfg = bridge.settings()
-        if (!cfg)
-            return ""
+    // What the source answers, before it is turned into a catalog code: a code,
+    // "system", or "" when nothing was said. A function of the reading below, so
+    // it is asked again whenever the configuration changes.
+    readonly property string configured: bridge.pendingLanguage.length > 0
+        ? bridge.pendingLanguage
+        : (bridge.settings() ? bridge.readValue() : "")
 
-        if (typeof cfg.readConfig === "function") {
-            var fromFile = cfg.readConfig("language", "")
-            if (fromFile !== undefined && fromFile !== null && String(fromFile).length > 0)
-                return String(fromFile)
-        }
+    // The language of this engine: a catalog code, or "" meaning the system
+    // language, which is what Loc resolves from the operating system.
+    readonly property string language: L10N.normalizeLanguage(bridge.configured)
 
-        if (cfg.language !== undefined && cfg.language !== null && String(cfg.language).length > 0)
-            return String(cfg.language)
-
-        return ""
-    }
+    // A bridge only speaks for an engine it can actually read. The settings
+    // dialog opens every page of it, and a page that can see neither the
+    // configuration nor a language of its own would otherwise answer "the system
+    // language" and undo the language the dialog is already showing.
+    readonly property bool speaks: bridge.pendingLanguage.length > 0 || bridge.settings() !== null
 
     // Either handed in by the mount point or, where it happens to be visible,
     // found on its own. Kept a function so it is decided again on every read.
     function settings() {
         if (bridge.configuration)
             return bridge.configuration
-        if (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration)
-            return Plasmoid.configuration
+        try {
+            if (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration)
+                return Plasmoid.configuration
+        } catch (e) {
+        }
         return null
     }
 
-    // Hands the configured value to the Loc singleton. Called on creation
-    // because bindings elsewhere may already have evaluated with the default
-    // "system" by the time this object exists, and kept as a public entry
-    // point so the applet can re-read the value every time the interface
-    // becomes visible again - that is what applies a language chosen in
-    // Settings even if the two engines never tell each other anything.
-    function refresh() {
-        // With nothing to read there is nothing to say: a page of the settings
-        // dialog cannot see the configuration, and answering "system" here
-        // would undo the language the dialog is already showing.
-        if (!bridge.settings())
-            return
-        var code = bridge.readValue() || "system"
-        if (Loc.configuredLanguage === code)
-            return
-        Loc.configuredLanguage = code
-        console.log("HA-hub: language ->", code)
-    }
-
-    // The bridge only ever reads. Writing the language from here was the last
-    // bug: the settings dialog holds its own copy of the configuration, so a
-    // write that bypassed it left that copy on the old language, and the dialog
-    // wrote the old language back over the choice a few seconds later, when it
-    // closed. A page changes cfg_language and Apply copies it - one writer, and
-    // the change still arrives here through valueChanged, in the same moment.
-
-    // What the configuration exposes, in one line. Every accessor above is
-    // guarded, and Plasma has shipped this object with different ones over the
-    // years, so this is what makes a language report answerable from the
-    // journal alone: journalctl --user | grep HA-hub
-    readonly property string accessors: {
+    // Reads the language the way the configuration actually offers it. The map
+    // Plasma hands out is a property map with dynamic keys: a value written by
+    // the settings dialog can sit in the file while the applet's engine still
+    // answers with what it read at load time, so ask the object itself before
+    // falling back to the cached key.
+    function readValue() {
         var cfg = bridge.settings()
         if (!cfg)
-            return "no configuration"
-        var have = []
-        if (typeof cfg.readConfig === "function") have.push("readConfig")
-        if (typeof cfg.writeConfig === "function") have.push("writeConfig")
-        if (typeof cfg.valueChanged === "function") have.push("valueChanged")
-        if (typeof cfg.keys === "function") have.push("keys")
-        have.push(cfg.language !== undefined ? "language" : "no language key")
-        return have.join(", ")
+            return ""
+        try {
+            if (typeof cfg.readConfig === "function") {
+                var fromFile = cfg.readConfig("language", "")
+                if (fromFile)
+                    return String(fromFile)
+            }
+        } catch (e) {
+        }
+        try {
+            if (cfg.language)
+                return String(cfg.language)
+        } catch (e) {
+        }
+        return ""
+    }
+
+    // Hands the language to the Loc singleton. Everything painted through
+    // Loc.t() follows the binding on its own; the call is kept because text put
+    // together in JavaScript - a model, a summary line - has no binding to
+    // blame, and asking the applet to refresh when its popup opens is what makes
+    // a language chosen in Settings reach a running widget.
+    function refresh() {
+        if (!bridge.speaks)
+            return
+        Loc.configuredLanguage = bridge.configured
+    }
+
+    // Either source can move on its own: the configuration from the other
+    // engine, the pending value from a pick in the dialog.
+    onConfiguredChanged: bridge.refresh()
+    onPendingLanguageChanged: bridge.refresh()
+
+    // What this bridge can see, in one line, for `journalctl --user -g HA-hub`.
+    // Reading the journal is the only way to tell "the configuration holds
+    // nothing" from "the configuration was never read", which is the difference
+    // between a setting that was not saved and a setting that cannot arrive.
+    function report() {
+        if (bridge.pendingLanguage.length > 0)
+            return "the dialog shows " + bridge.pendingLanguage
+                + ", catalog " + (bridge.language || "system default")
+        if (!bridge.settings())
+            return "nothing to read in this engine, staying quiet"
+        var raw = bridge.readValue()
+        return "configuration says " + (raw.length > 0 ? raw : "nothing")
+            + ", catalog " + (bridge.language || "system default")
     }
 
     Component.onCompleted: {
-        console.log("HA-hub: language bridge started (" + bridge.source + ": " + bridge.accessors + ")")
-        var cfg = bridge.settings()
-        if (cfg && typeof cfg.valueChanged === "function") {
-            cfg.valueChanged.connect(function (key) {
-                // Every engine that shares this configuration map writes here,
-                // including the settings dialog on Apply: this is what makes a
-                // chosen language reach a running widget without a restart.
-                if (key === "language")
-                    bridge.refresh()
-            })
-        }
-        refresh()
+        bridge.refresh()
+        console.log("HA-hub: language bridge (" + bridge.report() + ")")
     }
 }

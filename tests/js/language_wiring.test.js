@@ -6,27 +6,36 @@ const assert = require("node:assert/strict");
 const root = path.join(__dirname, "..", "..");
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
 
-// Regression guard for "the language picker does nothing". `Loc` is a QML
-// singleton, so it lives in the engine's root context, while Plasma exposes
-// `Plasmoid` only in the per-applet child context: reading the configuration
-// from inside the singleton always yielded undefined and the interface stayed
-// on the system language.
+const PAGES = [
+    "contents/ui/settings/ConfigGeneral.qml",
+    "contents/ui/settings/ConfigDashboard.qml",
+    "contents/ui/settings/ConfigAppearance.qml",
+    "contents/ui/settings/ConfigFavorites.qml",
+];
+
+// `Loc` is a QML singleton, so it lives in the engine's root context, while
+// Plasma exposes `Plasmoid` only in the per-applet child context: reading the
+// configuration from inside the singleton always yielded nothing, and the
+// interface stayed on the system language. The language therefore arrives from
+// outside - from the one bridge of the engine that can see it.
 test("the Loc singleton never reads the configuration itself", () => {
     const loc = read("contents/l10n/Loc.qml");
     assert.match(loc, /pragma Singleton/, "Loc is a singleton");
-    assert.doesNotMatch(loc, /Plasmoid\.configuration/, "the singleton cannot see Plasmoid");
+    assert.doesNotMatch(loc, /Plasmoid\./, "the singleton cannot see Plasmoid");
     assert.match(loc, /property string configuredLanguage/, "the language is pushed in");
 });
 
-test("the language bridge moves the configured value into Loc", () => {
+test("the language bridge resolves the configured language for its engine", () => {
     const bridge = read("contents/ui/components/LanguageBridge.qml");
-    assert.match(bridge, /Plasmoid\.configuration/, "the bridge reads the configuration...");
-    assert.match(bridge, /Loc\.configuredLanguage\s*=/, "...and pushes it into the singleton");
+    assert.match(bridge, /readonly property string configured/, "what the source says, read again on demand");
+    assert.match(bridge, /readonly property string language/, "normalised to a catalog code");
+    assert.match(bridge, /Loc\.configuredLanguage = bridge\.configured/, "...and that is what the singleton is fed");
+    assert.match(bridge, /onConfiguredChanged/, "a new value arrives without anyone asking");
     assert.match(bridge, /Component\.onCompleted/, "the first value is handed over on creation");
 });
 
 // The configuration object Plasma hands out is a property map with dynamic
-// keys. A settings dialog that writes through its own instance can leave the
+// keys. A settings dialog that writes through its own copy can leave the
 // applet's map answering with what it read at load time, so the read asks the
 // object itself before trusting the cached key.
 test("the bridge re-reads the file instead of trusting a cached key", () => {
@@ -34,24 +43,35 @@ test("the bridge re-reads the file instead of trusting a cached key", () => {
     assert.match(bridge, /function readValue/, "the read is a function, so it runs again on demand");
     assert.match(bridge, /cfg\.readConfig\("language"/, "it asks the configuration object first");
     assert.match(bridge, /function refresh/, "and the applet can call it whenever the interface opens");
-    assert.match(bridge, /console\.log\(/, "and says in the journal what it settled on");
+    // "The language does not apply" is either a value that was never stored or a
+    // value that never arrived, and only the journal tells those apart.
+    assert.match(bridge, /function report/, "and it says in one line what it could see");
+    assert.match(bridge, /console\.log\(/, "in the journal, at startup");
 });
 
 // The settings dialog keeps a copy of the configuration. A pick that wrote the
 // language straight into the applet's configuration - around that copy - was
 // undone a few seconds later, when the dialog closed and its copy, still holding
 // the old language, was written back. One writer, the Plasma way: cfg_ and Apply.
-test("a page hands the language over the way Apply copies it, and never past it", () => {
+test("nobody writes the configuration behind the dialog's copy", () => {
     const bridge = read("contents/ui/components/LanguageBridge.qml");
     assert.doesNotMatch(bridge, /cfg\.language\s*=/, "the bridge never writes the configuration...");
     assert.doesNotMatch(bridge, /writeConfig\s*\(/, "...let alone pushes it to disk");
-    assert.match(bridge, /valueChanged/, "...it watches what arrives instead");
 
     const general = read("contents/ui/settings/ConfigGeneral.qml");
     assert.match(general, /function selectLanguage\(code\)/, "one entry point for a pick");
     assert.match(general, /function selectLanguage\(code\)\s*\{[^}]*cfg_language\s*=\s*code/s,
         "the pick lands in cfg_language, which Apply copies");
-    assert.doesNotMatch(general, /Bridge\.setLanguage\(/, "and nowhere else");
+});
+
+// A page cannot see the applet's configuration, so a bridge mounted by a page
+// would answer "the system language" and repaint the whole dialog in it. Only a
+// bridge that can actually read something is allowed to say anything.
+test("a bridge with nothing to read stays quiet", () => {
+    const bridge = read("contents/ui/components/LanguageBridge.qml");
+    assert.match(bridge, /readonly property bool speaks/, "whether this bridge has a source at all");
+    assert.match(bridge, /function refresh\(\)\s*\{\s*\r?\n\s*if \(!bridge\.speaks\)/,
+        "and it says nothing without one");
 });
 
 // A translated string inside the ComboBox model rebuilds the model exactly when
@@ -65,44 +85,37 @@ test("the language picker keeps a stable model", () => {
     assert.match(combo[0], /displayText:/, "and only where it is displayed");
 });
 
-// Every component is created in the context of the file that defines it, while
-// Plasma keeps `Plasmoid` in a context of its own for the applet. A component
-// in its own file therefore cannot see the configuration no matter where it is
-// mounted - which is why the applet hands it over explicitly. Without that line
-// the widget never learned what language it was configured for.
-test("the applet hands its configuration to the bridge", () => {
+// The language is one setting with one meaning: what the configuration holds.
+// The applet reads its own configuration; the page of a settings dialog reads
+// the copy the dialog was opened with, which is the language that dialog shows.
+test("every engine is told where to read the language", () => {
     const main = read("contents/ui/main.qml");
-    const mount = main.match(/Components\.LanguageBridge\s*\{[\s\S]*?\n {4}\}/);
-    assert.ok(mount, "the applet mounts the bridge");
-    assert.match(mount[0], /configuration:\s*Plasmoid\.configuration/, "and passes the configuration in");
+    const applet = main.match(/Components\.LanguageBridge\s*\{[\s\S]*?\n {4}\}/);
+    assert.ok(applet, "the applet mounts the bridge");
+    assert.match(applet[0], /configuration:\s*Plasmoid\.configuration/, "with the applet's configuration");
     assert.match(main, /appletLanguageBridge\.refresh\(\)/, "and re-reads it when the popup is opened");
-});
 
-// A settings page is a file of its own too, so the same limit applies there.
-// The page still owns the language the dialog was opened with (cfg_language),
-// and that is what the translated dialog is built from.
-test("the general page seeds the dialog's language", () => {
     const general = read("contents/ui/settings/ConfigGeneral.qml");
-    assert.match(general, /onCfg_languageChanged:\s*\{[^}]*Loc\.configuredLanguage\s*=\s*cfg_language/s,
-        "the language arriving with the page is pushed into Loc");
-    // The declared value is what Apply writes when nothing was handed over, so
-    // a hard-coded "system" here erased a chosen language a few seconds later:
-    // KConfig drops an entry that equals its default, and the widget went back
-    // to the system language on its own.
-    assert.match(general, /property string cfg_language:\s*Loc\.configuredLanguage/,
-        "the page holds the language it is showing, not a hard-coded default");
-    assert.doesNotMatch(general, /property string cfg_language:\s*"/,
-        "and never a literal language of its own");
+    const page = general.match(/Components\.LanguageBridge\s*\{[\s\S]*?\n {8}\}/);
+    assert.ok(page, "the general page mounts the bridge");
+    assert.match(page[0], /pendingLanguage:\s*\w+\.cfg_language/, "with the language the dialog was opened with");
+    assert.doesNotMatch(general, /Loc\.configuredLanguage\s*=\s*cfg_language/,
+        "and the page does not push that language past the bridge");
+
+    // The list in the picker is the list of catalogs: a language that ships
+    // cannot be missing from Settings, which is how "the translations exist but
+    // cannot be chosen" happened in the first place.
+    assert.match(general, /concat\(Loc\.languages\)/, "the picker starts from the module's own list");
+    const loc = read("contents/l10n/Loc.qml");
+    assert.match(loc, /readonly property var languages:\s*T\.LANGUAGES/,
+        "which is the catalog list itself, not a copy of its own");
 });
 
 // Every engine that paints translated text mounts the bridge.
 test("every engine that paints translated text mounts the bridge", () => {
     const files = [
         "contents/ui/main.qml",
-        "contents/ui/settings/ConfigGeneral.qml",
-        "contents/ui/settings/ConfigDashboard.qml",
-        "contents/ui/settings/ConfigAppearance.qml",
-        "contents/ui/settings/ConfigFavorites.qml",
+        ...PAGES,
         // The list of sections in the dialog is translated too, and it is built
         // by the dialog's engine before any page of it has been shown.
         "contents/config/config.qml",
