@@ -10,6 +10,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   one thing about a translation list that is easy to get wrong and impossible to
   notice, so it is a test now: it reads the number out of the README and out of
   the release notes and compares both with the catalogs that load.
+- The widget's description in the store, in every language the widget itself
+  speaks — a language offered in settings that has no `Description[<code>]` reads
+  as English to someone browsing in it. Which codes must exist is asked of the
+  module, so a new catalog without its description fails the build.
 
 ## [1.3.0] - 2026-11-21
 
