@@ -3,6 +3,25 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.9] - 2026-11-21
+
+### Fixed
+- The fields of a settings page stand on the left again. Kirigami gives a form
+  the whole width of the space it is put in and centres the label and field
+  columns of its content inside that width, so a form as wide as the window
+  showed them somewhere near its middle, with the leftovers of that width on
+  both sides. Each form is now put in a box as wide as the form asks itself to
+  be, and the box stands on the left; in a window narrower than the form, the
+  box follows it down and the form reflows into one column.
+- The tile list is a table again. The three dropdowns of a row — size, content,
+  group — started at a different place in every row: the block with the entity's
+  name measured itself to its own text, so a short name moved them left, and a
+  row whose name had been changed carried the reset button the other rows did
+  not have, which took width from the fields that fill a row. The name block now
+  asks for a width by number, and the place of the reset button is kept on every
+  row. Test laid out in the hosted dialog: the three columns of the list start
+  at the same x in all rows, at 460, 620, 900 and 1380 px.
+
 ## [1.2.8] - 2026-11-21
 
 ### Fixed
