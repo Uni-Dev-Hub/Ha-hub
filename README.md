@@ -4,7 +4,7 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 
 ![KDE Plasma 6](https://img.shields.io/badge/KDE_Plasma-6.0+-blue?logo=kde)
 ![License](https://img.shields.io/badge/License-GPL--3.0-green)
-![Version](https://img.shields.io/badge/Version-1.2.6-green)
+![Version](https://img.shields.io/badge/Version-1.2.7-green)
 
 ---
 
@@ -50,14 +50,14 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 
 ### Manual Installation (.plasmoid)
 
-1. Download the latest `org.kde.plasma.hahub-1.2.6.plasmoid` from the [Releases](https://github.com/Uni-Dev-Hub/Ha-hub/releases) section.
+1. Download the latest `org.kde.plasma.hahub-1.2.7.plasmoid` from the [Releases](https://github.com/Uni-Dev-Hub/Ha-hub/releases) section.
 2. Install via terminal:
    
-   kpackagetool6 --type Plasma/Applet --install org.kde.plasma.hahub-1.2.6.plasmoid
+   kpackagetool6 --type Plasma/Applet --install org.kde.plasma.hahub-1.2.7.plasmoid
    
 3. To update an existing installation:
 
-   kpackagetool6 --type Plasma/Applet --upgrade org.kde.plasma.hahub-1.2.6.plasmoid
+   kpackagetool6 --type Plasma/Applet --upgrade org.kde.plasma.hahub-1.2.7.plasmoid
 
 
 

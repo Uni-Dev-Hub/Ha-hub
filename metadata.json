@@ -14,7 +14,7 @@
         "Id": "org.kde.plasma.hahub",
         "License": "GPL-3.0-or-later",
         "Name": "HA-Hub",
-        "Version": "1.2.6",
+        "Version": "1.2.7",
         "Website": "https://github.com/Uni-Dev-Hub/HA-hub",
         "X-Plasma-API-Minimum-Version": "6.0",
         "X-Plasma-HasConfigurationInterface": true

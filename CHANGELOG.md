@@ -3,6 +3,19 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.7] - 2026-11-21
+
+### Added
+- Entities can be renamed. In **Settings → Dashboard**, click an entity's name
+  in the tile list: it turns into a field, and what you type becomes the name
+  the widget shows — on the tile, in the device list and in the cards. The name
+  Home Assistant gives the entity stays visible underneath, and the row gets a
+  reset button that takes the name back. The rename belongs to the entity, not
+  to one tile, so the same name appears wherever that entity is shown, and it
+  survives removing the tile or the group.
+- Names are saved with the rest of the configuration, so they are still there
+  after Apply, after closing the settings, and after a restart of Plasma.
+
 ## [1.2.6] - 2026-11-21
 
 ### Added
