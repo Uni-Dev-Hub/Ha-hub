@@ -3,6 +3,34 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.8] - 2026-11-21
+
+### Fixed
+- The settings pages fit the window. Kirigami makes a form as wide as the
+  widest thing in it, and a hint line that could wrap was asking for the width
+  of its whole text in one line: the form took that width, and the fields,
+  their labels and the hints themselves ran past the right edge and were cut
+  off — while the window could not be dragged narrower than that phantom width.
+  Everything a form had no other measure by is now bounded by the width the
+  page offers, so a field fills the window without leaving it, the hints wrap,
+  and the dialog goes down to a narrow window. A regression test lays every
+  page out in the widest language at five widths and asks that nothing reach
+  past the edge.
+- Rows of the tile list are one height. A renamed entity grew a second line
+  under its name, which made that row taller than its neighbours and left its
+  three dropdowns off-centre. The line under a name is now one line on every
+  row — what Home Assistant calls the entity, and its id — and the reset button
+  is what marks a row whose name was changed.
+- A page heading is in the language of the widget. Plasma hands a settings page
+  a heading of its own when it opens it, taken from the category name as it was
+  read *before* the page had set the language, and the assignment breaks the
+  page's own binding — so the first page opened kept the language of the system
+  in its heading («Allgemein» next to a Russian dialog), while the pages opened
+  after it were correct. Each page now puts its own heading back.
+- The two device-list checkboxes on the General page are no longer both headed
+  «Device list:». Only the first carries the heading now, and the second sits
+  under it in the column of fields.
+
 ## [1.2.7] - 2026-11-21
 
 ### Added
