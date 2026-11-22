@@ -1,0 +1,1076 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the HA-Hub Revived package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: HA-Hub Revived 2.0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-17 13:54+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: contents/code/ha_helpers.js:64 contents/code/ha_helpers.js:201
+#: contents/code/ha_helpers.js:203 contents/code/ha_helpers.js:264
+#: contents/ui/components/EntityState.qml:64
+#: contents/ui/details/sections/CoverSection.qml:47
+#: contents/ui/details/sections/CoverSection.qml:59
+#: contents/ui/details/sections/ValveSection.qml:60
+msgid "Open"
+msgstr ""
+
+#: contents/code/ha_helpers.js:64 contents/code/ha_helpers.js:201
+#: contents/code/ha_helpers.js:203 contents/code/ha_helpers.js:264
+#: contents/ui/details/sections/CoverSection.qml:47
+msgid "Closed"
+msgstr ""
+
+#: contents/code/ha_helpers.js:67 contents/code/ha_helpers.js:206
+#: contents/ui/details/sections/LockSection.qml:45
+msgid "Unlocked"
+msgstr ""
+
+#: contents/code/ha_helpers.js:67 contents/code/ha_helpers.js:206
+#: contents/ui/details/sections/LockSection.qml:45
+msgid "Locked"
+msgstr ""
+
+#: contents/code/ha_helpers.js:70
+msgid "Wet"
+msgstr ""
+
+#: contents/code/ha_helpers.js:70
+#: contents/ui/details/sections/ClimateSensorSection.qml:93
+#: contents/ui/details/sections/ThermostatSection.qml:22
+msgid "Dry"
+msgstr ""
+
+#: contents/code/ha_helpers.js:73 contents/code/ha_helpers.js:88
+msgid "Detected"
+msgstr ""
+
+#: contents/code/ha_helpers.js:73
+msgid "Clear"
+msgstr ""
+
+#: contents/code/ha_helpers.js:76
+msgid "Motion"
+msgstr ""
+
+#: contents/code/ha_helpers.js:76
+msgid "No motion"
+msgstr ""
+
+#: contents/code/ha_helpers.js:79
+msgid "Problem"
+msgstr ""
+
+#: contents/code/ha_helpers.js:79
+msgid "OK"
+msgstr ""
+
+#: contents/code/ha_helpers.js:82 contents/services/HAManager.qml:578
+msgid "Connected"
+msgstr ""
+
+#: contents/code/ha_helpers.js:82 contents/services/HAManager.qml:19
+#: contents/services/HAManager.qml:545 contents/ui/main.qml:30
+#: contents/ui/main.qml:31 contents/ui/views/HeaderView.qml:81
+#: contents/ui/views/HeaderView.qml:82
+msgid "Disconnected"
+msgstr ""
+
+#: contents/code/ha_helpers.js:85
+msgid "Low battery"
+msgstr ""
+
+#: contents/code/ha_helpers.js:85
+msgid "Normal"
+msgstr ""
+
+#: contents/code/ha_helpers.js:88
+msgid "Quiet"
+msgstr ""
+
+#: contents/code/ha_helpers.js:91 contents/code/ha_helpers.js:279
+msgid "Running"
+msgstr ""
+
+#: contents/code/ha_helpers.js:91
+#: contents/ui/details/sections/MediaPlayerSection.qml:52
+msgid "Stopped"
+msgstr ""
+
+#: contents/code/ha_helpers.js:94 contents/code/ha_helpers.js:280
+msgid "Update available"
+msgstr ""
+
+#: contents/code/ha_helpers.js:94 contents/code/ha_helpers.js:280
+msgid "Up to date"
+msgstr ""
+
+#: contents/code/ha_helpers.js:96
+msgid "Active"
+msgstr ""
+
+#: contents/code/ha_helpers.js:96 contents/code/ha_helpers.js:235
+msgid "Inactive"
+msgstr ""
+
+#: contents/code/ha_helpers.js:189
+#: contents/ui/details/sections/DeviceInfoSection.qml:89
+#: contents/ui/details/sections/GenericSection.qml:27
+#: contents/ui/settings/ConfigFavorites.qml:124
+msgid "Unavailable"
+msgstr ""
+
+#: contents/code/ha_helpers.js:196 contents/code/ha_helpers.js:274
+#: contents/ui/details/sections/DeviceInfoSection.qml:90
+#: contents/ui/details/sections/FanSection.qml:47
+#: contents/ui/details/sections/SwitchSection.qml:45
+msgid "On"
+msgstr ""
+
+#: contents/code/ha_helpers.js:196 contents/code/ha_helpers.js:215
+#: contents/code/ha_helpers.js:236 contents/code/ha_helpers.js:274
+#: contents/ui/details/sections/DeviceInfoSection.qml:91
+#: contents/ui/details/sections/FanSection.qml:47
+#: contents/ui/details/sections/HumidifierSection.qml:47
+#: contents/ui/details/sections/LightSection.qml:120
+#: contents/ui/details/sections/SwitchSection.qml:45
+#: contents/ui/details/sections/ThermostatSection.qml:24
+msgid "Off"
+msgstr ""
+
+#: contents/code/ha_helpers.js:212
+#: contents/ui/details/sections/ThermostatSection.qml:19
+msgid "Heating"
+msgstr ""
+
+#: contents/code/ha_helpers.js:213
+#: contents/ui/details/sections/ThermostatSection.qml:20
+msgid "Cooling"
+msgstr ""
+
+#: contents/code/ha_helpers.js:214
+msgid "Idle"
+msgstr ""
+
+#: contents/code/ha_helpers.js:216
+msgid "Fan"
+msgstr ""
+
+#: contents/code/ha_helpers.js:225
+msgid "Cleaning"
+msgstr ""
+
+#: contents/code/ha_helpers.js:226 contents/code/ha_helpers.js:268
+#: contents/ui/details/sections/LawnMowerSection.qml:50
+#: contents/ui/details/sections/VacuumSection.qml:50
+msgid "Docked"
+msgstr ""
+
+#: contents/code/ha_helpers.js:227
+msgid "Returning"
+msgstr ""
+
+#: contents/code/ha_helpers.js:228 contents/code/ha_helpers.js:234
+#: contents/code/ha_helpers.js:269
+#: contents/ui/details/sections/LawnMowerSection.qml:51
+#: contents/ui/details/sections/VacuumSection.qml:52
+msgid "Paused"
+msgstr ""
+
+#: contents/code/ha_helpers.js:229 contents/code/ha_helpers.js:270
+msgid "Error"
+msgstr ""
+
+#: contents/code/ha_helpers.js:233
+#: contents/ui/details/sections/MediaPlayerSection.qml:52
+msgid "Playing"
+msgstr ""
+
+#: contents/code/ha_helpers.js:240 contents/code/ha_helpers.js:288
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:68
+#: contents/ui/details/sections/PersonSection.qml:45
+msgid "Home"
+msgstr ""
+
+#: contents/code/ha_helpers.js:240 contents/code/ha_helpers.js:288
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:76
+#: contents/ui/details/sections/PersonSection.qml:45
+msgid "Away"
+msgstr ""
+
+#: contents/code/ha_helpers.js:256
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:53
+msgid "Disarmed"
+msgstr ""
+
+#: contents/code/ha_helpers.js:257
+msgid "Armed (home)"
+msgstr ""
+
+#: contents/code/ha_helpers.js:258
+msgid "Armed (away)"
+msgstr ""
+
+#: contents/code/ha_helpers.js:259
+msgid "Armed (night)"
+msgstr ""
+
+#: contents/code/ha_helpers.js:260
+msgid "Triggered!"
+msgstr ""
+
+#: contents/code/ha_helpers.js:267
+msgid "Mowing"
+msgstr ""
+
+#: contents/code/ha_helpers.js:277
+msgid "Enabled"
+msgstr ""
+
+#: contents/code/ha_helpers.js:277
+msgid "Disabled"
+msgstr ""
+
+#: contents/code/ha_helpers.js:278
+msgid "Activate"
+msgstr ""
+
+#: contents/code/ha_helpers.js:279
+msgid "Ready"
+msgstr ""
+
+#: contents/code/ha_helpers.js:282
+msgid "Sunny"
+msgstr ""
+
+#: contents/code/ha_helpers.js:282
+msgid "Clear night"
+msgstr ""
+
+#: contents/code/ha_helpers.js:282
+msgid "Cloudy"
+msgstr ""
+
+#: contents/code/ha_helpers.js:282
+msgid "Partly cloudy"
+msgstr ""
+
+#: contents/code/ha_helpers.js:283
+msgid "Rainy"
+msgstr ""
+
+#: contents/code/ha_helpers.js:283
+msgid "Pouring"
+msgstr ""
+
+#: contents/code/ha_helpers.js:283
+msgid "Snowy"
+msgstr ""
+
+#: contents/code/ha_helpers.js:283
+msgid "Fog"
+msgstr ""
+
+#: contents/code/ha_helpers.js:283
+msgid "Windy"
+msgstr ""
+
+#: contents/code/ha_helpers.js:284
+msgid "Lightning"
+msgstr ""
+
+#: contents/code/ha_helpers.js:284
+msgid "Hail"
+msgstr ""
+
+#: contents/code/ha_helpers.js:284
+msgid "Exceptional"
+msgstr ""
+
+#: contents/code/ha_helpers.js:306
+#, kde-format
+msgid "%1d"
+msgstr ""
+
+#: contents/code/ha_helpers.js:307
+msgid "%1h"
+msgstr ""
+
+#: contents/code/ha_helpers.js:308
+#, kde-format
+msgid "%1m"
+msgstr ""
+
+#: contents/code/ha_helpers.js:309
+#, kde-format
+msgid "%1s"
+msgstr ""
+
+#: contents/config/config.qml:9 contents/ui/settings/ConfigGeneral.qml:9
+msgid "General"
+msgstr ""
+
+#: contents/config/config.qml:14 contents/ui/views/DeviceListView.qml:49
+msgid "Favorite devices"
+msgstr ""
+
+#: contents/services/HAManager.qml:325
+msgid "Connection lost, reconnecting…"
+msgstr ""
+
+#: contents/services/HAManager.qml:355
+msgid "%1 Retrying in %2 s"
+msgstr ""
+
+#: contents/services/HAManager.qml:381
+msgid "Connection to %1 timed out."
+msgstr ""
+
+#: contents/services/HAManager.qml:403
+msgid "Servers found: %1"
+msgstr ""
+
+#: contents/services/HAManager.qml:405
+msgid "No servers found on the local network"
+msgstr ""
+
+#: contents/services/HAManager.qml:419
+msgid "Unable to reach the server"
+msgstr ""
+
+#: contents/services/HAManager.qml:422
+msgid "SSL error: the server does not use SSL. Disable “wss://”."
+msgstr ""
+
+#: contents/services/HAManager.qml:424
+msgid "Error: %1."
+msgstr ""
+
+#: contents/services/HAManager.qml:440
+msgid "Connection closed."
+msgstr ""
+
+#: contents/services/HAManager.qml:475
+msgid "Please enter the access token"
+msgstr ""
+
+#: contents/services/HAManager.qml:489
+msgid "Connecting to %1:%2…"
+msgstr ""
+
+#: contents/services/HAManager.qml:510
+msgid "Searching for servers on the network…"
+msgstr ""
+
+#: contents/services/HAManager.qml:593
+msgid "Invalid access token"
+msgstr ""
+
+#: contents/ui/components/CompactDeviceRow.qml:106
+#: contents/ui/components/CompactDeviceTile.qml:45
+#: contents/ui/components/GlassDeviceCard.qml:117
+msgid "Remove from favorites"
+msgstr ""
+
+#: contents/ui/components/CompactDeviceRow.qml:106
+#: contents/ui/components/CompactDeviceTile.qml:45
+#: contents/ui/components/GlassDeviceCard.qml:117
+msgid "Add to favorites"
+msgstr ""
+
+#: contents/ui/components/CompactDeviceRow.qml:125
+#: contents/ui/components/CompactDeviceTile.qml:65
+#: contents/ui/components/GlassDeviceCard.qml:135
+msgid "Run"
+msgstr ""
+
+#: contents/ui/components/CompactDeviceTile.qml:50
+msgid "Details"
+msgstr ""
+
+#: contents/ui/components/CompactDeviceTile.qml:65
+msgid "Turn off"
+msgstr ""
+
+#: contents/ui/components/CompactDeviceTile.qml:65
+msgid "Turn on"
+msgstr ""
+
+#: contents/ui/components/DeviceCard.qml:164
+msgid "No device selected"
+msgstr ""
+
+#: contents/ui/components/DeviceCard.qml:172
+msgid "Click to configure"
+msgstr ""
+
+#: contents/ui/components/EntityState.qml:64
+#: contents/ui/details/sections/CoverSection.qml:73
+#: contents/ui/details/sections/ValveSection.qml:68
+msgid "Close"
+msgstr ""
+
+#: contents/ui/components/EntityState.qml:65
+#: contents/ui/details/sections/LockSection.qml:53
+msgid "Unlock"
+msgstr ""
+
+#: contents/ui/components/EntityState.qml:65
+#: contents/ui/details/sections/LockSection.qml:53
+msgid "Lock"
+msgstr ""
+
+#: contents/ui/components/EntityState.qml:66
+#: contents/ui/details/sections/LawnMowerSection.qml:66
+#: contents/ui/details/sections/MediaPlayerSection.qml:79
+#: contents/ui/details/sections/VacuumSection.qml:67
+msgid "Pause"
+msgstr ""
+
+#: contents/ui/components/EntityState.qml:66
+#: contents/ui/details/sections/MediaPlayerSection.qml:79
+msgid "Play"
+msgstr ""
+
+#: contents/ui/details/DeviceDetailsPage.qml:318
+msgid "Back"
+msgstr ""
+
+#: contents/ui/details/DeviceDetailsPage.qml:337
+msgid "Device"
+msgstr ""
+
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:32
+msgid "SECURITY & ALARM SYSTEM"
+msgstr ""
+
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:48
+msgid "ALARM TRIGGERED!"
+msgstr ""
+
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:49
+msgid "Armed Home"
+msgstr ""
+
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:50
+msgid "Armed Away"
+msgstr ""
+
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:51
+msgid "Armed Night"
+msgstr ""
+
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:52
+msgid "Arming delay..."
+msgstr ""
+
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:84
+msgid "Night"
+msgstr ""
+
+#: contents/ui/details/sections/AlarmControlPanelSection.qml:92
+msgid "Disarm"
+msgstr ""
+
+#: contents/ui/details/sections/BinarySensorSection.qml:43
+msgid "SENSOR STATE"
+msgstr ""
+
+#: contents/ui/details/sections/BinarySensorSection.qml:90
+#: contents/ui/details/sections/SwitchSection.qml:62
+msgid "In this state for %1"
+msgstr ""
+
+#: contents/ui/details/sections/BinarySensorSection.qml:90
+#: contents/ui/details/sections/SwitchSection.qml:62
+msgid "Status is current"
+msgstr ""
+
+#: contents/ui/details/sections/BinarySensorSection.qml:116
+msgid "ACTIVITY & EVENTS"
+msgstr ""
+
+#: contents/ui/details/sections/BinarySensorSection.qml:124
+msgid "Today: %1"
+msgstr ""
+
+#: contents/ui/details/sections/BinarySensorSection.qml:134
+msgid "Last state change:"
+msgstr ""
+
+#: contents/ui/details/sections/BinarySensorSection.qml:174
+msgid "Lasted %1"
+msgstr ""
+
+#: contents/ui/details/sections/CameraSection.qml:35
+msgid "SURVEILLANCE CAMERA"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:31
+msgid "INDOOR CLIMATE"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:63
+msgid "Hot"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:64
+msgid "Cool"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:65
+msgid "Comfortable"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:92
+msgid "Humid"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:94
+msgid "Normal humidity"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:135
+msgid "Min Temp (24h)"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:147
+msgid "Avg Temp (24h)"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:159
+msgid "Max Temp (24h)"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:191
+msgid "Min Humidity"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:203
+msgid "Avg Humidity"
+msgstr ""
+
+#: contents/ui/details/sections/ClimateSensorSection.qml:215
+msgid "Max Humidity"
+msgstr ""
+
+#: contents/ui/details/sections/CoverSection.qml:32
+msgid "POSITION & CONTROL"
+msgstr ""
+
+#: contents/ui/details/sections/CoverSection.qml:66
+msgid "Stop"
+msgstr ""
+
+#: contents/ui/details/sections/DeviceInfoSection.qml:40
+msgid "Device Info & Entities (%1)"
+msgstr ""
+
+#: contents/ui/details/sections/DeviceInfoSection.qml:62
+msgid "Manufacturer:"
+msgstr ""
+
+#: contents/ui/details/sections/DeviceInfoSection.qml:63
+msgid "Model:"
+msgstr ""
+
+#: contents/ui/details/sections/DeviceInfoSection.qml:64
+msgid "Firmware:"
+msgstr ""
+
+#: contents/ui/details/sections/DeviceOptionsSection.qml:41
+msgid "Parameters & Options (%1)"
+msgstr ""
+
+#: contents/ui/details/sections/DeviceOptionsSection.qml:93
+msgid "Execute"
+msgstr ""
+
+#: contents/ui/details/sections/FanSection.qml:32
+msgid "SPEED & MODES"
+msgstr ""
+
+#: contents/ui/details/sections/FanSection.qml:73
+msgid "Oscillation mode"
+msgstr ""
+
+#: contents/ui/details/sections/GenericSection.qml:23
+msgid "CURRENT STATE"
+msgstr ""
+
+#: contents/ui/details/sections/HumidifierSection.qml:32
+msgid "HUMIDIFICATION"
+msgstr ""
+
+#: contents/ui/details/sections/HumidifierSection.qml:47
+msgid "Target humidity: "
+msgstr ""
+
+#: contents/ui/details/sections/LawnMowerSection.qml:32
+msgid "ROBOTIC LAWN MOWER"
+msgstr ""
+
+#: contents/ui/details/sections/LawnMowerSection.qml:49
+msgid "Mowing lawn..."
+msgstr ""
+
+#: contents/ui/details/sections/LawnMowerSection.qml:52
+msgid "Mower error!"
+msgstr ""
+
+#: contents/ui/details/sections/LawnMowerSection.qml:66
+msgid "Mow"
+msgstr ""
+
+#: contents/ui/details/sections/LawnMowerSection.qml:78
+#: contents/ui/details/sections/VacuumSection.qml:79
+msgid "Dock"
+msgstr ""
+
+#: contents/ui/details/sections/LightSection.qml:102
+msgid "BRIGHTNESS & COLOR"
+msgstr ""
+
+#: contents/ui/details/sections/LightSection.qml:265
+msgid "White Temperature"
+msgstr ""
+
+#: contents/ui/details/sections/LightSection.qml:296
+msgid "Light Effect"
+msgstr ""
+
+#: contents/ui/details/sections/LockSection.qml:30
+msgid "SMART LOCK"
+msgstr ""
+
+#: contents/ui/details/sections/MediaPlayerSection.qml:34
+msgid "MEDIA & AUDIO"
+msgstr ""
+
+#: contents/ui/details/sections/PersonSection.qml:30
+msgid "PRESENCE STATUS"
+msgstr ""
+
+#: contents/ui/details/sections/PersonSection.qml:55
+msgid "Open in Map"
+msgstr ""
+
+#: contents/ui/details/sections/PlugSection.qml:30
+msgid "INSTANT POWER"
+msgstr ""
+
+#: contents/ui/details/sections/PlugSection.qml:104
+msgid "Plug is off"
+msgstr ""
+
+#: contents/ui/details/sections/PlugSection.qml:106
+msgid "Active load"
+msgstr ""
+
+#: contents/ui/details/sections/PlugSection.qml:106
+msgid "On • Standby mode"
+msgstr ""
+
+#: contents/ui/details/sections/PlugSection.qml:141
+msgid "Today"
+msgstr ""
+
+#: contents/ui/details/sections/PlugSection.qml:163
+msgid "This month"
+msgstr ""
+
+#: contents/ui/details/sections/PlugSection.qml:184
+msgid "Week: %1"
+msgstr ""
+
+#: contents/ui/details/sections/PlugSection.qml:185
+msgid "Total: %1"
+msgstr ""
+
+#: contents/ui/details/sections/PlugSection.qml:207
+msgid "7-Day History"
+msgstr ""
+
+#: contents/ui/details/sections/PlugSection.qml:208
+msgid "Max: %1 kWh"
+msgstr ""
+
+#: contents/ui/details/sections/SirenSection.qml:31
+msgid "ALARM SIREN"
+msgstr ""
+
+#: contents/ui/details/sections/SirenSection.qml:46
+msgid "SIREN ACTIVE!"
+msgstr ""
+
+#: contents/ui/details/sections/SirenSection.qml:46
+msgid "Siren off"
+msgstr ""
+
+#: contents/ui/details/sections/SirenSection.qml:54
+msgid "Turn Off Siren"
+msgstr ""
+
+#: contents/ui/details/sections/SirenSection.qml:54
+msgid "Turn On Siren"
+msgstr ""
+
+#: contents/ui/details/sections/SwitchSection.qml:30
+msgid "SWITCH / RELAY"
+msgstr ""
+
+#: contents/ui/details/sections/ThermostatSection.qml:21
+msgid "Auto"
+msgstr ""
+
+#: contents/ui/details/sections/ThermostatSection.qml:23
+msgid "Fan only"
+msgstr ""
+
+#: contents/ui/details/sections/ThermostatSection.qml:43
+msgid "TEMPERATURE MODE"
+msgstr ""
+
+#: contents/ui/details/sections/ThermostatSection.qml:52
+msgid "Room Temperature"
+msgstr ""
+
+#: contents/ui/details/sections/ThermostatSection.qml:92
+msgid "Operating Mode"
+msgstr ""
+
+#: contents/ui/details/sections/ThermostatSection.qml:122
+msgid "Fan Mode"
+msgstr ""
+
+#: contents/ui/details/sections/ThermostatSection.qml:137
+msgid "Swing Mode"
+msgstr ""
+
+#: contents/ui/details/sections/VacuumSection.qml:32
+msgid "CLEANING STATUS"
+msgstr ""
+
+#: contents/ui/details/sections/VacuumSection.qml:49
+msgid "Cleaning..."
+msgstr ""
+
+#: contents/ui/details/sections/VacuumSection.qml:51
+msgid "Returning to dock"
+msgstr ""
+
+#: contents/ui/details/sections/VacuumSection.qml:53
+msgid "Vacuum error!"
+msgstr ""
+
+#: contents/ui/details/sections/VacuumSection.qml:67
+msgid "Clean"
+msgstr ""
+
+#: contents/ui/details/sections/VacuumSection.qml:87
+msgid "Locate vacuum (sound)"
+msgstr ""
+
+#: contents/ui/details/sections/ValveSection.qml:33
+msgid "SHUTOFF VALVE (WATER / GAS)"
+msgstr ""
+
+#: contents/ui/details/sections/ValveSection.qml:48
+msgid "Valve open"
+msgstr ""
+
+#: contents/ui/details/sections/ValveSection.qml:48
+msgid "Fully closed"
+msgstr ""
+
+#: contents/ui/details/sections/WaterHeaterSection.qml:30
+msgid "WATER HEATER"
+msgstr ""
+
+#: contents/ui/details/sections/WaterHeaterSection.qml:49
+msgid "Current Temperature"
+msgstr ""
+
+#: contents/ui/details/sections/WeatherSection.qml:29
+msgid "WEATHER CONDITIONS"
+msgstr ""
+
+#: contents/ui/details/sections/WeatherSection.qml:56
+msgid "Humidity: %1%"
+msgstr ""
+
+#: contents/ui/details/sections/WeatherSection.qml:63
+msgid "Wind: %1 km/h"
+msgstr ""
+
+#: contents/ui/main.qml:32
+msgid "Connected · %1 entities"
+msgstr ""
+
+#: contents/ui/settings/ConfigFavorites.qml:12
+msgid "Favorite Devices"
+msgstr ""
+
+#: contents/ui/settings/ConfigFavorites.qml:195
+msgid "Please wait, loading data..."
+msgstr ""
+
+#: contents/ui/settings/ConfigFavorites.qml:203
+msgid "Connecting to Home Assistant..."
+msgstr ""
+
+#: contents/ui/settings/ConfigFavorites.qml:226
+msgid "Connection Error"
+msgstr ""
+
+#: contents/ui/settings/ConfigFavorites.qml:235
+msgid "Retry Connection"
+msgstr ""
+
+#: contents/ui/settings/ConfigFavorites.qml:256
+msgid "Search device by name or ID..."
+msgstr ""
+
+#: contents/ui/settings/ConfigFavorites.qml:274
+msgid "All (%1)"
+msgstr ""
+
+#: contents/ui/settings/ConfigFavorites.qml:277
+msgid "Favorites (%1)"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:50
+msgid "Home Assistant connection"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:56
+msgid "Home Assistant host / IP:"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:65
+msgid "Port:"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:74
+msgid "Secure connection:"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:75
+msgid "Use wss:// (HTTPS)"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:82
+msgid "Long-lived access token:"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:83
+msgid "Long-lived token (Profile → Security in Home Assistant)"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:92
+msgid "Auto-connect:"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:93
+msgid "Connect on startup"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:99
+msgid "Appearance"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:105
+msgid "Default view:"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:107
+#: contents/ui/views/HeaderView.qml:20
+msgid "Rows"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:108
+#: contents/ui/views/HeaderView.qml:21
+msgid "Tiles"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:109
+msgid "Cards (Liquid Glass)"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:124
+msgid "Corner radius:"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:147
+msgid "Background opacity:"
+msgstr ""
+
+#: contents/ui/settings/ConfigGeneral.qml:171
+msgid "Corner radius and opacity apply when the widget is on the desktop; in a panel, Plasma draws the popup frame. Colors always follow the system theme."
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:29
+msgid "Welcome to HA-Hub"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:37
+msgid "Select your Home Assistant server in local network:"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:58
+msgid "Searching for servers in network..."
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:70
+msgid "Found servers:"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:118
+msgid "No servers found in local network"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:125
+msgid "Retry Search"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:137
+msgid "Enter Host / IP manually"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:160
+msgid "Back to list"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:258
+msgid "Enter Long-Lived Access Token (eyJ...)"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:268
+msgid "Get token in HA Profile"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:283
+msgid "Use SSL (wss://)"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:288
+msgid "Cancel"
+msgstr ""
+
+#: contents/ui/views/AuthWizardView.qml:288
+msgid "Log In"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:49
+msgid "Favorites"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:50
+msgid "Lights"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:50
+msgid "Lights, plugs and switches"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:51
+msgid "Sensors"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:51
+msgid "Sensors and climate"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:52
+msgid "More"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:52
+msgid "Media, covers, locks, scenes and scripts"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:53
+msgid "All"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:53
+msgid "All visible entities"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:109
+msgid "Search by name, room or ID…"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:123
+msgid "All rooms"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:171
+msgid "No results for “%1”"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:172
+msgid "Nothing here in %1"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:173
+msgid "No favorites"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:174
+msgid "Loading…"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:175
+msgid "No entities in this category"
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:178
+msgid "Hover a device and click the star, or right-click it."
+msgstr ""
+
+#: contents/ui/views/DeviceListView.qml:184
+msgid "Browse all devices"
+msgstr ""
+
+#: contents/ui/views/HeaderView.qml:22
+msgid "Cards"
+msgstr ""
+
+#: contents/ui/views/HeaderView.qml:83
+msgid "%1 entity"
+msgid_plural "%1 entities"
+msgstr[0] ""
+msgstr[1] ""
+
+#: contents/ui/views/HeaderView.qml:95
+msgid "Reconnect"
+msgstr ""
+
+#: contents/ui/views/HeaderView.qml:106
+msgid "Search"
+msgstr ""
+
+#: contents/ui/views/HeaderView.qml:109
+msgid "Search (Esc to close)"
+msgstr ""
+
+#: contents/ui/views/HeaderView.qml:119
+msgid "View: %1"
+msgstr ""
+
+#: contents/ui/views/HeaderView.qml:144
+msgid "Settings"
+msgstr ""
