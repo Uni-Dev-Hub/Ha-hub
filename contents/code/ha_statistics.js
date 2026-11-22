@@ -79,14 +79,14 @@ function processClimateLTS(records, curVal, unit, deviceClass) {
 
 function processEnergyLTS(records, curVal, unit) {
     var u = unit ? " " + unit : " kWh";
-    // Localized short day names (system locale)
+    var dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     var days = [];
     var maxVal = 1.0;
 
     var today = new Date();
     for (var d = 6; d >= 0; d--) {
         var date = new Date(today.getTime() - d * 24 * 3600 * 1000);
-        var dayName = Qt.formatDate(date, "ddd");
+        var dayName = dayNames[date.getDay()];
         var dateStr = String(date.getDate()).padStart(2, "0") + "." + String(date.getMonth() + 1).padStart(2, "0");
         days.push({
             dayName: dayName,
