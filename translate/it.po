@@ -1,7 +1,7 @@
-# Italian translation of HA-Hub Revived.
+# Italian translation of HA-Hub.
 msgid ""
 msgstr ""
-"Project-Id-Version: HA-Hub Revived\n"
+"Project-Id-Version: HA-Hub\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-11-17 13:54+0100\n"
 "Language-Team: Italian\n"

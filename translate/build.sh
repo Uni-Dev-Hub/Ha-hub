@@ -16,7 +16,7 @@ DOMAIN="plasma_applet_${ID}"
 # 1. Template
 find contents -name '*.qml' -o -name '*.js' | sort > translate/.files
 xgettext --from-code=UTF-8 -C --no-wrap -ki18n:1 -ki18np:1,2 -ktr:1 \
-    --package-name="HA-Hub Revived" --package-version="$VERSION" \
+    --package-name="HA-Hub" --package-version="$VERSION" \
     -o translate/template.pot -f translate/.files 2>/dev/null
 rm -f translate/.files
 sed -i 's/^#, c-format$/#, kde-format/' translate/template.pot

@@ -17,16 +17,16 @@
             }
         ],
         "Category": "System Information",
-        "Description": "Control and monitor Home Assistant from KDE Plasma 6 (maintained fork of HA-Hub)",
-        "Description[it]": "Controlla e monitora Home Assistant da KDE Plasma 6 (fork mantenuto di HA-Hub)",
+        "Description": "Native Home Assistant monitoring and control widget for KDE Plasma 6",
+        "Description[it]": "Widget nativo per monitorare e controllare Home Assistant da KDE Plasma 6",
         "EnabledByDefault": true,
-        "Icon": "go-home",
-        "Id": "io.github.thepierlux.hahubrevived",
+        "Icon": "network-server-symbolic",
+        "Id": "org.kde.plasma.hahub",
         "License": "GPL-3.0-or-later",
-        "Name": "HA-Hub Revived",
+        "Name": "HA-Hub",
         "Version": "2.0.1",
-        "Website": "https://github.com/ThePierlux/ha-hub-revived",
-        "BugReportUrl": "https://github.com/ThePierlux/ha-hub-revived/issues"
+        "Website": "https://github.com/Uni-Dev-Hub/Ha-hub",
+        "BugReportUrl": "https://github.com/Uni-Dev-Hub/Ha-hub/issues"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-HasConfigurationInterface": true
