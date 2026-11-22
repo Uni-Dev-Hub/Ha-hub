@@ -1,16 +1,31 @@
 import QtQuick
 import QtQuick.Layouts
 import org.kde.plasma.components 3.0 as PlasmaComponents3
-import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
 
-PlasmaComponents3.ToolBar {
+Item {
     id: headerView
 
     property var fullRoot: null
     property var haManager: null
 
     signal configureRequested()
+    signal toggleSearchRequested()
+    signal viewModeSelected(string mode)
+
+    readonly property bool connected: haManager && haManager.isConnected
+    readonly property bool narrow: width < Kirigami.Units.gridUnit * 15
+
+    readonly property var viewModes: [
+        { mode: "rows",  icon: "rows",  label: i18n("Rows") },
+        { mode: "tiles", icon: "grid",  label: i18n("Tiles") },
+        { mode: "cards", icon: "cards", label: i18n("Cards") }
+    ]
+    readonly property var currentMode: {
+        var m = fullRoot ? fullRoot.viewMode : "rows";
+        for (var i = 0; i < viewModes.length; i++) if (viewModes[i].mode === m) return viewModes[i];
+        return viewModes[0];
+    }
 
     implicitHeight: rowLayout.implicitHeight + Kirigami.Units.smallSpacing * 2
 
@@ -18,77 +33,117 @@ PlasmaComponents3.ToolBar {
         id: rowLayout
         anchors.fill: parent
         anchors.leftMargin: Kirigami.Units.smallSpacing * 1.5
-        anchors.rightMargin: Kirigami.Units.smallSpacing * 1.5
-        spacing: Kirigami.Units.smallSpacing * 1.2
+        anchors.rightMargin: Kirigami.Units.smallSpacing
+        spacing: Kirigami.Units.smallSpacing
 
-        Kirigami.Icon {
-            source: haManager && haManager.isConnected ? "user-identity-symbolic" : "network-offline"
-            implicitWidth: Kirigami.Units.iconSizes.small * 1.1
-            implicitHeight: Kirigami.Units.iconSizes.small * 1.1
+        // Status dot with a soft halo; pulses while (re)connecting
+        Item {
+            implicitWidth: 14
+            implicitHeight: 14
+            Layout.alignment: Qt.AlignVCenter
+
+            Rectangle {
+                id: halo
+                anchors.centerIn: parent
+                width: 14; height: 14; radius: 7
+                color: dot.color
+                opacity: 0.25
+                SequentialAnimation on opacity {
+                    running: headerView.haManager && !headerView.connected
+                    loops: Animation.Infinite
+                    NumberAnimation { to: 0.05; duration: 700 }
+                    NumberAnimation { to: 0.35; duration: 700 }
+                    onRunningChanged: if (!running) halo.opacity = 0.25
+                }
+            }
+            Rectangle {
+                id: dot
+                anchors.centerIn: parent
+                width: 8; height: 8; radius: 4
+                color: headerView.connected ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.negativeTextColor
+            }
         }
 
         ColumnLayout {
-            spacing: 1
+            spacing: 0
             Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
 
-            RowLayout {
-                spacing: Kirigami.Units.smallSpacing
+            PlasmaComponents3.Label {
+                text: (haManager && haManager.serverName) ? haManager.serverName : "Home Assistant"
+                font.weight: Font.Bold
+                elide: Text.ElideRight
                 Layout.fillWidth: true
-
-                PlasmaComponents3.Label {
-                    text: haManager && haManager.isConnected ? fullRoot.greetingText : "Home Assistant"
-                    font.bold: true
-                    font.pointSize: Qt.application.font.pointSize * 0.95
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
-                }
-
-                Rectangle {
-                    implicitWidth: betaLabel.implicitWidth + 8
-                    implicitHeight: betaLabel.implicitHeight + 2
-                    radius: 4
-                    color: Qt.alpha(Kirigami.Theme.highlightColor, 0.18)
-                    border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.45)
-                    border.width: 1
-                    Layout.alignment: Qt.AlignVCenter
-
-                    PlasmaComponents3.ToolTip.visible: betaMouseArea.containsMouse
-                    PlasmaComponents3.ToolTip.text: i18n("HA-Hub v1.0-beta1 (Public Beta)")
-
-                    MouseArea {
-                        id: betaMouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                    }
-
-                    PlasmaComponents3.Label {
-                        id: betaLabel
-                        anchors.centerIn: parent
-                        text: "BETA 1"
-                        font.bold: true
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.70
-                        color: Kirigami.Theme.highlightColor
-                    }
-                }
             }
 
             PlasmaComponents3.Label {
                 text: {
                     if (!haManager) return i18n("Disconnected");
-                    if (!haManager.isConnected) return haManager.connectionStatus;
-                    return haManager.serverName + " • " + i18n("Connected");
+                    if (!haManager.isConnected) return haManager.connectionStatus || i18n("Disconnected");
+                    return i18np("%1 entity", "%1 entities", haManager.entityCount);
                 }
-                font.pointSize: Kirigami.Theme.smallFont.pointSize * 0.85
-                color: (haManager && haManager.isConnected) ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.disabledTextColor
+                font: Kirigami.Theme.smallFont
+                color: headerView.connected ? Kirigami.Theme.disabledTextColor : Kirigami.Theme.negativeTextColor
                 elide: Text.ElideRight
                 Layout.fillWidth: true
             }
         }
 
         PlasmaComponents3.ToolButton {
-            icon.name: "configure"
+            visible: haManager && !headerView.connected
+            icon.name: "view-refresh-symbolic"
+            text: i18n("Reconnect")
+            display: headerView.narrow ? PlasmaComponents3.AbstractButton.IconOnly : PlasmaComponents3.AbstractButton.TextBesideIcon
+            PlasmaComponents3.ToolTip.text: text
+            PlasmaComponents3.ToolTip.visible: hovered && headerView.narrow
+            onClicked: haManager.reconnect()
+        }
+
+        PlasmaComponents3.ToolButton {
+            visible: headerView.connected
+            icon.source: Qt.resolvedUrl("../../icons/search.svg")
+            display: PlasmaComponents3.AbstractButton.IconOnly
+            text: i18n("Search")
+            checkable: true
+            checked: fullRoot ? fullRoot.showSearchBar : false
+            PlasmaComponents3.ToolTip.text: i18n("Search (Esc to close)")
             PlasmaComponents3.ToolTip.visible: hovered
-            PlasmaComponents3.ToolTip.text: i18n("Settings")
+            onClicked: headerView.toggleSearchRequested()
+        }
+
+        PlasmaComponents3.ToolButton {
+            id: viewButton
+            visible: headerView.connected
+            icon.source: Qt.resolvedUrl("../../icons/" + headerView.currentMode.icon + ".svg")
+            display: PlasmaComponents3.AbstractButton.IconOnly
+            text: i18n("View: %1", headerView.currentMode.label)
+            down: viewMenu.opened || pressed
+            PlasmaComponents3.ToolTip.text: text
+            PlasmaComponents3.ToolTip.visible: hovered && !viewMenu.opened
+            onClicked: viewMenu.opened ? viewMenu.close() : viewMenu.popup(viewButton, 0, viewButton.height)
+
+            PlasmaComponents3.Menu {
+                id: viewMenu
+                Repeater {
+                    model: headerView.viewModes
+                    delegate: PlasmaComponents3.MenuItem {
+                        required property var modelData
+                        text: modelData.label
+                        icon.source: Qt.resolvedUrl("../../icons/" + modelData.icon + ".svg")
+                        checkable: true
+                        checked: headerView.currentMode.mode === modelData.mode
+                        onTriggered: headerView.viewModeSelected(modelData.mode)
+                    }
+                }
+            }
+        }
+
+        PlasmaComponents3.ToolButton {
+            icon.name: "configure"
+            display: PlasmaComponents3.AbstractButton.IconOnly
+            text: i18n("Settings")
+            PlasmaComponents3.ToolTip.text: text
+            PlasmaComponents3.ToolTip.visible: hovered
             onClicked: headerView.configureRequested()
         }
     }

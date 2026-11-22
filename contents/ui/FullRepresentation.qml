@@ -12,83 +12,76 @@ PlasmaComponents3.Page {
     property var haManager: null
     property string favoriteEntities: ""
     property string activeDetailEntityId: ""
+    property bool drawOwnBackground: false
 
-    readonly property bool showDashboardTab: (typeof Plasmoid !== "undefined" && Plasmoid && Plasmoid.configuration) ? (Plasmoid.configuration.showDashboard || false) : false
+    property bool showSearchBar: false
+    property string viewMode: Plasmoid.configuration.viewMode || "rows"
+    readonly property int cornerRadius: Plasmoid.configuration.cornerRadius
+    readonly property real backgroundOpacity: Plasmoid.configuration.backgroundOpacity / 100
 
     signal configureRequested()
 
-    readonly property real preferredPanelWidth: Math.round(Kirigami.Units.gridUnit * 22)
-    readonly property real preferredPanelHeight: Math.round(Kirigami.Units.gridUnit * 27)
+    // Small minimums: the widget can be shrunk freely on the desktop or in the popup
+    Layout.minimumWidth: Kirigami.Units.gridUnit * 10
+    Layout.minimumHeight: Kirigami.Units.gridUnit * 9
+    Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+    Layout.preferredHeight: Kirigami.Units.gridUnit * 24
 
-    width: preferredPanelWidth
-    height: preferredPanelHeight
-    implicitWidth: preferredPanelWidth
-    implicitHeight: preferredPanelHeight
+    padding: drawOwnBackground ? Kirigami.Units.smallSpacing * 1.5 : 0
+    topPadding: padding
+    Keys.onEscapePressed: {
+        if (activeDetailEntityId.length > 0) activeDetailEntityId = "";
+        else if (showSearchBar) showSearchBar = false;
+    }
 
-    Layout.minimumWidth: preferredPanelWidth
-    Layout.maximumWidth: preferredPanelWidth
-    Layout.minimumHeight: preferredPanelHeight
-    Layout.maximumHeight: preferredPanelHeight
+    function setViewMode(mode) {
+        fullRoot.viewMode = mode;
+        Plasmoid.configuration.viewMode = mode;
+    }
 
-    readonly property string userName: {
-        if (!haManager || !haManager.isConnected) return "";
-        var rev = haManager.entitiesRevision;
-        var keys = Object.keys(haManager.entities);
-        for (var i = 0; i < keys.length; i++) {
-            if (keys[i].startsWith("person.")) {
-                var p = haManager.entities[keys[i]];
-                if (p && p.attributes && p.attributes.friendly_name) {
-                    return p.attributes.friendly_name;
-                }
+    background: Item {
+        visible: fullRoot.drawOwnBackground
+
+        Rectangle {
+            id: bgBody
+            anchors.fill: parent
+            radius: fullRoot.cornerRadius
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: Qt.alpha(Kirigami.Theme.backgroundColor, Math.min(1, fullRoot.backgroundOpacity + 0.06)) }
+                GradientStop { position: 1.0; color: Qt.alpha(Kirigami.Theme.backgroundColor, fullRoot.backgroundOpacity) }
+            }
+            border.width: 1
+            border.color: Qt.alpha(Kirigami.Theme.textColor, 0.12)
+        }
+        // Glass sheen
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 1
+            anchors.bottomMargin: parent.height * 0.6
+            radius: fullRoot.cornerRadius - 1
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.06) }
+                GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0.0) }
             }
         }
-        return "";
     }
 
-    readonly property string greetingText: {
-        var hour = new Date().getHours();
-        var greeting = i18n("Welcome");
-        if (hour >= 5 && hour < 12) { greeting = i18n("Good morning"); }
-        else if (hour >= 12 && hour < 18) { greeting = i18n("Good afternoon"); }
-        else if (hour >= 18 && hour < 23) { greeting = i18n("Good evening"); }
-        else { greeting = i18n("Good night"); }
-        return fullRoot.userName.length > 0 ? (greeting + ", " + fullRoot.userName + "!") : (greeting + "!");
-    }
-
-    padding: Kirigami.Units.smallSpacing * 1.5
-
-    header: ColumnLayout {
-        spacing: 0
+    header: Views.HeaderView {
         visible: fullRoot.activeDetailEntityId.length === 0
-
-        Views.HeaderView {
-            fullRoot: fullRoot
-            haManager: fullRoot.haManager
-            Layout.fillWidth: true
-            onConfigureRequested: fullRoot.configureRequested()
-        }
-
-        PlasmaComponents3.TabBar {
-            id: mainTabBar
-            visible: haManager && haManager.isConnected && fullRoot.showDashboardTab
-            Layout.fillWidth: true
-
-            PlasmaComponents3.TabButton {
-                text: i18n("Dashboard")
-                icon.name: "view-grid-symbolic"
-            }
-
-            PlasmaComponents3.TabButton {
-                text: i18n("Favorites")
-                icon.name: "starred-symbolic"
-            }
-        }
+        fullRoot: fullRoot
+        haManager: fullRoot.haManager
+        onConfigureRequested: fullRoot.configureRequested()
+        onToggleSearchRequested: fullRoot.showSearchBar = !fullRoot.showSearchBar
+        onViewModeSelected: function(mode) { fullRoot.setViewMode(mode); }
     }
 
     Loader {
         anchors.fill: parent
+        anchors.topMargin: Kirigami.Units.smallSpacing
         sourceComponent: {
-            if (!haManager || !haManager.isConnected) return authWizardComp;
+            // Keep the device list visible while reconnecting if we already have data
+            var hasData = haManager && haManager.allEntitiesList && haManager.allEntitiesList.length > 0;
+            if (!haManager || (!haManager.isConnected && !hasData)) return authWizardComp;
             if (fullRoot.activeDetailEntityId.length > 0) return detailsPageComp;
             return deviceViewComp;
         }
@@ -108,12 +101,13 @@ PlasmaComponents3.Page {
         Views.DeviceListView {
             haManager: fullRoot.haManager
             favoriteEntities: fullRoot.favoriteEntities
-            activeTab: fullRoot.showDashboardTab ? mainTabBar.currentIndex : 1
-            showDashboardTab: fullRoot.showDashboardTab
+            showSearchBar: fullRoot.showSearchBar
+            viewMode: fullRoot.viewMode
+            cornerRadius: fullRoot.cornerRadius
+            enabled: fullRoot.haManager && fullRoot.haManager.isConnected
+            opacity: enabled ? 1 : 0.55
             onConfigureRequested: fullRoot.configureRequested()
-            onOpenDetailsRequested: function(entId) {
-                fullRoot.activeDetailEntityId = entId;
-            }
+            onOpenDetailsRequested: function(entId) { fullRoot.activeDetailEntityId = entId; }
         }
     }
 
