@@ -3,30 +3,21 @@
     "KPlugin": {
         "Authors": [
             {
-                "Name": "Oleksandr Afanasiev",
-                "Email": "unidevhub@gmail.com"
-            },
-            {
-                "Name": "ThePierlux",
-                "Webpage": "https://github.com/ThePierlux"
-            },
-            {
-                "Name": "Claude (Anthropic)",
-                "Email": "noreply@anthropic.com",
-                "Webpage": "https://claude.com/claude-code"
+                "Email": "unidevhub@gmail.com",
+                "Name": "Oleksandr Afanasiev"
             }
         ],
         "Category": "System Information",
-        "Description": "Control and monitor Home Assistant from KDE Plasma 6 (maintained fork of HA-Hub)",
-        "Description[it]": "Controlla e monitora Home Assistant da KDE Plasma 6 (fork mantenuto di HA-Hub)",
+        "Description": "Native Home Assistant monitoring and control widget for KDE Plasma 6",
         "EnabledByDefault": true,
-        "Icon": "go-home",
-        "Id": "io.github.thepierlux.hahubrevived",
+        "Icon": "network-server-symbolic",
+        "Id": "org.kde.plasma.hahub",
         "License": "GPL-3.0-or-later",
-        "Name": "HA-Hub Revived",
-        "Version": "2.0.1",
-        "Website": "https://github.com/ThePierlux/ha-hub-revived",
-        "BugReportUrl": "https://github.com/ThePierlux/ha-hub-revived/issues"
+        "Name": "HA-Hub",
+        "Version": "1.0.0-beta1",
+        "Website": "https://github.com/Uni-Dev-Hub/HA-hub",
+        "X-Plasma-API-Minimum-Version": "6.0",
+        "X-Plasma-HasConfigurationInterface": true
     },
     "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-HasConfigurationInterface": true
