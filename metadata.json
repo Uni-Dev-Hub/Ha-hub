@@ -3,21 +3,30 @@
     "KPlugin": {
         "Authors": [
             {
-                "Email": "unidevhub@gmail.com",
-                "Name": "Oleksandr Afanasiev"
+                "Name": "Oleksandr Afanasiev",
+                "Email": "unidevhub@gmail.com"
+            },
+            {
+                "Name": "ThePierlux",
+                "Webpage": "https://github.com/ThePierlux"
+            },
+            {
+                "Name": "Claude (Anthropic)",
+                "Email": "noreply@anthropic.com",
+                "Webpage": "https://claude.com/claude-code"
             }
         ],
         "Category": "System Information",
         "Description": "Native Home Assistant monitoring and control widget for KDE Plasma 6",
+        "Description[it]": "Widget nativo per monitorare e controllare Home Assistant da KDE Plasma 6",
         "EnabledByDefault": true,
         "Icon": "network-server-symbolic",
         "Id": "org.kde.plasma.hahub",
         "License": "GPL-3.0-or-later",
         "Name": "HA-Hub",
-        "Version": "1.0.0-beta1",
-        "Website": "https://github.com/Uni-Dev-Hub/HA-hub",
-        "X-Plasma-API-Minimum-Version": "6.0",
-        "X-Plasma-HasConfigurationInterface": true
+        "Version": "1.1.0-beta1",
+        "Website": "https://github.com/Uni-Dev-Hub/Ha-hub",
+        "BugReportUrl": "https://github.com/Uni-Dev-Hub/Ha-hub/issues"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-HasConfigurationInterface": true

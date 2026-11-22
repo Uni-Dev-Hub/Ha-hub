@@ -4,7 +4,7 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 
 ![KDE Plasma 6](https://img.shields.io/badge/KDE_Plasma-6.0+-blue?logo=kde)
 ![License](https://img.shields.io/badge/License-GPL--3.0-green)
-![Version](https://img.shields.io/badge/Version-1.0.0--beta1-orange)
+![Version](https://img.shields.io/badge/Version-1.1.0--beta1-orange)
 
 ---
 
@@ -21,6 +21,7 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
   <img width="280" alt="HA-Hub Settings General" src="https://github.com/user-attachments/assets/ffc361a8-d30f-4d45-a466-ae91b26eac96" />
   <img width="280" alt="HA-Hub Settings Favorites" src="https://github.com/user-attachments/assets/c8aad2e4-d256-4ff5-84a3-ea3b89caad83" />
 </p>
+
 ---
 
 ## Features
@@ -38,8 +39,40 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
   - **Valves & Water Heaters:** Shutoff valves (water/gas) and boiler temperature settings.
   - **Presence & Sensors:** Person location tracking (with OpenStreetMap links) and binary sensors.
 - **Favorite Devices Manager:** Simple search, filtering, and custom ordering for your pinned devices.
+- **Three views:** compact rows, tiles and Liquid Glass cards, with adjustable corner radius and background opacity.
 - **Native Look & Feel:** Seamless integration with your KDE color scheme and font settings using Kirigami and PlasmaComponents 3.0.
-- **Internationalization (i18n):** Clean base English interface ready for community translations.
+- **Internationalization (i18n):** Clean base English interface ready for community translations (Italian included).
+
+---
+
+## What's New in 1.1
+
+**Connection**
+- Fixed: after the first dropped connection the widget never reconnected (a stale
+  "manual disconnect" flag swallowed the close event).
+- Exponential back-off reconnect (3 s → 60 s) and a ping watchdog that detects dead sockets
+  after suspend or network changes (useful behind reverse proxies such as Cloudflare).
+- The device list stays visible (dimmed) while reconnecting.
+
+**Interface**
+- Three views: **Rows**, **Tiles** and **Liquid Glass cards**, selectable from the header.
+- Column count adapts to the widget width; the widget can be resized freely and made small.
+- Rounded corners (0–32 px) and background opacity, configurable, on the desktop.
+- Colors are derived entirely from the Plasma color scheme and follow theme changes live.
+- 49 bundled monochrome icons, so every entity type has an icon regardless of the icon theme.
+- Category tabs (Favorites, Lights, Sensors, More, All), search across all entities,
+  room filter, remembered tab.
+- Quick actions: click an entity icon to toggle it; buttons for covers, locks and media.
+- Diagnostic, configuration and hidden entities are filtered out of the lists; each entity
+  shows its own name instead of the shared device name.
+
+**Performance**
+- Lists are rebuilt only when the set of entities changes, not on every state update.
+- O(1) device lookups (relevant with hundreds of entities).
+
+**Translations**
+- English source strings; Italian translation included. New languages are welcome
+  (see below).
 
 ---
 
@@ -47,16 +80,28 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 
 ### Manual Installation (.plasmoid)
 
-1. Download the latest `org.kde.plasma.hahub-1.0.0-beta1.plasmoid` from the [Releases](https://github.com/Uni-Dev-Hub/Ha-hub/releases) section.
+1. Download the latest `org.kde.plasma.hahub-1.1.0-beta1.plasmoid` from the [Releases](https://github.com/Uni-Dev-Hub/Ha-hub/releases) section.
 2. Install via terminal:
    
-   kpackagetool6 --type Plasma/Applet --install org.kde.plasma.hahub-1.0.0-beta1.plasmoid
-   
+   ```bash
+   kpackagetool6 --type Plasma/Applet --install org.kde.plasma.hahub-1.1.0-beta1.plasmoid
+   ```
 3. To update an existing installation:
 
-   kpackagetool6 --type Plasma/Applet --upgrade org.kde.plasma.hahub-1.0.0-beta1.plasmoid
+   ```bash
+   kpackagetool6 --type Plasma/Applet --upgrade org.kde.plasma.hahub-1.1.0-beta1.plasmoid
+   ```
 
+### From Source
 
+```bash
+git clone https://github.com/Uni-Dev-Hub/Ha-hub
+cd Ha-hub
+translate/build.sh    # compile translations
+kpackagetool6 --type Plasma/Applet --install .
+```
+
+Run `translate/build.sh --package` to build the `.plasmoid` archive.
 
 ## Configuration
 
@@ -67,11 +112,31 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 
 ---
 
+## Translating
+
+1. Copy `translate/template.pot` to `translate/<lang>.po` and translate it.
+2. Run `translate/build.sh` to compile it into the package.
+3. Open a pull request.
+
+---
+
 ## Feedback & Community
 
-The **Dashboard** tab is currently in active concept development. We welcome your feedback, feature requests, and ideas:
+HA-Hub is in beta and actively looking for feedback. We welcome your bug reports, feature requests, and ideas:
 - Open an issue or join discussions on [GitHub](https://github.com/Uni-Dev-Hub/Ha-hub).
 - Contact: `unidevhub@gmail.com`
+
+---
+
+## Contributors
+
+| | Role |
+|---|---|
+| [Oleksandr Afanasiev](https://github.com/Uni-Dev-Hub) | Author and maintainer |
+| [ThePierlux](https://github.com/ThePierlux) | 1.1 improvements: views, connection fixes, translations, testing |
+| Claude (Anthropic) | Code for the 1.1 improvements, via [Claude Code](https://claude.com/claude-code) |
+
+Contributions are welcome: open an issue or a pull request.
 
 ---
 
