@@ -1,112 +1,80 @@
-# HA-Hub Revived — Home Assistant widget for KDE Plasma 6
+# HA-Hub — Home Assistant Widget for KDE Plasma 6
 
-A maintained fork of [HA-Hub](https://github.com/Uni-Dev-Hub/HA-hub) by **Oleksandr Afanasiev**:
-control and monitor Home Assistant from your Plasma desktop or panel.
+Native, lightweight, and responsive Home Assistant monitoring and control widget for KDE Plasma 6.
 
 ![KDE Plasma 6](https://img.shields.io/badge/KDE_Plasma-6.0+-blue?logo=kde)
-![License](https://img.shields.io/badge/License-GPL--3.0--or--later-green)
-![Version](https://img.shields.io/badge/Version-2.0.1-orange)
-
-> **A note from the maintainer.** I really liked the idea behind HA-Hub, so I decided to improve
-> it for my own needs. I have no intention whatsoever of taking credit for the original
-> developer's work: this fork only aims to build on it and make it better. All the merit for
-> the idea and the foundations belongs to Oleksandr Afanasiev.
->
-> The original project has had no activity since its first release, so the improvements live
-> here, under the same GPL-3.0 license. If upstream becomes active again, I'll gladly offer
-> these changes back.
+![License](https://img.shields.io/badge/License-GPL--3.0-green)
+![Version](https://img.shields.io/badge/Version-1.0.0--beta1-orange)
 
 ---
 
-## What's new in 2.0
+### Screenshots
 
-**Connection**
-- Fixed: after the first dropped connection the widget never reconnected (a stale
-  "manual disconnect" flag swallowed the close event).
-- Exponential back-off reconnect (3 s → 60 s) and a ping watchdog that detects dead sockets
-  after suspend or network changes (useful behind reverse proxies such as Cloudflare).
-- The device list stays visible (dimmed) while reconnecting.
+<p align="center">
+  <img width="210" alt="HA-Hub Popup View" src="https://github.com/user-attachments/assets/23826770-ce20-466e-ad63-0421a8927f5c" />
+  <img width="210" alt="HA-Hub Device Details" src="https://github.com/user-attachments/assets/9a61e33b-2241-4a1c-8127-e6b2213882fc" />
+  <img width="210" alt="HA-Hub Thermostat Control" src="https://github.com/user-attachments/assets/2b872fd8-5e2b-4cdc-8a7e-48aa68bf5d57" />
+  <img width="210" alt="HA-Hub Light Controls" src="https://github.com/user-attachments/assets/2418c94e-3440-4aab-ad3e-f041aa71320b" />
+</p>
 
-**Interface**
-- Three views: **Rows**, **Tiles** and **Liquid Glass cards**, selectable from the header.
-- Column count adapts to the widget width; the widget can be resized freely and made small.
-- Rounded corners (0–32 px) and background opacity, configurable, on the desktop.
-- Colors are derived entirely from the Plasma color scheme and follow theme changes live.
-- 49 bundled monochrome icons, so every entity type has an icon regardless of the icon theme.
-- Category tabs (Favorites, Lights, Sensors, More, All), search across all entities,
-  room filter, remembered tab.
-- Quick actions: click an entity icon to toggle it; buttons for covers, locks and media.
-- Diagnostic, configuration and hidden entities are filtered out of the lists; each entity
-  shows its own name instead of the shared device name.
+<p align="center">
+  <img width="280" alt="HA-Hub Settings General" src="https://github.com/user-attachments/assets/ffc361a8-d30f-4d45-a466-ae91b26eac96" />
+  <img width="280" alt="HA-Hub Settings Favorites" src="https://github.com/user-attachments/assets/c8aad2e4-d256-4ff5-84a3-ea3b89caad83" />
+</p>
+---
 
-**Performance**
-- Lists are rebuilt only when the set of entities changes, not on every state update.
-- O(1) device lookups (relevant with hundreds of entities).
+## Features
 
-**Translations**
-- English source strings; Italian translation included. New languages are welcome
-  (see below).
+- **Real-Time WebSocket Sync:** Direct connection to Home Assistant WebSocket API with instantaneous two-way state updates and auto-reconnect.
+- **Local Network Auto-Discovery:** Automatically scans and detects Home Assistant instances on your LAN.
+- **Support for 15+ Device Domains:**
+  - **Lights:** Brightness adjustment, HSV color picker, Kelvin color temperature, and lighting effects.
+  - **Climate & Thermostats:** Target temperature, HVAC operating modes (Heat, Cool, Auto), fan and swing presets.
+  - **Power Plugs & Energy Monitoring:** Real-time wattage/current/voltage load, daily/monthly totals, and interactive 7-day consumption chart.
+  - **Security & Access:** Smart locks, alarm control panels, camera snapshot feeds, and alarm sirens.
+  - **Covers & Blinds:** Position slider and Open / Stop / Close controls.
+  - **Appliances:** Robot vacuums and robotic lawn mowers (Clean, Pause, Return to Dock, Locate).
+  - **Media Players:** Track info, volume control, mute, and playback transport buttons.
+  - **Valves & Water Heaters:** Shutoff valves (water/gas) and boiler temperature settings.
+  - **Presence & Sensors:** Person location tracking (with OpenStreetMap links) and binary sensors.
+- **Favorite Devices Manager:** Simple search, filtering, and custom ordering for your pinned devices.
+- **Native Look & Feel:** Seamless integration with your KDE color scheme and font settings using Kirigami and PlasmaComponents 3.0.
+- **Internationalization (i18n):** Clean base English interface ready for community translations.
 
 ---
 
 ## Installation
 
-### From the KDE Store
-*Get New Widgets…* → search for **HA-Hub Revived**.
+### Manual Installation (.plasmoid)
 
-### Manual
-```bash
-kpackagetool6 --type Plasma/Applet --install io.github.thepierlux.hahubrevived-2.0.1.plasmoid
-# update:
-kpackagetool6 --type Plasma/Applet --upgrade io.github.thepierlux.hahubrevived-2.0.1.plasmoid
-```
+1. Download the latest `org.kde.plasma.hahub-1.0.0-beta1.plasmoid` from the [Releases](https://github.com/Uni-Dev-Hub/Ha-hub/releases) section.
+2. Install via terminal:
+   
+   kpackagetool6 --type Plasma/Applet --install org.kde.plasma.hahub-1.0.0-beta1.plasmoid
+   
+3. To update an existing installation:
 
-### From source
-```bash
-git clone https://github.com/ThePierlux/ha-hub-revived
-cd ha-hub-revived
-translate/build.sh               # compile translations
-kpackagetool6 --type Plasma/Applet --install .
-```
+   kpackagetool6 --type Plasma/Applet --upgrade org.kde.plasma.hahub-1.0.0-beta1.plasmoid
 
-## Setup
-1. Add the widget, open its settings.
-2. Enter your Home Assistant host, port and whether to use SSL (`wss://`).
-3. Create a **long-lived access token** in Home Assistant (Profile → Security) and paste it.
 
-The token is stored in your local Plasma configuration only.
 
-## Translating
-1. Copy `translate/template.pot` to `translate/<lang>.po` and translate it.
-2. Run `translate/build.sh` to compile it into the package.
-3. Open a pull request.
+## Configuration
 
-Run `translate/build.sh --package` to build the `.plasmoid` archive.
+1. Add **HA-Hub** to your Plasma panel or desktop.
+2. In the setup wizard, select your discovered Home Assistant instance or enter your host IP (e.g., `homeassistant.local` or `192.168.1.100`) and port (default `8123`).
+3. Generate a **Long-Lived Access Token** in your Home Assistant user profile (`/profile/security`) and paste it into the widget settings.
+4. Pin your favorite devices in the **Favorite Devices** settings tab.
 
 ---
 
-## Credits
+## Feedback & Community
 
-- **Original author:** Oleksandr Afanasiev — [Uni-Dev-Hub/HA-hub](https://github.com/Uni-Dev-Hub/HA-hub).
-  The architecture, the Home Assistant WebSocket client, the device detail pages and the
-  favorites manager come from the original project. Its full history is preserved in this
-  repository.
-- **Fork maintainer:** [ThePierlux](https://github.com/ThePierlux).
-- **AI-assisted development:** the 2.0 rework (connection fixes, new views, icons,
-  performance work, translations) was written with **Claude** (Anthropic, Claude Opus 5.5
-  via Claude Code), after an earlier exploratory pass in Google Antigravity, and reviewed
-  and tested by the maintainer on a real Home Assistant setup.
+The **Dashboard** tab is currently in active concept development. We welcome your feedback, feature requests, and ideas:
+- Open an issue or join discussions on [GitHub](https://github.com/Uni-Dev-Hub/Ha-hub).
+- Contact: `unidevhub@gmail.com`
 
-## Contributors
-
-| | Role |
-|---|---|
-| [Oleksandr Afanasiev](https://github.com/Uni-Dev-Hub) | Original author of HA-Hub |
-| [ThePierlux](https://github.com/ThePierlux) | Fork maintainer, design direction, testing |
-| Claude (Anthropic) | Code for the 2.0 rework, via [Claude Code](https://claude.com/claude-code) |
-
-Contributions and translations are welcome.
+---
 
 ## License
 
-GPL-3.0-or-later, same as the original project. See [LICENSE](LICENSE).
+This project is licensed under the [GNU General Public License v3.0 or later](LICENSE).
