@@ -24,31 +24,15 @@ Item {
     Layout.minimumHeight: Kirigami.Units.iconSizes.small
 
     Kirigami.Icon {
-        anchors.fill: parent
-        anchors.margins: Math.round(compactRoot.sideLength * 0.12)
-        source: Qt.resolvedUrl("../icons/home.svg")
-        isMask: true
-        color: Kirigami.Theme.textColor
-        active: mouse.containsMouse
-        opacity: compactRoot.isOnline ? 1.0 : 0.5
-    }
-
-    // Small red dot when disconnected
-    Rectangle {
-        visible: !compactRoot.isOnline
-        width: Math.max(6, Math.round(compactRoot.sideLength * 0.25))
-        height: width
-        radius: width / 2
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.margins: Math.round(compactRoot.sideLength * 0.08)
-        color: Kirigami.Theme.negativeTextColor
+        anchors.centerIn: parent
+        source: compactRoot.isOnline ? "network-server-symbolic" : "network-offline"
+        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+        opacity: compactRoot.isOnline ? 1.0 : 0.6
     }
 
     MouseArea {
-        id: mouse
         anchors.fill: parent
-        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: compactRoot.clicked()
     }

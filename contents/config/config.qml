@@ -11,7 +11,12 @@ ConfigModel {
         source: "settings/ConfigGeneral.qml"
     }
     ConfigCategory {
-        name: i18n("Favorite devices")
+        name: i18n("Dashboard")
+        icon: "view-grid-symbolic"
+        source: "settings/ConfigDashboard.qml"
+    }
+    ConfigCategory {
+        name: i18n("Favorite Devices")
         icon: "starred-symbolic"
         source: "settings/ConfigFavorites.qml"
     }
