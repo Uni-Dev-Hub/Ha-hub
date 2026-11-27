@@ -6,6 +6,10 @@ Native, lightweight, and responsive Home Assistant monitoring and control widget
 ![License](https://img.shields.io/badge/License-GPL--3.0-green)
 ![Version](https://img.shields.io/badge/Version-1.1.0--beta1-orange)
 
+> [!NOTE]
+> **Community Notice:** This project is currently in active beta testing — your feedback, bug reports, and feature suggestions are very welcome!  
+> Please also note that development is based in Ukraine, so updates and responses may occasionally be delayed due to power outages caused by ongoing Russian aggression. Thank you for your patience and support.
+
 ---
 
 ### Screenshots
